@@ -1,4 +1,4 @@
-package com.KDT.mosi.web;
+package com.KDT.mosi.web.controller;
 
 import com.KDT.mosi.domain.entity.ProductImage;
 import com.KDT.mosi.domain.product.svc.ProductImageSVC;
