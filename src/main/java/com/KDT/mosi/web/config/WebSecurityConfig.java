@@ -1,5 +1,6 @@
 package com.KDT.mosi.web.config;
 
+import com.KDT.mosi.web.login.LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,40 +8,42 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 
-@RequiredArgsConstructor
 @Configuration
+@RequiredArgsConstructor
 public class WebSecurityConfig {
 
   private final UserDetailsService userDetailsService;
+  private final LoginSuccessHandler loginSuccessHandler; // ✅ 커스텀 로그인 성공 핸들러 주입
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .csrf(csrf -> csrf.disable())
-
         .formLogin(form -> form
-            .loginPage("/login")
-            .loginProcessingUrl("/login")
-            .defaultSuccessUrl("/", true)
+            .loginPage("/login")                      // 로그인 폼 경로
+            .loginProcessingUrl("/login")             // 로그인 처리 경로
+            .successHandler(loginSuccessHandler)      // ✅ 로그인 성공 핸들러 등록
             .permitAll()
         )
-
         .logout(logout -> logout
-            .logoutUrl("/login/logout")
-            .logoutSuccessUrl("/")
+            .logoutUrl("/login/logout")               // 로그아웃 처리 경로
+            .logoutSuccessUrl("/")                    // 로그아웃 후 이동 경로
         )
-
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/", "/login/**", "/members/**", "/find/**", "/css/**", "/js/**", "/img/**").permitAll()
+            .requestMatchers(
+                "/", "/login/**",
+                "/members/join", "/members/join/**",
+                "/members/emailCheck", "/members/nicknameCheck",  // ✅ 추가
+                "/find/**", "/css/**", "/js/**", "/img/**"
+            ).permitAll()
+            .requestMatchers("/members/*/delete").authenticated()
             .anyRequest().authenticated()
         )
 
         .exceptionHandling(ex -> ex
-            .accessDeniedPage("/error/403")
+            .accessDeniedPage("/error/403")           // 권한 오류 시 이동 페이지
         )
-
-        // 🔽 여기에 추가
-        .userDetailsService(userDetailsService);
+        .userDetailsService(userDetailsService);       // 사용자 정보 제공자
 
     return http.build();
   }

@@ -1,24 +1,68 @@
-<header>
-  <div class="container">
-    <div class="header-top">
-      <!-- ✅ 로그인 여부에 따른 분기 -->
-      <div class="user-login" th:if="${session.loginMember == null}">
+<!-- /templates/fragments/header.html -->
+<header th:fragment="header">
+  <!-- 최상단 로그인/회원가입 or 사용자 정보 -->
+  <div class="header-top-bar">
+    <div class="user-links">
+
+      <!-- 비로그인 상태 -->
+      <th:block th:if="${not #authorization.expression('isAuthenticated()')}">
         <a th:href="@{/login}">로그인</a>
         <a th:href="@{/members/join}">회원가입</a>
-      </div>
-      <div class="user-login" th:if="${session.loginMember != null}">
-        <span th:text="|${session.loginMember.nickname}님 환영합니다!|"></span>
-        <form th:action="@{/login/logout}" method="post" style="display:inline;">
-          <button type="submit" style="background:none; border:none; color:blue; cursor:pointer;">로그아웃</button>
-        </form>
-      </div>
+      </th:block>
 
-      <!-- 💡 공통 메뉴 -->
-      <div class="user-menu">
-        <a href="#"><i class="fa fa-heart"></i></a>
-        <a href="#"><i class="fa fa-user"></i></a>
-        <a href="#"><i class="fa fa-shopping-bag"></i></a>
-      </div>
+      <!-- 로그인 상태 -->
+      <th:block th:if="${#authorization.expression('isAuthenticated()')}">
+        <div class="user-logged-in">
+          <!-- 로그아웃 -->
+          <form th:action="@{/login/logout}" method="post" class="logout-form">
+            <button type="submit" class="logout-button">로그아웃</button>
+          </form>
+
+          <!-- 알림 -->
+          <a th:href="@{/notifications}" class="notification-link">
+            <i class="fa fa-bell"></i> <span class="noti-text">알림</span>
+          </a>
+        </div>
+      </th:block>
+
+
     </div>
   </div>
+
+  <!-- 로고, 검색창, 사용자 메뉴 -->
+  <div class="header-main">
+    <a th:href="@{/}" class="logo d-flex align-items-center">
+      <img th:src="@{/img/msi.png}" alt="MO:SI Icon" style="height:32px; margin-right:8px;">
+      <span>MO:SI</span>
+    </a>
+    <div class="search-box">
+      <input type="text" placeholder="검색어를 입력하세요.">
+      <button type="submit"><i class="fa fa-search"></i></button>
+    </div>
+    <div class="user-menu d-flex gap-3">
+      <a th:href="@{/wishlist}">
+        <i class="fas fa-heart"></i>
+        <span>관심상품</span>
+      </a>
+      <a th:href="@{/mypage/buyer}">
+        <i class="fas fa-user"></i>
+        <span>내 정보</span>
+      </a>
+      <a th:href="@{/cart}">
+        <i class="fas fa-shopping-bag"></i>
+        <span>장바구니</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 내비게이션 메뉴 -->
+  <nav class="header-nav">
+    <ul class="d-flex gap-4">
+      <li><a th:href="@{/menu}">전체메뉴</a></li>
+      <li><a th:href="@{/theme}">테마여행</a></li>
+      <li><a th:href="@{/community}">커뮤니티</a></li>
+      <li><a th:href="@{/air}">항공</a></li>
+      <li><a th:href="@{/hotel}">호텔</a></li>
+    </ul>
+  </nav>
 </header>

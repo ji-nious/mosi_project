@@ -1,9 +1,9 @@
 package com.KDT.mosi.web.controller;
 
 import com.KDT.mosi.domain.entity.BuyerPage;
+import com.KDT.mosi.domain.entity.Member;
 import com.KDT.mosi.domain.member.svc.MemberSVC;
 import com.KDT.mosi.domain.mypage.buyer.svc.BuyerPageSVC;
-import com.KDT.mosi.web.form.mypage.buyerpage.BuyerPageSaveForm;
 import com.KDT.mosi.web.form.mypage.buyerpage.BuyerPageUpdateForm;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,9 +36,15 @@ public class BuyerPageController {
   // 🔒 로그인한 회원 ID 가져오기
   private Long getLoginMemberId() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    String loginEmail = auth.getName();
-    return memberSVC.findByEmail(loginEmail).orElseThrow().getMemberId();
+    Object principal = auth.getPrincipal();
+
+    if (principal instanceof com.KDT.mosi.security.CustomUserDetails userDetails) {
+      return userDetails.getMember().getMemberId();
+    }
+
+    throw new IllegalStateException("로그인 사용자 정보를 확인할 수 없습니다.");
   }
+
 
   // ✅ 마이페이지 조회
   @GetMapping("/{memberId}")
@@ -47,62 +53,34 @@ public class BuyerPageController {
       return "error/403";
     }
 
-    return buyerPageSVC.findByMemberId(memberId)
-        .map(page -> {
-          model.addAttribute("buyerPage", page);
-          return "mypage/buyerpage/viewBuyerPage";
-        })
-        .orElse("redirect:/mypage/buyer/add");
-  }
+    Optional<Member> optionalMember = memberSVC.findById(memberId);
+    Optional<BuyerPage> optionalBuyerPage = buyerPageSVC.findByMemberId(memberId);
 
-  // ✅ 등록 폼
-  @GetMapping("/add")
-  public String addForm(Model model) {
-    Long loginMemberId = getLoginMemberId();
+    if (optionalMember.isPresent()) {
+      Member member = optionalMember.get();
+      model.addAttribute("member", member);
 
-    // 이미 등록된 경우, 수정 화면으로 유도
-    if (buyerPageSVC.findByMemberId(loginMemberId).isPresent()) {
-      return "redirect:/mypage/buyer/" + loginMemberId + "/edit";
-    }
+      if (optionalBuyerPage.isPresent()) {
+        BuyerPage page = optionalBuyerPage.get();
 
-    BuyerPageSaveForm form = new BuyerPageSaveForm();
-    form.setMemberId(loginMemberId);
-    model.addAttribute("form", form);
-    return "mypage/buyerpage/addBuyerPage";
-  }
+        // 🔽 필수 정보 매핑
+        page.setMemberId(member.getMemberId());
+        page.setTel(member.getTel());
 
+        // ✅ 닉네임도 member에서 가져와 세팅
+        page.setNickname(member.getNickname());  // 🔽 이 줄 추가
 
-  // ✅ 등록 처리
-  @PostMapping("/add")
-  public String add(@Valid @ModelAttribute("form") BuyerPageSaveForm form,
-                    BindingResult bindingResult) {
-    Long loginMemberId = getLoginMemberId();
-
-    if (!loginMemberId.equals(form.getMemberId())) {
-      return "error/403";
-    }
-
-    if (bindingResult.hasErrors()) {
-      return "mypage/buyerpage/addBuyerPage";
-    }
-
-    BuyerPage buyerPage = new BuyerPage();
-    buyerPage.setMemberId(form.getMemberId());
-    buyerPage.setIntro(form.getIntro());
-    buyerPage.setRecentOrder(form.getRecentOrder());
-    buyerPage.setPoint(form.getPoint());
-
-    if (form.getImageFile() != null && !form.getImageFile().isEmpty()) {
-      try {
-        buyerPage.setImage(form.getImageFile().getBytes());
-      } catch (IOException e) {
-        log.error("이미지 처리 실패", e);
+        model.addAttribute("buyerPage", page);
+        return "mypage/buyerpage/viewBuyerPage";
+      } else {
+        return "redirect:/mypage/buyer/" + memberId + "/edit";
       }
-    }
 
-    buyerPageSVC.create(buyerPage);
-    return "redirect:/mypage/buyer/" + form.getMemberId();
+    } else {
+      return "error/404";
+    }
   }
+
 
   // ✅ 프로필 이미지 조회
   @GetMapping("/{memberId}/image")
@@ -128,7 +106,7 @@ public class BuyerPageController {
     }
 
     return ResponseEntity.status(HttpStatus.FOUND)
-        .header(HttpHeaders.LOCATION, "/images/default-profile.png")
+        .header(HttpHeaders.LOCATION, "/img/default-profile.png")
         .build();
   }
 
@@ -139,26 +117,73 @@ public class BuyerPageController {
       return "error/403";
     }
 
+    // 🔽 member 정보도 조회
+    Optional<Member> optionalMember = memberSVC.findById(memberId);
+    if (optionalMember.isEmpty()) {
+      return "error/404";
+    }
+    Member member = optionalMember.get();
+
     return buyerPageSVC.findByMemberId(memberId)
         .map(entity -> {
           BuyerPageUpdateForm form = new BuyerPageUpdateForm();
           form.setPageId(entity.getPageId());
           form.setMemberId(entity.getMemberId());
-          form.setNickname(entity.getNickname());
           form.setIntro(entity.getIntro());
+
+          // 🔽 추가: member 정보로부터 nickname, tel 등 세팅
+          form.setNickname(member.getNickname());
+          form.setTel(member.getTel());
+          form.setName(member.getName());
+          form.setZonecode(member.getZonecode());
+          form.setAddress(member.getAddress());
+          form.setDetailAddress(member.getDetailAddress());
+          form.setNotification(member.getNotification());
+
 
           model.addAttribute("form", form);
           return "mypage/buyerpage/editBuyerPage";
         })
-        .orElse("redirect:/mypage/buyer/add");
+        .orElseGet(() -> {
+          // 마이페이지 정보가 없을 경우 새로 생성
+          BuyerPage newPage = new BuyerPage();
+          newPage.setMemberId(memberId);
+          Long pageId = buyerPageSVC.create(newPage);
+
+          BuyerPageUpdateForm form = new BuyerPageUpdateForm();
+          form.setPageId(pageId);
+          form.setMemberId(memberId);
+
+          // 🔽 추가: 새 폼에도 기본 member 정보 세팅
+          form.setNickname(member.getNickname());
+          form.setTel(member.getTel());
+          form.setName(member.getName());
+          form.setZonecode(member.getZonecode());
+          form.setAddress(member.getAddress());
+          form.setDetailAddress(member.getDetailAddress());
+          form.setNotification(member.getNotification());
+
+
+          model.addAttribute("form", form);
+          return "mypage/buyerpage/editBuyerPage";
+        });
   }
+
 
   // ✅ 수정 처리
   @PostMapping("/{memberId}")
-  public String update(@PathVariable Long memberId,
-                       @Valid @ModelAttribute("form") BuyerPageUpdateForm form,
-                       BindingResult bindingResult) {
-    if (!getLoginMemberId().equals(memberId)) {
+  public String update(
+      @PathVariable Long memberId,
+      @Valid @ModelAttribute("form") BuyerPageUpdateForm form,
+      BindingResult bindingResult) {
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    log.info("🔐 Authentication: {}", auth);
+    log.info("🔐 Principal: {}", auth.getPrincipal());
+
+    Long loginMemberId = getLoginMemberId();
+
+    if (!loginMemberId.equals(form.getMemberId())) {
       return "error/403";
     }
 
@@ -166,10 +191,26 @@ public class BuyerPageController {
       return "mypage/buyerpage/editBuyerPage";
     }
 
+    // 닉네임 중복 검사
+    String currentNickname = buyerPageSVC.findByMemberId(memberId)
+        .map(BuyerPage::getNickname)
+        .orElse(null);
+
+    String nickname = form.getNickname();
+
+    if (nickname != null && !nickname.equals(currentNickname)) {
+      if (memberSVC.isExistNickname(nickname)) {
+        bindingResult.rejectValue("nickname", "duplicate", "이미 사용 중인 닉네임입니다.");
+        return "mypage/buyerpage/editBuyerPage";
+      }
+    } else {
+      nickname = currentNickname;
+    }
+
     BuyerPage buyerPage = new BuyerPage();
     buyerPage.setPageId(form.getPageId());
     buyerPage.setMemberId(form.getMemberId());
-    buyerPage.setNickname(form.getNickname());
+    buyerPage.setNickname(nickname);
     buyerPage.setIntro(form.getIntro());
 
     if (form.getImageFile() != null && !form.getImageFile().isEmpty()) {
@@ -181,21 +222,39 @@ public class BuyerPageController {
     }
 
     buyerPageSVC.update(form.getPageId(), buyerPage);
+
+    Member member = new Member();
+    member.setMemberId(memberId);
+    member.setName(form.getName());
+    member.setTel(form.getTel());
+    member.setZonecode(form.getZonecode());
+    member.setAddress(form.getAddress());
+    member.setDetailAddress(form.getDetailAddress());
+
+
+    String noti = form.getNotification();
+    if (noti == null) {
+      noti = "N";
+    }
+    member.setNotification(noti);
+
+    if (form.getPasswd() != null && !form.getPasswd().trim().isEmpty()) {
+      member.setPasswd(form.getPasswd());
+    }
+
+    memberSVC.modify(memberId, member);
+
     return "redirect:/mypage/buyer/" + memberId;
   }
 
-  // ✅ 삭제 처리
-  @PostMapping("/{pageId}/del")
-  public String delete(@PathVariable Long pageId) {
+  // ✅ 기본 진입 시 로그인한 회원의 마이페이지로 리다이렉트
+  @GetMapping
+  public String buyerMypageHome(Model model) {
     Long loginMemberId = getLoginMemberId();
+    model.addAttribute("memberId", loginMemberId);
 
-    // 🔒 본인 확인: pageId → memberId 조회 후 비교
-    Optional<BuyerPage> optional = buyerPageSVC.findById(pageId);
-    if (optional.isEmpty() || !optional.get().getMemberId().equals(loginMemberId)) {
-      return "error/403";
-    }
+    memberSVC.findById(loginMemberId).ifPresent(member -> model.addAttribute("member", member));
 
-    buyerPageSVC.delete(pageId);
-    return "redirect:/";
+    return "mypage/buyerpage/buyerMypageHome";
   }
 }

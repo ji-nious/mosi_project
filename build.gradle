@@ -45,7 +45,7 @@ dependencies {
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	/******************************************/
 	implementation 'org.springframework.boot:spring-boot-starter-security'
-
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 }
 
 dependencyManagement {
@@ -57,9 +57,7 @@ dependencyManagement {
 tasks.named('test') {
 	useJUnitPlatform()
 }
-
 bootJar{ archivesBaseName = 'mosi'
 	archiveFileName = 'mosi.jar'
 	archiveVersion = '1.0.0'
 }
-

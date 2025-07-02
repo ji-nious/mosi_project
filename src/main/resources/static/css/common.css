@@ -1,15 +1,40 @@
-/*common.css*/
+/*========================*/
+/*         Basic          */
+/*========================*/
 
-/*========================*/
-/*         basic         */
-/*========================*/
 *,
 *::before,
 *::after {
-    margin: 0px;
-    padding: 0px;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
+
+html, body {
+  font-family: 'Pretendard', sans-serif;
+  overflow-x: hidden;       /* ✅ 수평 스크롤 제거 */
+  height: 100%;
+}
+
+/* ✅ 하단 고정 레이아웃 구성 */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;        /* 전체 높이 설정 */
+}
+
+/* ✅ 페이지 컨테이너 (본문 내용) */
+.page-container {
+  flex: 1;                  /* 남은 공간 채움 */
+  width: 1200px;
+  margin: 0 auto;
+  background-color: #fff;
+  padding-top: 200px;
+}
+
+/*========================*/
+/*        Elements        */
+/*========================*/
 
 button {
   background: none;
@@ -18,8 +43,9 @@ button {
   cursor: pointer;
   outline: inherit;
 }
+
 ul, ol {
-    list-style: none;
+  list-style: none;
 }
 
 a {
@@ -31,31 +57,77 @@ input:focus {
   outline: none;
 }
 
-
 /*========================*/
 /*         Header         */
 /*========================*/
 
+/* (필요시 header 스타일 작성) */
 
 /*========================*/
 /*      Category Menu     */
 /*========================*/
 
+/* (필요시 카테고리 메뉴 스타일 작성) */
 
 /*========================*/
-/*       Main Banner      */
+/*         Footer         */
 /*========================*/
 
+/* (footer 자체 스타일은 footer.css 분리 or 별도 작성) */
 
 /*========================*/
-/*         footer        */
+/*        Main Area       */
 /*========================*/
 
-
+/* (홈, 메인 전용 스타일은 필요 시 작성) */
 
 /*========================*/
-/*          Main          */
+/*         Buttons        */
 /*========================*/
 
+/* 공통 버튼 스타일 */
+.btn,
+.btn-small {
+  background: #0099AD;
+  color: #EBFCFF;
+  font-size: 0.875em;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  height: 40px;
+  transition: background 0.2s, color 0.2s;
+  cursor: pointer;
+}
 
+/* 기본 버튼 */
+.btn {
+  padding: 0 16px;
+}
 
+/* 작은 버튼 (중복확인, 우편번호 등) */
+.btn-small {
+  padding: 0 8px;
+}
+
+/* 호버 효과 */
+.btn:hover,
+.btn-small:hover {
+  background: #007C90;
+  color: #fff;
+}
+
+/* Bootstrap outline-secondary 예외처리 */
+.btn-outline-secondary {
+  background-color: transparent !important;
+  color: #0099AD !important;
+  border: 1px solid #0099AD !important;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 12px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #0099AD !important;
+  color: #fff !important;
+}

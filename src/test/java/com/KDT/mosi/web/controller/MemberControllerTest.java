@@ -3,6 +3,7 @@ package com.KDT.mosi.web.controller;
 import com.KDT.mosi.domain.entity.Member;
 import com.KDT.mosi.domain.member.dao.RoleDAO;
 import com.KDT.mosi.domain.member.svc.MemberSVC;
+import com.KDT.mosi.domain.mypage.buyer.svc.BuyerPageSVC;
 import com.KDT.mosi.domain.terms.svc.TermsSVC;
 import com.KDT.mosi.web.form.member.MemberEditForm;
 import com.KDT.mosi.web.form.member.MemberJoinForm;
@@ -37,6 +38,7 @@ class MemberControllerTest {
   private TermsSVC termsSVC;
   private BCryptPasswordEncoder encoder;
   private MemberController memberController;
+  private BuyerPageSVC buyerPageSVC;
 
   @BeforeEach
   void setUp() {
@@ -44,7 +46,8 @@ class MemberControllerTest {
     roleDAO = Mockito.mock(RoleDAO.class);
     termsSVC = Mockito.mock(TermsSVC.class);
     encoder = Mockito.mock(BCryptPasswordEncoder.class);
-    memberController = new MemberController(memberSVC, roleDAO, termsSVC, encoder);
+    buyerPageSVC    = Mockito.mock(BuyerPageSVC.class);
+    memberController = new MemberController(memberSVC, roleDAO, termsSVC, encoder,buyerPageSVC);
 
     // SecurityContext 인증 주입
     String testEmail = "test@mosi.com";
@@ -74,7 +77,7 @@ class MemberControllerTest {
     form.setEmail("test@mosi.com");
     form.setPasswd("1234");
     form.setConfirmPasswd("1234");
-
+    Model model = Mockito.mock(Model.class);
     BindingResult result = Mockito.mock(BindingResult.class);
     given(result.hasErrors()).willReturn(false);
 
@@ -86,7 +89,7 @@ class MemberControllerTest {
 
     HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 
-    String view = memberController.join(form, result, request);
+    String view = memberController.join(form, result, request, model);
 
     // 기대하는 리다이렉트 주소로 검증
     assertThat(view).isEqualTo("redirect:/members/100");
