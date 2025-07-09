@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>판매자 센터 - 대시보드</title>
+  <!-- 구글 폰트 적용 -->
+  <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet">
+  <th:block th:replace="~{fragments/common :: headFragment('판매자 대시보드')}"></th:block>
+  <style>
+    /* ===== Reset & Base ===== */
+    body {
+      margin: 0;
+      font-family: 'Inter', 'Cabin', sans-serif;
+      background-color: #FBF9EF;
+      color: #1E2203;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      box-sizing: border-box;
+      min-height: 100vh;
+    }
+
+    h1, h3 {
+      font-family: 'Cabin', sans-serif;
+      font-weight: 600;
+      color: #5a7247;
+    }
+
+    /* ===== Main Layout Wrappers ===== */
+    .dashboard-wrapper {
+        width: 100%;
+        max-width: 1024px;
+        margin: 0 auto;
+        padding-top: 60px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding: 0 10px;
+    }
+
+    .page-header h1 {
+        font-size: 1.8rem;
+        margin: 0;
+    }
+
+    .header-actions button {
+        padding: 9px 18px;
+        font-size: 0.95rem;
+        font-weight: bold;
+        border-radius: 8px;
+        border: 1.5px solid #658352;
+        background-color: #658352;
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-left: 10px;
+    }
+
+    .header-actions button:hover {
+        background-color: #526942;
+        border-color: #526942;
+    }
+
+    .dashboard-container {
+        width: 100%;
+        background-color: #fff;
+        padding: 24px;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+        box-sizing: border-box;
+    }
+
+    /* ===== Grid & Cards ===== */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 2.5fr;
+        gap: 24px;
+    }
+
+    .dashboard-card {
+        background: #f8f9fa;
+        padding: 24px;
+        border-radius: 12px;
+    }
+
+    .dashboard-card h3 {
+        margin-top: 0;
+        margin-bottom: 24px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e0e0e0;
+        font-size: 1.2rem;
+    }
+    
+    /* ===== Left Card: Sales Status ===== */
+    .sales-status {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .sales-status .count {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: #658352;
+        line-height: 1.2;
+    }
+
+    .sales-status .count-label {
+        font-size: 1rem;
+        color: #555;
+        margin-top: 8px;
+    }
+
+    /* ===== Right Card: Settlement Info ===== */
+    .settlement-graph {
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-end;
+        height: 160px;
+        border-bottom: 2px solid #e0e0e0;
+        padding: 0 10px 5px 10px;
+    }
+
+    .graph-bar {
+        width: 11%;
+        background-color: #94A687;
+        border-radius: 4px 4px 0 0;
+        position: relative;
+        text-align: center;
+        transition: background-color 0.2s;
+    }
+    .graph-bar:hover {
+        background-color: #7a8c70;
+    }
+
+    .graph-bar .label {
+        position: absolute;
+        bottom: -25px;
+        width: 100%;
+        left: 0;
+        font-size: 0.85rem;
+        color: #666;
+    }
+    
+    .settlement-details {
+        margin-top: 35px;
+        padding: 0 10px;
+    }
+    
+    .settlement-details .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 9px 0;
+        font-size: 1rem;
+    }
+    
+    .settlement-details .detail-item span {
+        color: #555;
+    }
+    
+    .settlement-details .detail-item strong {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #1E2203;
+    }
+
+    .settlement-total {
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid #e0e0e0;
+        text-align: right;
+        padding-right: 10px;
+    }
+    
+    .settlement-total span {
+        font-size: 1.05rem;
+        color: #333;
+    }
+
+    .settlement-total strong {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #1E2203;
+        margin-left: 12px;
+    }
+    
+    /* ===== Responsive ===== */
+    @media screen and (max-width: 768px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 공통 내비게이션 바 삽입 -->
+<div th:replace="~{fragments/common :: navbarFragment}"></div>
+
+<div class="dashboard-wrapper">
+    <header class="page-header">
+        <h1>판매자 센터</h1>
+        <div class="header-actions">
+            <button th:onclick="|location.href='@{/seller/products}'|">판매글 목록</button>
+            <button th:onclick="|location.href='@{/seller/products/new}'|">판매글 등록</button>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <div class="dashboard-grid">
+            <!-- 판매 현황 카드 -->
+            <div class="dashboard-card sales-status">
+                <h3>판매 현황</h3>
+                <div class="count" th:text="${totalOrderCount}">25</div>
+                <p class="count-label">총 주문 건수</p>
+            </div>
+
+            <!-- 주간 정산 현황 카드 -->
+            <div class="dashboard-card settlement-info">
+                <h3>주간 정산 현황</h3>
+                <div class="settlement-graph">
+                    <th:block th:if="${weeklyData != null and not #lists.isEmpty(weeklyData)}">
+                        <div th:each="data : ${weeklyData}" class="graph-bar" th:with="barHeight=${maxAmount > 0 ? (data.amount * 100 / maxAmount) : 0}" th:style="|height: ${barHeight}%;|">
+                            <span class="label" th:text="${data.date}"></span>
+                        </div>
+                    </th:block>
+                    <div th:if="${weeklyData == null or #lists.isEmpty(weeklyData)}" style="text-align:center; color:#888; width:100%; align-self:center;">
+                        주간 정산 데이터가 없습니다.
+                    </div>
+                </div>
+                
+                <div class="settlement-details">
+                    <div class="detail-item">
+                        <span>정산완료 금액</span>
+                        <strong th:text="|₩${#numbers.formatInteger(completedAmount, 0, 'COMMA')}|">₩0</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>정산중 금액</span>
+                        <strong th:text="|₩${#numbers.formatInteger(pendingAmount, 0, 'COMMA')}|">₩0</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>정산보류 금액</span>
+                        <strong th:text="|₩${#numbers.formatInteger(onHoldAmount, 0, 'COMMA')}|">₩0</strong>
+                    </div>
+                </div>
+
+                <div class="settlement-total">
+                    <span>이번 주 정산 금액:</span>
+                    <strong th:text="|₩${#numbers.formatInteger(weeklyTotalAmount, 0, 'COMMA')}|">₩0</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html> 

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<!--/* 
+[공통 HEAD FRAGMENT]
+- 모든 페이지에서 공통으로 사용할 head 구성입니다.
+- 사용법: <head th:replace="~{fragments/common :: headFragment('페이지 제목')}"></head>
+- 포함내용:
+  1. UTF-8 설정, Viewport 설정
+  2. Google Fonts (Cabin, Inter)
+  3. 모든 페이지에 적용될 공통 스타일(common.css)
+*/-->
+<head th:fragment="headFragment(pageTitle)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} + ' - 새싹마켓'">새싹마켓</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+</head>
+
+<body>
+
+<!--/* 
+[공통 NAVBAR FRAGMENT]
+- 모든 페이지 상단에 포함될 내비게이션 바입니다.
+- 사용법: <div th:replace="~{fragments/common :: navbarFragment}"></div>
+- 기능:
+  1. 로고 클릭 시 홈으로 이동
+  2. 로그인/비로그인 상태에 따라 다른 메뉴 표시
+  3. Thymeleaf와 Spring Security를 연동하여 인증 정보에 따라 동적으로 UI 변경
+*/-->
+<nav th:fragment="navbarFragment" class="navbar">
+    <div class="navbar-container">
+        <a th:href="@{/}" class="navbar-logo">
+            <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="홈으로">
+        </a>
+        <div class="navbar-menu">
+            <!--/* 비로그인 상태 메뉴 */-->
+            <div th:if="${session.loginMember == null}">
+                <a th:href="@{/select-login}" class="nav-button">로그인</a>
+                <a th:href="@{/select-signup}" class="nav-button primary">회원가입</a>
+            </div>
+
+            <!--/* 로그인 상태 메뉴 (구매자) */-->
+            <div th:if="${session.loginMember != null and session.userType == 'buyer'}" class="navbar-menu-group">
+                <a th:href="@{/buyer/info}" class="nav-item">마이페이지</a>
+                <a th:href="@{/buyer/cart}" class="nav-item">장바구니</a>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="nav-button">로그아웃</button>
+                </form>
+            </div>
+
+            <!--/* 로그인 상태 메뉴 (판매자) */-->
+            <div th:if="${session.loginMember != null and session.userType == 'seller'}" class="navbar-menu-group">
+                <a th:href="@{/seller/dashboard}" class="nav-item">판매자 대시보드</a>
+                 <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="nav-button">로그아웃</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+
+</body>
+</html> 

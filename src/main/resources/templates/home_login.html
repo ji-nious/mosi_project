@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- Google Fonts: Cabin, Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --dl-layout-size-large: 144px;
+      --dl-layout-size-small: 48px;
+      --dl-layout-space-unit: 16px;
+      --dl-layout-size-medium: 96px;
+      --dl-layout-size-xlarge: 192px;
+      --dl-layout-size-xsmall: 16px;
+      --dl-color-theme-accent1: #C9B9A2;
+      --dl-color-theme-accent2: #B7A976;
+      --dl-layout-radius-round: 50%;
+      --dl-layout-size-xxlarge: 288px;
+      --dl-color-theme-primary1: #658352;
+      --dl-color-theme-primary2: #94A687;
+      --dl-layout-size-maxwidth: 1400px;
+      --dl-layout-radius-radius4: 4px;
+      --dl-layout-radius-cardradius: 8px;
+      --dl-color-theme-neutral-dark: #1E2203;
+      --dl-color-theme-neutral-light: #FBF9EF;
+      --dl-color-theme-secondary2: #F5F4ED;
+      --dl-color-theme-secondary1: #E9E7DE;
+      --dl-layout-radius-imageradius: 8px;
+    }
+
+    body {
+      font-family: 'Inter', 'Cabin', sans-serif;
+      margin: 0;
+      color: var(--dl-color-theme-neutral-dark);
+      background: var(--dl-color-theme-neutral-light);
+    }
+
+    /* Navbar */
+    .navbar8-container1 {
+      top: 0;
+      width: 100%;
+      display: flex;
+      z-index: 1000;
+      position: sticky;
+      border-radius: var(--dl-layout-radius-radius4);
+      justify-content: center;
+      background: var(--dl-color-theme-neutral-light);
+      box-shadow: 0 2px 12px 0 rgba(0,0,0,0.06);
+    }
+    .navbar8-navbar-interactive {
+      width: 100%;
+      display: flex;
+      max-width: var(--dl-layout-size-maxwidth);
+      align-items: center;
+      padding: 24px 48px;
+      justify-content: space-between;
+      margin: 0 auto;
+    }
+    .navbar8-image1 {
+      height: 3rem;
+      border-radius: 8px;
+    }
+    .navbar8-links1 {
+      gap: 32px;
+      display: flex;
+      align-items: center;
+      margin-left: 32px;
+      flex-direction: row;
+      justify-content: flex-start;
+    }
+    .thq-link {
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--dl-color-theme-primary1);
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: color 0.2s;
+    }
+    .thq-link:hover {
+      color: var(--dl-color-theme-accent2);
+    }
+    .navbar8-buttons1 {
+      gap: 32px;
+      display: flex;
+      align-items: center;
+      flex-direction: row;
+    }
+    .thq-button-filled {
+      color: var(--dl-color-theme-secondary1);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      font-weight: bold;
+      padding: 10px 32px;
+      border: 1px solid var(--dl-color-theme-primary1);
+      border-radius: 24px;
+      background: var(--dl-color-theme-primary1);
+      font-size: 1rem;
+      transition: background .2s, color .2s;
+    }
+    .thq-button-filled:hover {
+      color: var(--dl-color-theme-secondary2);
+      background: var(--dl-color-theme-primary2);
+      border-color: var(--dl-color-theme-primary2);
+    }
+    .thq-button-outline {
+      color: var(--dl-color-theme-primary1);
+      border: 1px solid var(--dl-color-theme-primary1);
+      background: transparent;
+      border-radius: 24px;
+      font-weight: bold;
+      padding: 10px 32px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background .2s, color .2s;
+    }
+    .thq-button-outline:hover {
+      color: var(--dl-color-theme-secondary2);
+      background: var(--dl-color-theme-primary2);
+      border-color: var(--dl-color-theme-primary2);
+    }
+
+    /* Hero Section */
+    .hero17-header78 {
+      width: 100%;
+      display: flex;
+      position: relative;
+      align-items: center;
+      flex-direction: column;
+      background: var(--dl-color-theme-secondary2);
+      padding: 64px 0 48px 0;
+    }
+    .hero17-column {
+      gap: 24px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      max-width: var(--dl-layout-size-maxwidth);
+      margin: 0 auto;
+      padding-bottom: 16px;
+    }
+    .hero17-content1 {
+      gap: 24px;
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      margin-bottom: 18px;
+    }
+    .thq-heading-1 {
+      font-size: 42px;
+      font-family: Cabin;
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: -1px;
+      text-align: center;
+      margin: 0;
+    }
+    .thq-body-large {
+      font-size: 18px;
+      font-family: Cabin;
+      color: #333;
+      line-height: 1.6;
+      margin-bottom: 0;
+      text-align: center;
+    }
+    .hero17-actions {
+      gap: 16px;
+      display: flex;
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    /* Post Grid Section */
+    .posts-section {
+        width: 100%;
+        padding: 64px 48px;
+        background-color: var(--dl-color-theme-neutral-light);
+    }
+    .posts-container {
+        width: 100%;
+        max-width: var(--dl-layout-size-maxwidth);
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .posts-container h2 {
+        font-size: 32px;
+        font-family: 'Cabin', sans-serif;
+        font-weight: 700;
+        margin-bottom: 48px;
+    }
+    .posts-grid {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 32px;
+    }
+    .post-card {
+        text-decoration: none;
+        color: var(--dl-color-theme-neutral-dark);
+        display: flex;
+        flex-direction: column;
+    }
+    .post-card img {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        border-radius: var(--dl-layout-radius-cardradius);
+        margin-bottom: 16px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .post-card:hover img {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    }
+    .post-info {
+        padding: 8px 4px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .post-title {
+        font-size: 0.95rem;
+        font-weight: 500;
+        line-height: 1.4;
+        color: #333;
+        margin-bottom: 8px;
+        /* Allow multiple lines, but limit height */
+        height: 40px; /* approx 2 lines */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    .post-price {
+        margin-top: 4px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--dl-color-theme-neutral-dark);
+    }
+
+    @media(max-width: 991px) {
+      .hero17-header78 { padding: 48px 0 32px 0; }
+      .posts-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media(max-width: 767px) {
+      .navbar8-navbar-interactive { padding: 16px 16px;}
+      .posts-section { padding: 48px 16px; }
+      .posts-grid { gap: 16px; }
+    }
+    @media(max-width: 479px) {
+      .posts-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <header class="navbar8-container1">
+    <div class="navbar8-navbar-interactive">
+      <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="로고" class="navbar8-image1"/>
+      <!-- <nav class="navbar8-links1">
+        <a href="#" class="thq-link">홈</a>
+        <a href="#" class="thq-link">소개</a>
+        <a href="#" class="thq-link">커뮤니티</a>
+        <a href="#" class="thq-link">스토어</a>
+      </nav> -->
+      <div class="navbar8-buttons1">
+        <button class="thq-button-outline" th:onclick="|location.href='@{/mypage-home}'|">마이페이지</button>
+        <button class="thq-button-filled" th:onclick="|alert('로그아웃 되었습니다.'); location.href='home.html'">로그아웃</button>
+      </div>
+    </div>
+  </header>
+  <!-- Hero -->
+  <section class="hero17-header78">
+    <div class="hero17-column">
+      <div class="hero17-content1">
+        <h1 class="thq-heading-1">소비자에게 신뢰할 수 있는 고품질 농산물을 제공하는 직거래 온라인 플랫폼</h1>
+        <p class="thq-body-large">농사를 즐겁게, 소비를 이롭게</p>
+      </div>
+      <div class="hero17-actions">
+        <button class="thq-button-filled">회원 가입</button>
+        <button class="thq-button-outline">자세히 보기</button>
+      </div>
+    </div>
+  </section>
+  <!-- Posts Grid -->
+  <section class="posts-section">
+    <div class="posts-container">
+        <div class="posts-grid" id="postsGrid">
+            <!-- JS Renders Posts Here -->
+        </div>
+    </div>
+  </section>
+  <script>
+    // posts 데이터는 실제 API에서 받아오도록 교체 가능
+    // {id, title, imageUrl, price}
+    const posts = [
+      {id: 1, title: "청정 고랭지 양배추 1통", imageUrl: "https://images.unsplash.com/photo-1615484477735-a63cdece334e?auto=format&fit=crop&w=400&q=80", price: "5,500원"},
+      {id: 2, title: "아삭하고 달콤한 가을 무 1개", imageUrl: "https://images.unsplash.com/photo-1628773942337-13d8544a4923?auto=format&fit=crop&w=400&q=80", price: "3,000원"},
+      {id: 3, title: "유기농 시금치 1단", imageUrl: "https://images.unsplash.com/photo-1585848925575-35064c514757?auto=format&fit=crop&w=400&q=80", price: "4,000원"},
+      {id: 4, title: "신선한 로메인 상추 200g", imageUrl: "https://images.unsplash.com/photo-1505602324524-4a412433e59f?auto=format&fit=crop&w=400&q=80", price: "3,500원"},
+      {id: 5, title: "색깔별 파프리카 3종 세트", imageUrl: "https://images.unsplash.com/photo-1572362444983-5a2d61a72a1e?auto=format&fit=crop&w=400&q=80", price: "6,000원"},
+      {id: 6, title: "싱싱한 다다기 오이 3개입", imageUrl: "https://images.unsplash.com/photo-1559187383-8deb809e487a?auto=format&fit=crop&w=400&q=80", price: "4,200원"},
+      {id: 7, title: "통통한 애호박 1개", imageUrl: "https://images.unsplash.com/photo-1595453086918-b5728a8a3a93?auto=format&fit=crop&w=400&q=80", price: "2,800원"},
+      {id: 8, title: "햇 양파 1.5kg 한 망", imageUrl: "https://images.unsplash.com/photo-1508737385045-333facf4277b?auto=format&fit=crop&w=400&q=80", price: "5,900원"},
+      {id: 9, title: "국산 6쪽마늘 500g", imageUrl: "https://images.unsplash.com/photo-1598555768537-83f1e935932d?auto=format&fit=crop&w=400&q=80", price: "8,800원"},
+      {id: 10, title: "포슬포슬 햇 감자 1kg", imageUrl: "https://images.unsplash.com/photo-1597362942293-e1644c1f964c?auto=format&fit=crop&w=400&q=80", price: "6,500원"},
+      {id: 11, title: "꿀처럼 달콤한 호박고구마 1kg", imageUrl: "https://images.unsplash.com/photo-1586994191024-916c87dd2b75?auto=format&fit=crop&w=400&q=80", price: "9,900원"},
+      {id: 12, title: "신선 브로콜리 1송이", imageUrl: "https://images.unsplash.com/photo-1459411622445-44989e7ed8a8?auto=format&fit=crop&w=400&q=80", price: "3,700원"},
+      {id: 13, title: "산지직송 무농약 당근 1kg", imageUrl: "https://images.unsplash.com/photo-1582515072091-a73c155174a2?auto=format&fit=crop&w=400&q=80", price: "7,000원"},
+      {id: 14, title: "GAP 인증 부사 사과 2kg (5-6과)", imageUrl: "https://images.unsplash.com/photo-1579613832125-5d34a13ffe2a?auto=format&fit=crop&w=400&q=80", price: "15,000원"},
+      {id: 15, title: "고당도 샤인머스캣 1kg", imageUrl: "https://images.unsplash.com/photo-1596394516093-501c68a9ba8b?auto=format&fit=crop&w=400&q=80", price: "25,000원"},
+      {id: 16, title: "논산 설향 딸기 500g", imageUrl: "https://images.unsplash.com/photo-1588343444158-96898a97b282?auto=format&fit=crop&w=400&q=80", price: "18,000원"},
+      {id: 17, title: "제주산 하우스 감귤 2.5kg", imageUrl: "https://images.unsplash.com/photo-1547514701-42782101795e?auto=format&fit=crop&w=400&q=80", price: "16,000원"},
+      {id: 18, title: "아보카도 3개입", imageUrl: "https://images.unsplash.com/photo-1577962916954-99522648d882?auto=format&fit=crop&w=400&q=80", price: "7,500원"},
+      {id: 19, title: "국내산 블루베리 200g", imageUrl: "https://images.unsplash.com/photo-1534723452862-4c874018d66d?auto=format&fit=crop&w=400&q=80", price: "9,000원"},
+      {id: 20, title: "새송이 버섯 1봉", imageUrl: "https://images.unsplash.com/photo-1598191983085-b1712a20a661?auto=format&fit=crop&w=400&q=80", price: "2,500원"},
+      {id: 21, title: "무농약 대추방울토마토 500g", imageUrl: "https://images.unsplash.com/photo-1591991564032-4214c4a63a8a?auto=format&fit=crop&w=400&q=80", price: "8,500원"},
+      {id: 22, title: "강원도 찰옥수수 5개입", imageUrl: "https://images.unsplash.com/photo-1599229321354-944a2c0b7593?auto=format&fit=crop&w=400&q=80", price: "9,900원"},
+      {id: 23, title: "해남 포기김치 3kg", imageUrl: "https://images.unsplash.com/photo-1585501373499-e67332152841?auto=format&fit=crop&w=400&q=80", price: "29,000원"},
+      {id: 24, title: "완숙 토마토 1kg", imageUrl: "https://images.unsplash.com/photo-1582284540020-8acbe03f4924?auto=format&fit=crop&w=400&q=80", price: "11,000원"}
+    ];
+
+    function renderPostGrid(posts, gridElem) {
+        gridElem.innerHTML = posts.map(post => `
+            <a href="/board/${post.id}" class="post-card" title="${post.title}">
+                <img src="${post.imageUrl}" alt="${post.title}">
+                <div class="post-info">
+                    <p class="post-title">${post.title}</p>
+                    <p class="post-price">${post.price}</p>
+                </div>
+            </a>
+        `).join('');
+    }
+
+    const postsGrid = document.getElementById('postsGrid');
+    if (postsGrid) {
+        renderPostGrid(posts, postsGrid);
+    }
+  </script>
+</body>
+</html>

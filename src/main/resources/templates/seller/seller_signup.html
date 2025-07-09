@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <th:block th:replace="~{fragments/common :: headFragment('판매자 회원가입')}"></th:block>
+  <!-- <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" href="../../static/css/style.css" /> -->
+  <style>
+body {
+  background: #FBF9EF;
+  font-family: 'Inter', 'Cabin', sans-serif;
+}
+.page-title {
+  margin-bottom: 32px;
+  font-size: 2.1rem;
+  color: #658352;
+  text-align: center;
+  font-weight: 700;
+}
+.seller-form {
+  background: #fff;
+  max-width: 420px;
+  margin: 32px auto 0 auto;
+  padding: 36px 32px 28px 32px;
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.form-row {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+}
+.form-row label {
+  font-weight: bold;
+  color: #658352;
+  margin-bottom: 7px;
+  font-size: 1rem;
+}
+.seller-form input,
+.seller-form input[type='date'] {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+  background: #f9f9f9;
+  transition: border 0.2s;
+}
+.seller-form input:focus {
+  border: 1.5px solid #658352;
+  background: #fff;
+  outline: none;
+}
+.seller-form input[readonly] {
+  background: #f3f3f3 !important;
+  color: #888;
+  cursor: not-allowed;
+}
+#address[readonly] {
+  background: #fff !important;
+  color: #222;
+  cursor: pointer;
+}
+.postcode-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.postcode-group input {
+  flex: 1;
+}
+.postcode-group button {
+  width: auto;
+  min-width: 90px;
+  padding: 11px 16px;
+  font-size: 0.98rem;
+  background-color: #658352;
+  color: white;
+  border: 1px solid #658352;
+  border-radius: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.postcode-group button:hover {
+  background-color: #94A687;
+  border-color: #94A687;
+}
+.field-error {
+  color: #d32f2f;
+  font-size: 0.88rem;
+  padding-top: 4px;
+}
+.form-actions {
+  margin-top: 28px;
+  display: flex;
+  justify-content: center;
+}
+.submit-btn {
+  width: 100%;
+  padding: 13px 0;
+  font-size: 1.08rem;
+  border-radius: 24px;
+  border: 1.5px solid #658352;
+  background-color: #658352;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.submit-btn:hover {
+  background-color: #94A687;
+  border-color: #94A687;
+}
+@media (max-width: 600px) {
+  .seller-form {
+    padding: 18px 8px 18px 8px;
+    max-width: 98vw;
+  }
+}
+  </style>
+</head>
+<body>
+
+<!-- 공통 내비게이션 바 삽입 -->
+<div th:replace="~{fragments/common :: navbarFragment}"></div>
+
+<h2 class="page-title">판매자 회원가입</h2>
+
+<!-- 🛍️ 판매자 회원가입 폼 -->
+<form class="seller-form" th:action="@{/seller/signup}" th:object="${sellerSignupForm}" method="post" autocomplete="off">
+  <div class="form-row">
+    <label for="email">이메일</label>
+    <input type="email" id="email" th:field="*{email}" required />
+  </div>
+  <div class="form-row">
+    <label for="password">비밀번호</label>
+    <input type="password" id="password" th:field="*{password}" required />
+  </div>
+  <div class="form-row">
+    <label for="passwordConfirm">비밀번호 확인</label>
+    <input type="password" id="passwordConfirm" th:field="*{passwordConfirm}" required />
+  </div>
+  <div class="form-row">
+    <label for="businessNumber">사업자등록번호</label>
+    <input type="text" id="businessNumber" th:field="*{businessNumber}" required />
+  </div>
+  <div class="form-row">
+    <label for="storeName">상호명</label>
+    <input type="text" id="storeName" th:field="*{storeName}" required />
+  </div>
+  <div class="form-row">
+    <label for="name">이름</label>
+    <input type="text" id="name" th:field="*{name}" required />
+  </div>
+  <div class="form-row">
+    <label for="postcode">가게 우편번호</label>
+    <div class="postcode-group">
+      <input type="text" id="postcode" th:field="*{postcode}" readonly required />
+      <button type="button" id="searchPostcodeBtn">주소 검색</button>
+    </div>
+  </div>
+  <div class="form-row">
+    <label for="address">가게 주소</label>
+    <input type="text" id="address" th:field="*{address}" readonly required />
+  </div>
+  <div class="form-row">
+    <label for="detailAddress">가게 상세주소</label>
+    <input type="text" id="detailAddress" th:field="*{detailAddress}" required />
+  </div>
+  <div class="form-row">
+    <label for="tel">전화번호</label>
+    <input type="text" id="tel" th:field="*{tel}" required />
+  </div>
+  <div class="form-row">
+    <label for="birth">생년월일</label>
+    <input type="date" id="birth" th:field="*{birth}" required />
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="submit-btn">회원가입</button>
+  </div>
+</form>
+
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script>
+  document.getElementById('searchPostcodeBtn').addEventListener('click', function() {
+    new daum.Postcode({
+      oncomplete: function(data) {
+        document.getElementById('postcode').value = data.zonecode;
+        document.getElementById('address').value = data.roadAddress;
+        document.getElementById('detailAddress').focus();
+      }
+    }).open();
+  });
+</script>
+</body>
+</html>

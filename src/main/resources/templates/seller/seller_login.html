@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <th:block th:replace="~{fragments/common :: headFragment('판매자 로그인')}"></th:block>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" href="../../static/css/style.css" />
+</head>
+<body>
+
+<!-- 공통 내비게이션 바 삽입 -->
+<div th:replace="~{fragments/common :: navbarFragment}"></div>
+
+<h2 class="page-title">판매자 로그인</h2>
+
+<!-- 🛒 판매자 로그인 폼 -->
+<form class="seller-form" th:action="@{/seller/login}" method="post" th:object="${loginForm}">
+  <div th:if="${#fields.hasGlobalErrors()}">
+    <p class="field-error" th:each="err : ${#fields.globalErrors()}" th:text="${err}">글로벌 오류 메시지</p>
+  </div>
+  <!-- 이메일 -->
+  <div class="form-row">
+    <label for="email">이메일</label>
+    <div class="input-col">
+      <input type="email" id="email" name="email" placeholder="이메일 입력" required />
+    </div>
+  </div>
+
+  <!-- 비밀번호 -->
+  <div class="form-row">
+    <label for="password">비밀번호</label>
+    <div class="input-col">
+      <input type="password" id="password" name="password" placeholder="비밀번호 입력" required />
+    </div>
+  </div>
+
+  <!-- 로그인 버튼 -->
+  <button type="submit">로그인</button>
+</form>
+
+<script th:src="@{/js/common/message.js}"></script>
+<script th:src="@{/js/seller/seller_login.js}"></script>
+</body>
+</html>

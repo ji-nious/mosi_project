@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <th:block th:replace="~{fragments/common :: headFragment('구매자 회원가입')}"></th:block>
+  <!-- <link rel="stylesheet" th:href="@{/css/style.css}"> -->
+  <style>
+body {
+  background: #FBF9EF;
+  font-family: 'Inter', 'Cabin', sans-serif;
+}
+.page-title {
+  margin-bottom: 32px;
+  font-size: 2.1rem;
+  color: #658352;
+  text-align: center;
+  font-weight: 700;
+}
+.buyer-form {
+  background: #fff;
+  max-width: 420px;
+  margin: 32px auto 0 auto;
+  padding: 36px 32px 28px 32px;
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.form-row {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+}
+.form-row label {
+  font-weight: bold;
+  color: #658352;
+  margin-bottom: 7px;
+  font-size: 1rem;
+}
+.buyer-form input,
+.buyer-form select,
+.buyer-form input[type='date'] {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+  background: #f9f9f9;
+  transition: border 0.2s;
+}
+.buyer-form input:focus,
+.buyer-form select:focus {
+  border: 1.5px solid #658352;
+  background: #fff;
+  outline: none;
+}
+.buyer-form input[readonly] {
+  background: #f3f3f3 !important;
+  color: #888;
+  cursor: not-allowed;
+}
+#address[readonly] {
+  background: #fff !important;
+  color: #222;
+  cursor: pointer;
+}
+.postcode-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.postcode-group input {
+  flex: 1;
+}
+.postcode-group button {
+  width: auto;
+  min-width: 90px;
+  padding: 11px 16px;
+  font-size: 0.98rem;
+  background-color: #658352;
+  color: white;
+  border: 1px solid #658352;
+  border-radius: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.postcode-group button:hover {
+  background-color: #94A687;
+  border-color: #94A687;
+}
+.error-msg, .field-error {
+  color: #d32f2f;
+  font-size: 0.88rem;
+  padding-top: 4px;
+}
+.form-actions, .buyer-form button[type='submit'] {
+  margin-top: 28px;
+  display: flex;
+  justify-content: center;
+}
+.buyer-form button[type='submit'] {
+  width: 100%;
+  padding: 13px 0;
+  font-size: 1.08rem;
+  border-radius: 24px;
+  border: 1.5px solid #658352;
+  background-color: #658352;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.buyer-form button[type='submit']:hover {
+  background-color: #94A687;
+  border-color: #94A687;
+}
+@media (max-width: 600px) {
+  .buyer-form {
+    padding: 18px 8px 18px 8px;
+    max-width: 98vw;
+  }
+}
+  </style>
+</head>
+<body>
+
+<!-- 🏠 공통 내비게이션 바 삽입 -->
+<div th:replace="~{fragments/common :: navbarFragment}"></div>
+
+<h2 class="page-title">구매자 회원가입</h2>
+
+<!-- 👤 구매자 회원가입 폼 -->
+<form id="buyer-signup-form" class="buyer-form" th:action="@{/buyer/signup}" th:object="${buyerSignupForm}" method="post">
+  <!-- 이름 -->
+  <div class="form-row">
+    <label for="name">이름</label>
+    <div class="input-col">
+      <input type="text" id="name" th:field="*{name}" required />
+      <div class="error-msg" id="error-name" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+    </div>
+  </div>
+
+  <!-- 닉네임 -->
+  <div class="form-row">
+    <label for="nickname">닉네임</label>
+    <div class="input-col">
+      <input type="text" id="nickname" th:field="*{nickname}" required />
+      <div class="error-msg" id="error-nickname" th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}"></div>
+    </div>
+  </div>
+
+  <!-- 이메일 -->
+  <div class="form-row">
+    <label for="email">이메일</label>
+    <div class="input-col">
+      <input type="email" id="email" th:field="*{email}" required />
+      <div class="error-msg" id="error-email" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+    </div>
+  </div>
+
+  <!-- 비밀번호 -->
+  <div class="form-row">
+    <label for="password">비밀번호</label>
+    <div class="input-col">
+      <input type="password" id="password" th:field="*{password}" required />
+      <div class="error-msg" id="error-password" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+    </div>
+  </div>
+
+  <!-- 비밀번호 확인 -->
+  <div class="form-row">
+    <label for="password2">비밀번호 확인</label>
+    <div class="input-col">
+      <input type="password" id="password2" name="password2" required />
+      <div class="error-msg" id="error-password2"></div>
+    </div>
+  </div>
+
+  <!-- 전화번호 -->
+  <div class="form-row">
+    <label for="tel">전화번호</label>
+    <div class="input-col">
+      <input type="text" id="tel" th:field="*{tel}" maxlength="13" placeholder="010-1234-5678" required />
+      <div class="error-msg" id="error-tel" th:if="${#fields.hasErrors('tel')}" th:errors="*{tel}"></div>
+    </div>
+  </div>
+
+  <!-- 성별 -->
+  <div class="form-row">
+    <label for="gender">성별</label>
+    <div class="input-col">
+      <select id="gender" th:field="*{gender}" required>
+        <option value="">선택</option>
+        <option value="male">남성</option>
+        <option value="female">여성</option>
+      </select>
+      <div class="error-msg" id="error-gender" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}"></div>
+    </div>
+  </div>
+
+  <!-- 생년월일 -->
+  <div class="form-row">
+    <label for="birth">생년월일</label>
+    <div class="input-col">
+      <input type="date" id="birth" th:field="*{birth}" required />
+      <div class="error-msg" id="error-birth" th:if="${#fields.hasErrors('birth')}" th:errors="*{birth}"></div>
+    </div>
+  </div>
+
+  <!-- 주소 -->
+  <div class="form-row">
+    <label for="postcode">우편번호</label>
+    <div class="input-col">
+      <div class="postcode-group">
+        <input type="text" id="postcode" th:field="*{postcode}" readonly required />
+        <button type="button" id="searchPostcodeBtn">주소 검색</button>
+      </div>
+      <div class="error-msg" th:if="${#fields.hasErrors('postcode')}" th:errors="*{postcode}"></div>
+    </div>
+  </div>
+  <div class="form-row">
+    <label for="address">주소</label>
+    <div class="input-col">
+      <input type="text" id="address" th:field="*{address}" readonly required />
+      <div class="error-msg" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+    </div>
+  </div>
+  <div class="form-row">
+    <label for="detailAddress">상세주소</label>
+    <div class="input-col">
+      <input type="text" id="detailAddress" th:field="*{detailAddress}" placeholder="상세주소를 입력하세요" required />
+      <div class="error-msg" th:if="${#fields.hasErrors('detailAddress')}" th:errors="*{detailAddress}"></div>
+    </div>
+  </div>
+
+  <!-- ▶ 회원가입 버튼 -->
+  <button type="submit">회원가입</button>
+</form>
+
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script>
+document.getElementById('searchPostcodeBtn').addEventListener('click', function() {
+    new daum.Postcode({
+        oncomplete: function(data) {
+            document.getElementById('postcode').value = data.zonecode; // 우편번호
+            document.getElementById('address').value = data.roadAddress; // 도로명 주소
+            document.getElementById('detailAddress').focus(); // 상세주소로 포커스 이동
+        }
+    }).open();
+});
+</script>
+</body>
+</html>

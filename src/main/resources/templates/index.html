@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8" />
+  <title>home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- Google Fonts: Cabin, Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --dl-layout-size-large: 144px;
+      --dl-layout-size-small: 48px;
+      --dl-layout-space-unit: 16px;
+      --dl-layout-size-medium: 96px;
+      --dl-layout-size-xlarge: 192px;
+      --dl-layout-size-xsmall: 16px;
+      --dl-color-theme-accent1: #C9B9A2;
+      --dl-color-theme-accent2: #B7A976;
+      --dl-layout-radius-round: 50%;
+      --dl-layout-size-xxlarge: 288px;
+      --dl-color-theme-primary1: #658352;
+      --dl-color-theme-primary2: #94A687;
+      --dl-layout-size-maxwidth: 1400px;
+      --dl-layout-radius-radius4: 4px;
+      --dl-layout-radius-cardradius: 8px;
+      --dl-color-theme-neutral-dark: #1E2203;
+      --dl-color-theme-neutral-light: #FBF9EF;
+      --dl-color-theme-secondary2: #F5F4ED;
+      --dl-color-theme-secondary1: #E9E7DE;
+      --dl-layout-radius-imageradius: 8px;
+    }
+
+    body {
+      font-family: 'Inter', 'Cabin', sans-serif;
+      margin: 0;
+      color: var(--dl-color-theme-neutral-dark);
+      background: var(--dl-color-theme-neutral-light);
+    }
+
+    /* Navbar */
+    .navbar8-container1 {
+      top: 0;
+      width: 100%;
+      display: flex;
+      z-index: 1000;
+      position: sticky;
+      border-radius: var(--dl-layout-radius-radius4);
+      justify-content: center;
+      background: var(--dl-color-theme-neutral-light);
+      box-shadow: 0 2px 12px 0 rgba(0,0,0,0.06);
+    }
+    .navbar8-navbar-interactive {
+      width: 100%;
+      display: flex;
+      max-width: var(--dl-layout-size-maxwidth);
+      align-items: center;
+      padding: 24px 48px;
+      justify-content: space-between;
+      margin: 0 auto;
+    }
+    .navbar8-image1 {
+      height: 3rem;
+      border-radius: 8px;
+    }
+    .navbar8-links1 {
+      gap: 32px;
+      display: flex;
+      align-items: center;
+      margin-left: 32px;
+      flex-direction: row;
+      justify-content: flex-start;
+    }
+    .thq-link {
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--dl-color-theme-primary1);
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: color 0.2s;
+    }
+    .thq-link:hover {
+      color: var(--dl-color-theme-accent2);
+    }
+    .navbar8-buttons1 {
+      gap: 32px;
+      display: flex;
+      align-items: center;
+      flex-direction: row;
+    }
+    .thq-button-filled {
+      color: var(--dl-color-theme-secondary1);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      font-weight: bold;
+      padding: 10px 32px;
+      border: 1px solid var(--dl-color-theme-primary1);
+      border-radius: 24px;
+      background: var(--dl-color-theme-primary1);
+      font-size: 1rem;
+      transition: background .2s, color .2s;
+    }
+    .thq-button-filled:hover {
+      color: var(--dl-color-theme-secondary2);
+      background: var(--dl-color-theme-primary2);
+      border-color: var(--dl-color-theme-primary2);
+    }
+    .thq-button-outline {
+      color: var(--dl-color-theme-primary1);
+      border: 1px solid var(--dl-color-theme-primary1);
+      background: transparent;
+      border-radius: 24px;
+      font-weight: bold;
+      padding: 10px 32px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background .2s, color .2s;
+    }
+    .thq-button-outline:hover {
+      color: var(--dl-color-theme-secondary2);
+      background: var(--dl-color-theme-primary2);
+      border-color: var(--dl-color-theme-primary2);
+    }
+
+    /* Hero Section */
+    .hero17-header78 {
+      width: 100%;
+      display: flex;
+      position: relative;
+      align-items: center;
+      flex-direction: column;
+      background: var(--dl-color-theme-secondary2);
+      padding: 64px 0 48px 0;
+    }
+    .hero17-column {
+      gap: 24px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      max-width: var(--dl-layout-size-maxwidth);
+      margin: 0 auto;
+      padding-bottom: 16px;
+    }
+    .hero17-content1 {
+      gap: 24px;
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      margin-bottom: 18px;
+    }
+    .thq-heading-1 {
+      font-size: 42px;
+      font-family: Cabin;
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: -1px;
+      text-align: center;
+      margin: 0;
+    }
+    .thq-body-large {
+      font-size: 18px;
+      font-family: Cabin;
+      color: #333;
+      line-height: 1.6;
+      margin-bottom: 0;
+      text-align: center;
+    }
+    .hero17-actions {
+      gap: 16px;
+      display: flex;
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    /* 롤링배너 영역 */
+    .slider-wrap {
+      width: 100%;
+      overflow: hidden;
+      background: transparent;
+      margin-top: 24px;
+    }
+    .slider-row {
+      width: 100%;
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+    .slider-track {
+      display: flex;
+      width: max-content;
+      animation: slideX 18s linear infinite;
+    }
+    .slider-track.reverse {
+      animation-direction: reverse;
+      animation-duration: 22s;
+    }
+    .slider-track a {
+      display: inline-block;
+      margin-right: 16px;
+      text-decoration: none;
+    }
+    .slider-track img {
+      width: 140px;
+      height: 140px;
+      object-fit: cover;
+      border-radius: var(--dl-layout-radius-imageradius);
+      background: #eee;
+      box-shadow: 0 2px 12px 0 rgba(0,0,0,0.09);
+      transition: transform 0.18s, box-shadow 0.18s;
+      vertical-align: middle;
+      user-drag: none;
+      -webkit-user-drag: none;
+    }
+    .slider-track a:focus img,
+    .slider-track img:hover {
+      transform: scale(1.05) rotate(-3deg);
+      z-index: 2;
+      box-shadow: 0 6px 18px 0 rgba(0,0,0,0.13);
+    }
+    .slider-track .img-title {
+      display: block;
+      margin-top: 6px;
+      color: #333;
+      font-size: 0.93em;
+      text-align: center;
+      max-width: 140px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-family: 'Inter', 'Cabin', sans-serif;
+    }
+    @keyframes slideX {
+      0% {transform: translateX(0);}
+      100% {transform: translateX(-50%);}
+    }
+
+    /* Testimonial, Contact, Footer ... (생략, 기존 코드와 동일) */
+
+    .testimonial17-max-width { display: flex; align-items: center; flex-direction: column;}
+    .testimonial17-container10 { gap: 16px; display: flex; max-width: 600px; align-items: center; margin-bottom: 64px; flex-direction: column;}
+    .thq-grid-2 { width: 100%; display: grid; grid-gap: 32px; grid-template-columns: 1fr 1fr;}
+    .thq-animated-card-bg-2 { transition: transform 0.3s; border-radius: 8px; background-color: var(--dl-color-theme-accent2);}
+    .thq-animated-card-bg-1 { width: 100%; height: 100%; transition: transform 0.3s; border-radius: 8px; background-color: var(--dl-color-theme-accent1);}
+    .thq-card { gap: 24px; display: flex; padding: 32px; align-items: stretch; border-radius: 8px; flex-direction: column;}
+    .testimonial17-container12, .testimonial17-container14, .testimonial17-container16, .testimonial17-container18 {
+      gap: 16px; display: flex; align-items: center; flex-direction: row; justify-content: center;
+    }
+    .testimonial17-image1, .testimonial17-image2, .testimonial17-image3, .testimonial17-image4 {
+      width: 48px; height: 48px; object-fit: cover; border-radius: 50%;
+    }
+    .testimonial17-container13, .testimonial17-container15, .testimonial17-container17, .testimonial17-container19 {
+      display: flex; align-items: flex-start; flex-direction: column; justify-content: center;
+    }
+    .thq-body-small { font-size: 16px; font-family: Cabin; line-height: 1.5;}
+
+    .contact10-container1 { display: flex; position: relative; align-items: flex-start; flex-direction: column; width: 100%; padding: 80px 0; background: var(--dl-color-theme-neutral-light);}
+    .contact10-max-width { align-self: center; width: 100%; max-width: var(--dl-layout-size-maxwidth); margin: 0 auto;}
+    .contact10-content1 { width: 100%; margin-bottom: 48px; display: flex; justify-content: flex-start; gap: 32px;}
+    .contact10-content2 { gap: 16px; display: flex; align-self: stretch; align-items: flex-start; flex-direction: column;}
+    .contact10-content3 { width: 100%; display: flex; align-items: flex-start; flex-direction: row; justify-content: space-between; gap: 32px;}
+    .contact10-container2, .contact10-container4 { gap: 24px; flex: 1; display: flex; align-items: center; flex-direction: column; background: #fff; border-radius: 8px; box-shadow: 0 4px 18px 0 rgba(0,0,0,0.07); padding: 32px; min-width: 260px;}
+    .contact10-image1, .contact10-image2 { object-fit: cover; width: 100%; border-radius: 8px; aspect-ratio: 16/9; margin-bottom: 16px;}
+    .contact10-text12, .contact10-text14 { text-align: center; font-size: 24px; font-family: Cabin; font-weight: 600; margin: 0 0 8px 0;}
+    .contact10-container3, .contact10-container5 { flex: 0 0 auto; width: 100%; height: 100%; display: flex; align-items: flex-start; justify-content: center; margin-top: 8px;}
+    .thq-button-flat {
+      color: var(--dl-color-theme-primary1);
+      cursor: pointer;
+      display: flex;
+      transition: 0.3s;
+      align-items: center;
+      font-weight: bold;
+      padding: 10px 32px;
+      border-color: transparent;
+      border-width: 1px;
+      border-radius: 24px;
+      justify-content: center;
+      background: var(--dl-color-theme-neutral-light);
+      font-size: 1rem;
+      text-decoration: none;
+    }
+    .thq-button-flat:hover {
+      color: var(--dl-color-theme-secondary1);
+      background: var(--dl-color-theme-primary2);
+    }
+
+    .footer4-footer7 { width: 100%; height: auto; display: flex; position: relative; align-items: center; flex-direction: column; justify-content: center; background: var(--dl-color-theme-secondary2); padding-top: 48px; padding-bottom: 18px;}
+    .footer4-max-width { gap: 48px; display: flex; align-items: center; flex-direction: column;}
+    .footer4-content { gap: 32px; display: flex; align-items: center; flex-direction: column;}
+    .footer4-links { gap: 32px; display: flex; align-items: flex-start;}
+    .footer4-credits { gap: 32px; display: flex; align-items: center; flex-direction: column; width: 100%;}
+    .footer4-row { display: flex; align-items: flex-start; justify-content: space-between; width: 100%; }
+    .footer4-footer-links { gap: 24px; display: flex; align-items: flex-start;}
+    .thq-divider-horizontal { width: 100%; height: 1px; background-color: var(--dl-color-theme-neutral-dark);}
+    .footer4-text11 { color: var(--dl-color-theme-neutral-dark);}
+    @media(max-width: 991px) {
+      .hero17-header78 { padding: 48px 0 32px 0; }
+      .testimonial17-container10 { margin-bottom: 48px;}
+      .contact10-content1 { align-items: flex-start; justify-content: flex-start;}
+      .contact10-content3 { position: relative; align-items: center; flex-direction: column; gap: 16px;}
+      .footer4-row { flex-direction: column; align-items: center; gap: 18px;}
+    }
+    @media(max-width: 767px) {
+      .navbar8-navbar-interactive { padding: 16px 16px;}
+      .thq-section-padding { padding: 48px;}
+      .thq-grid-2 { grid-template-columns: 1fr;}
+      .testimonial17-container10 { margin-bottom: 24px;}
+      .contact10-content1 { gap: 24px;}
+      .contact10-image1, .contact10-image2 { width: 100%;}
+      .contact10-max-width { padding: 0 1vw;}
+      .footer4-max-width { gap: 24px;}
+      .footer4-links { flex-direction: column;}
+      .footer4-footer-links { align-items: center; flex-direction: column; justify-content: center;}
+      .slider-track img { width: 90px; height: 90px;}
+      .slider-track .img-title { max-width: 90px; font-size: 0.84em; }
+    }
+    @media(max-width: 479px) {
+      .thq-section-padding { padding: 24px;}
+      .thq-grid-2 { grid-gap: 16px;}
+      .slider-row { margin-bottom: 12px;}
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <header class="navbar8-container1">
+    <div class="navbar8-navbar-interactive">
+              <img
+          src="https://aheioqhobo.cloudimg.io/v7/_playground-bucket-v2.teleporthq.io_/84ec08e8-34e9-42c7-9445-d2806d156403/fac575ac-7a41-484f-b7ac-875042de11f8?org_if_sml=1&force_format=original"
+          alt="로고"
+          class="navbar8-image1"
+          style="cursor: pointer;"
+          onclick="window.location.href='/'"
+        />
+      <nav class="navbar8-links1">
+        <a href="#" class="thq-link">홈</a>
+        <a href="#" class="thq-link">소개</a>
+        <a href="#" class="thq-link">커뮤니티</a>
+        <a href="#" class="thq-link">스토어</a>
+      </nav>
+      <div class="navbar8-buttons1" th:if="${session.loginMember == null}">
+        <button class="thq-button-outline" onclick="location.href='/login'">로그인</button>
+        <button class="thq-button-filled" onclick="location.href='/signup'">회원가입</button>
+      </div>
+      <div class="navbar8-buttons1" th:if="${session.loginMember != null}">
+        <span class="thq-link" th:text="'안녕하세요, ' + ${session.loginMember.nickname} + '님'">사용자님</span>
+        <button class="thq-button-outline" onclick="location.href='/buyer/info'">마이페이지</button>
+        <button class="thq-button-filled" onclick="logout()">로그아웃</button>
+      </div>
+    </div>
+  </header>
+  <!-- Hero -->
+  <section class="hero17-header78">
+    <div class="hero17-column">
+      <div class="hero17-content1">
+        <h1 class="thq-heading-1">소비자에게 신뢰할 수 있는 고품질 농산물을 제공하는 직거래 온라인 플랫폼</h1>
+        <p class="thq-body-large">농사를 즐겁게, 소비를 이롭게</p>
+      </div>
+      <div class="hero17-actions">
+        <button th:if="${session.loginMember == null}" class="thq-button-filled" onclick="location.href='/signup'">회원 가입</button>
+        <button class="thq-button-outline" onclick="location.href='#about'">자세히 보기</button>
+      </div>
+    </div>
+    <!-- 롤링배너: 최신 게시글 대표사진 2줄 -->
+    <div class="slider-wrap hero17-content2">
+      <div class="slider-row">
+        <div class="slider-track" id="sliderTrack1"></div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-track reverse" id="sliderTrack2"></div>
+      </div>
+    </div>
+  </section>
+  <!-- Testimonial -->
+  <section class="thq-section-padding" style="background: #F5F4ED;">
+    <div class="testimonial17-max-width thq-section-max-width">
+      <div class="testimonial17-container10">
+        <h2 class="thq-heading-2">이주의 BEST 리뷰</h2>
+        <span class="testimonial17-text11 thq-body-small">PlanT를 믿고 구매해주신 실제 구매자들의 리뷰 입니다.</span>
+      </div>
+      <div class="thq-grid-2">
+        <div class="thq-animated-card-bg-2">
+          <div class="thq-animated-card-bg-1">
+            <div class="thq-card testimonial17-card1">
+              <div class="testimonial17-container12">
+                <img alt="23세 농부 김ㅇㅇ씨" src="https://images.unsplash.com/photo-1607346256330-dee7af15f7c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080" class="testimonial17-image1"/>
+                <div class="testimonial17-container13">
+                  <strong class="thq-body-large">홍길동</strong>
+                  <span class="thq-body-small">30대, 남성</span>
+                </div>
+              </div>
+              <span class="testimonial17-text14 thq-body-small">PlanT를 추천하는 이유 어쩌고</span>
+            </div>
+          </div>
+        </div>
+        <div class="thq-animated-card-bg-2">
+          <div class="thq-animated-card-bg-1">
+            <div class="thq-card testimonial17-card2">
+              <div class="testimonial17-container14">
+                <img alt="홍길서" src="https://images.unsplash.com/photo-1620510625142-b45cbb784397?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080" class="testimonial17-image2"/>
+                <div class="testimonial17-container15">
+                  <strong class="thq-body-large">홍길서</strong>
+                  <span class="thq-body-small">40대, 여성</span>
+                </div>
+              </div>
+              <span class="testimonial17-text17 thq-body-small">추천 어쩌고</span>
+            </div>
+          </div>
+        </div>
+        <div class="thq-animated-card-bg-2">
+          <div class="thq-animated-card-bg-1">
+            <div class="thq-card testimonial17-card3">
+              <div class="testimonial17-container16">
+                <img alt="홍길남" src="https://images.unsplash.com/photo-1495211895963-08d8812dcbf0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080" class="testimonial17-image3"/>
+                <div class="testimonial17-container17">
+                  <strong class="thq-body-large">홍길남</strong>
+                  <span class="thq-body-small">20대, 남성</span>
+                </div>
+              </div>
+              <span class="testimonial17-text20 thq-body-small">추천2</span>
+            </div>
+          </div>
+        </div>
+        <div class="thq-animated-card-bg-2">
+          <div class="thq-animated-card-bg-1">
+            <div class="thq-card testimonial17-card4">
+              <div class="testimonial17-container18">
+                <img alt="홍길북" src="https://images.unsplash.com/photo-1618835962148-cf177563c6c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080" class="testimonial17-image4"/>
+                <div class="testimonial17-container19">
+                  <strong class="thq-body-large">홍길북</strong>
+                  <span class="thq-body-small">50대, 남성</span>
+                </div>
+              </div>
+              <span class="testimonial17-text23 thq-body-small">추천추천</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Contact10 -->
+  <section class="contact10-container1">
+    <div class="contact10-max-width">
+      <div class="contact10-content1">
+        <div class="contact10-content2">
+          <h2 class="thq-heading-2">농부의 마음을 담아 (공공데이터 API사용)</h2>
+          <p class="thq-body-large">농진청 스마트팜 공공 API를 사용하는 form입니다.</p>
+        </div>
+      </div>
+      <div class="contact10-content3">
+        <div class="contact10-container2">
+          <img class="contact10-image1" alt="Headquarters" src="https://images.unsplash.com/photo-1543051932-6ef9fecfbc80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"/>
+          <h3 class="contact10-text12">23세 농부 김ㅇㅇ씨</h3>
+          <p class="thq-body-large">23세에 농부의 길을 걸은 김ㅇㅇ씨의 사연</p>
+          <div class="contact10-container3">
+            <a href="#" class="thq-button-flat" target="_blank" rel="noopener">자세히 알아보기</a>
+          </div>
+        </div>
+        <div class="contact10-container4">
+          <img class="contact10-image2" alt="Support Center" src="https://images.unsplash.com/photo-1620531940052-d0d9aff03c32?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"/>
+          <h3 class="contact10-text14">무농약만 고집하는 ㅇㅇ농장</h3>
+          <p class="thq-body-large">60년 평생 무농약만 고집하신 ㅇㅇ농장의 사연</p>
+          <div class="contact10-container5">
+            <a href="#" class="thq-button-flat" target="_blank" rel="noopener">자세히 알아보기</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Footer -->
+  <footer class="footer4-footer7">
+    <div class="footer4-max-width">
+      <div class="footer4-content">
+        <div class="footer4-logo"></div>
+        <div class="footer4-links">
+          <a href="#" class="thq-body-small">About Us</a>
+          <a href="#" class="thq-body-small">Contact Us</a>
+          <a href="#" class="thq-body-small">FAQs</a>
+          <a href="#" class="thq-body-small">Terms and Conditions</a>
+          <a href="#" class="thq-body-small">Privacy Policy</a>
+        </div>
+      </div>
+      <div class="footer4-credits">
+        <div class="thq-divider-horizontal"></div>
+        <div class="footer4-row">
+          <div class="footer4-container">
+            <span class="thq-body-small">© 2025 PlanT</span>
+          </div>
+          <div class="footer4-footer-links">
+            <span class="footer4-text11 thq-body-small">Privacy Policy</span>
+            <span class="thq-body-small">Terms and Conditions</span>
+            <span class="thq-body-small">Cookies Policy</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <script>
+    // posts 데이터는 실제 API에서 받아오도록 교체 가능
+    // {id, title, imageUrl}
+    const posts = [
+      {id: 1, title: "텃밭 작황 자랑!", imageUrl: "https://images.unsplash.com/photo-1472653525502-fc569e405a74?auto=format&fit=crop&w=400&q=80"},
+      {id: 2, title: "매실 수확 시작!", imageUrl: "https://images.unsplash.com/photo-1620862291735-afb22f894311?auto=format&fit=crop&w=400&q=80"},
+      {id: 3, title: "비 오는 날의 감자밭", imageUrl: "https://images.unsplash.com/photo-1507037102386-199766bac257?auto=format&fit=crop&w=400&q=80"},
+      {id: 4, title: "토마토 첫 수확", imageUrl: "https://images.unsplash.com/photo-1567721913486-6585f069b332?auto=format&fit=crop&w=400&q=80"},
+      {id: 5, title: "마늘 쫑쫑", imageUrl: "https://images.unsplash.com/photo-1598368195835-91e67f80c9d7?auto=format&fit=crop&w=400&q=80"},
+      {id: 6, title: "농장 일상", imageUrl: "https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&w=400&q=80"},
+      {id: 7, title: "이른 아침의 논", imageUrl: "https://images.unsplash.com/photo-1457530378978-8bac673b8062?auto=format&fit=crop&w=400&q=80"},
+      {id: 8, title: "딸기밭에서", imageUrl: "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?auto=format&fit=crop&w=400&q=80"},
+      {id: 9, title: "감귤 수확", imageUrl: "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80"},
+      {id: 10, title: "해바라기 들판", imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80"},
+      {id: 11, title: "봄의 새싹", imageUrl: "https://images.unsplash.com/photo-1522024099279-326c6b236ae8?auto=format&fit=crop&w=400&q=80"},
+      {id: 12, title: "환한 대파", imageUrl: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80"}
+    ];
+
+    // 실제 fetch로 대체하는 경우:
+    // fetch('/api/posts').then(res => res.json()).then(posts => { ... });
+
+    function renderSlider(posts, trackElem) {
+      let html = '';
+      for(const post of posts) {
+        html += `<a href="/board/${post.id}" title="${post.title}">
+          <img src="${post.imageUrl}" alt="${post.title}">
+          <span class="img-title">${post.title}</span>
+        </a>`;
+      }
+      // 자연스러운 무한루프 위해 1세트 더 추가
+      html += html;
+      trackElem.innerHTML = html;
+    }
+
+    // 게시글을 번갈아 두 줄로 배치
+    const posts1 = posts.filter((_, i) => i % 2 === 0);
+    const posts2 = posts.filter((_, i) => i % 2 === 1);
+
+    renderSlider(posts1, document.getElementById('sliderTrack1'));
+    renderSlider(posts2, document.getElementById('sliderTrack2'));
+    
+    // 마이페이지 이동 함수
+    function goToMyPage() {
+      const userType = '[[${userType}]]';
+      if (userType === 'BUYER') {
+        location.href = '/buyer/info';
+      } else if (userType === 'SELLER') {
+        location.href = '/seller/mypage';
+      } else {
+        // 기본값으로 구매자 페이지로 이동
+        location.href = '/buyer/info';
+      }
+    }
+    
+    // 로그아웃 함수
+    function logout() {
+      if (confirm('로그아웃 하시겠습니까?')) {
+        window.location.href = '/logout';
+      }
+    }
+  </script>
+</body>
+</html>

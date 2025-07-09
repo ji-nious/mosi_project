@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 정보 수정</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <style>
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .readonly-field {
+            background-color: #f5f5f5;
+            color: #666;
+        }
+        
+        .password-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #e9ecef;
+        }
+        
+        .password-section h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        
+        .gender-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .success-message {
+            color: #28a745;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .btn-primary, .btn-secondary {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #658352;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #94A687;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .form-container {
+            max-width: 600px;
+            margin: 80px auto 50px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <a th:href="@{/}">
+        <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="홈으로" 
+             style="width:48px;height:48px;margin:20px 0 0 20px;position:fixed;left:20px;top:20px;z-index:100;cursor:pointer;">
+    </a>
+
+    <div class="form-container">
+        <form id="buyer-update-form">
+            <h2 style="text-align: center; margin-bottom: 30px;">내 정보 수정</h2>
+
+            <div class="form-group">
+                <label for="email">이메일 (수정 불가)</label>
+                <input type="email" id="email" name="email" th:value="${buyer?.email}" readonly class="readonly-field" />
+            </div>
+
+            <div class="form-group">
+                <label for="name">이름 (수정 불가)</label>
+                <input type="text" id="name" name="name" th:value="${buyer?.name}" readonly class="readonly-field" />
+            </div>
+
+            <div class="form-group">
+                <label for="nickname">닉네임</label>
+                <input type="text" id="nickname" name="nickname" th:value="${buyer?.nickname}" placeholder="닉네임을 입력하세요" />
+                <div id="nickname-error" class="error-message"></div>
+                <div id="nickname-success" class="success-message"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="tel">전화번호</label>
+                <input type="tel" id="tel" name="tel" th:value="${buyer?.tel}" placeholder="010-1234-5678" />
+                <div id="tel-error" class="error-message"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="gender">성별</label>
+                <div class="gender-group">
+                    <div class="radio-item">
+                        <input type="radio" id="male" name="gender" value="남성" th:checked="${buyer?.gender == '남성'}">
+                        <label for="male">남성</label>
+                    </div>
+                    <div class="radio-item">
+                        <input type="radio" id="female" name="gender" value="여성" th:checked="${buyer?.gender == '여성'}">
+                        <label for="female">여성</label>
+                    </div>
+                </div>
+            </div>
+
+                         <div class="form-group">
+                 <label for="birth">생년월일</label>
+                 <input type="date" id="birth" name="birth" th:value="${buyer?.birth != null ? #dates.format(buyer.birth, 'yyyy-MM-dd') : ''}" />
+             </div>
+
+            <div class="form-group">
+                <label for="address">주소</label>
+                <input type="text" id="address" name="address" th:value="${buyer?.address}" placeholder="주소를 입력하세요" />
+            </div>
+
+            <div class="password-section">
+                <h3>비밀번호 변경 (선택사항)</h3>
+                <div class="form-group">
+                    <label for="newPassword">새 비밀번호</label>
+                    <input type="password" id="newPassword" name="newPassword" placeholder="새 비밀번호 (변경하지 않으려면 비워두세요)" />
+                    <div id="newPassword-error" class="error-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">새 비밀번호 확인</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="새 비밀번호 확인" />
+                    <div id="confirmPassword-error" class="error-message"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="currentPassword">현재 비밀번호 (필수)</label>
+                <input type="password" id="currentPassword" name="currentPassword" placeholder="정보 수정을 위해 현재 비밀번호를 입력하세요" required />
+                <div id="currentPassword-error" class="error-message"></div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-primary">정보 수정</button>
+                <button type="button" id="cancel-btn" class="btn-secondary">취소</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // 초기 데이터 저장 (변경사항 감지용)
+        const initialData = {
+            nickname: document.getElementById('nickname').value,
+            tel: document.getElementById('tel').value,
+            gender: document.querySelector('input[name="gender"]:checked')?.value || '',
+            birth: document.getElementById('birth').value,
+            address: document.getElementById('address').value
+        };
+
+        // 입력 검증 함수들
+        function validateNickname(nickname) {
+            if (!nickname.trim()) {
+                return "닉네임을 입력해주세요.";
+            }
+            if (nickname.length < 2 || nickname.length > 20) {
+                return "닉네임은 2-20자 사이여야 합니다.";
+            }
+            return null;
+        }
+
+        function validateTel(tel) {
+            const telPattern = /^010-\d{4}-\d{4}$/;
+            if (!tel.trim()) {
+                return "전화번호를 입력해주세요.";
+            }
+            if (!telPattern.test(tel)) {
+                return "전화번호 형식이 올바르지 않습니다. (010-1234-5678)";
+            }
+            return null;
+        }
+
+        function validatePassword(password) {
+            if (password && password.length < 6) {
+                return "비밀번호는 최소 6자 이상이어야 합니다.";
+            }
+            return null;
+        }
+
+        function validatePasswordConfirm(password, confirmPassword) {
+            if (password && password !== confirmPassword) {
+                return "비밀번호 확인이 일치하지 않습니다.";
+            }
+            return null;
+        }
+
+        // 에러 메시지 표시
+        function showError(fieldId, message) {
+            const errorElement = document.getElementById(fieldId + '-error');
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+        }
+
+        // 에러 메시지 숨기기
+        function hideError(fieldId) {
+            const errorElement = document.getElementById(fieldId + '-error');
+            if (errorElement) {
+                errorElement.style.display = 'none';
+            }
+        }
+
+        // 변경사항 확인
+        function hasChanges() {
+            const currentData = {
+                nickname: document.getElementById('nickname').value,
+                tel: document.getElementById('tel').value,
+                gender: document.querySelector('input[name="gender"]:checked')?.value || '',
+                birth: document.getElementById('birth').value,
+                address: document.getElementById('address').value
+            };
+
+            const newPassword = document.getElementById('newPassword').value;
+
+            // 비밀번호 변경이 있거나, 다른 필드에 변경이 있는지 확인
+            return newPassword.trim() !== '' || 
+                   Object.keys(initialData).some(key => initialData[key] !== currentData[key]);
+        }
+
+        // 실시간 입력 검증
+        document.getElementById('nickname').addEventListener('blur', function() {
+            const error = validateNickname(this.value);
+            if (error) {
+                showError('nickname', error);
+            } else {
+                hideError('nickname');
+            }
+        });
+
+        document.getElementById('tel').addEventListener('blur', function() {
+            const error = validateTel(this.value);
+            if (error) {
+                showError('tel', error);
+            } else {
+                hideError('tel');
+            }
+        });
+
+        document.getElementById('newPassword').addEventListener('blur', function() {
+            const error = validatePassword(this.value);
+            if (error) {
+                showError('newPassword', error);
+            } else {
+                hideError('newPassword');
+            }
+        });
+
+        document.getElementById('confirmPassword').addEventListener('blur', function() {
+            const newPassword = document.getElementById('newPassword').value;
+            const error = validatePasswordConfirm(newPassword, this.value);
+            if (error) {
+                showError('confirmPassword', error);
+            } else {
+                hideError('confirmPassword');
+            }
+        });
+
+        // 취소 버튼
+        document.getElementById('cancel-btn').addEventListener('click', function() {
+            if (hasChanges()) {
+                if (confirm('수정을 취소하시겠습니까? 변경사항이 저장되지 않습니다.')) {
+                    window.location.href = '/buyer/info';
+                }
+            } else {
+                window.location.href = '/buyer/info';
+            }
+        });
+
+        // 폼 제출 처리
+        document.getElementById('buyer-update-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // 모든 에러 메시지 숨기기
+            ['nickname', 'tel', 'newPassword', 'confirmPassword', 'currentPassword'].forEach(hideError);
+
+            // 변경사항 확인
+            if (!hasChanges()) {
+                alert('변경된 정보가 없습니다.');
+                return;
+            }
+
+            // 입력 검증
+            const nickname = document.getElementById('nickname').value;
+            const tel = document.getElementById('tel').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const currentPassword = document.getElementById('currentPassword').value;
+
+            let hasErrors = false;
+
+            // 필수 필드 검증
+            const nicknameError = validateNickname(nickname);
+            if (nicknameError) {
+                showError('nickname', nicknameError);
+                hasErrors = true;
+            }
+
+            const telError = validateTel(tel);
+            if (telError) {
+                showError('tel', telError);
+                hasErrors = true;
+            }
+
+            if (!currentPassword.trim()) {
+                showError('currentPassword', '현재 비밀번호를 입력해주세요.');
+                hasErrors = true;
+            }
+
+            // 새 비밀번호 검증 (입력한 경우만)
+            if (newPassword) {
+                const passwordError = validatePassword(newPassword);
+                if (passwordError) {
+                    showError('newPassword', passwordError);
+                    hasErrors = true;
+                }
+
+                const confirmError = validatePasswordConfirm(newPassword, confirmPassword);
+                if (confirmError) {
+                    showError('confirmPassword', confirmError);
+                    hasErrors = true;
+                }
+            }
+
+            if (hasErrors) {
+                return;
+            }
+
+            try {
+                // 서버로 데이터 전송
+                const requestData = {
+                    nickname: nickname,
+                    tel: tel,
+                    gender: document.querySelector('input[name="gender"]:checked')?.value,
+                    birth: document.getElementById('birth').value,
+                    address: document.getElementById('address').value,
+                    currentPassword: currentPassword
+                };
+
+                // 새 비밀번호가 있는 경우에만 추가
+                if (newPassword) {
+                    requestData.newPassword = newPassword;
+                }
+
+                const response = await fetch(`/api/buyers/update`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    alert('정보가 성공적으로 수정되었습니다!');
+                    // 즉시 마이페이지로 이동하여 변경된 정보 확인
+                    window.location.href = '/buyer/info';
+                } else {
+                    alert(result.message || '정보 수정 중 오류가 발생했습니다.');
+                    if (result.message && result.message.includes('비밀번호')) {
+                        showError('currentPassword', result.message);
+                    }
+                }
+            } catch (error) {
+                console.error('Update error:', error);
+                alert('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+            }
+        });
+    </script>
+</body>
+</html>

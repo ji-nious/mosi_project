@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가상 홈</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #FBF9EF;
+            font-family: 'Inter', 'Cabin', sans-serif;
+        }
+        .mypage-button {
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            background-color: #658352;
+            border: none;
+            border-radius: 12px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .mypage-button:hover {
+            background-color: #4d683f;
+        }
+
+        /* Modal Styles from buyer_info copy 2.html */
+        .modal {
+          display: none; /* Hidden by default */
+          position: fixed;
+          z-index: 1000;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          overflow: auto;
+          background-color: rgba(0,0,0,0.6);
+        }
+        .modal-content {
+          background-color: #fefefe;
+          margin: 15% auto;
+          padding: 24px;
+          border: 1px solid #888;
+          width: 90%;
+          max-width: 400px;
+          border-radius: 16px;
+          text-align: center;
+          position: relative;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .modal-content h2 {
+            margin-top: 0;
+        }
+        .close-button {
+          color: #aaa;
+          position: absolute;
+          top: 10px;
+          right: 20px;
+          font-size: 28px;
+          font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+          color: black;
+          text-decoration: none;
+          cursor: pointer;
+        }
+        #passwordInput {
+            width: calc(100% - 24px);
+            margin: 10px 0;
+            box-sizing: border-box;
+            padding: 20px;
+            font-size: 1rem;
+        }
+        .modal-content .error-msg {
+            color: red;
+            font-size: 0.85rem;
+            min-height: 1.5em;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        #confirmPasswordBtn {
+            display: block;
+            width: 220px;
+            padding: 12px 0;
+            margin: 12px auto;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 24px;
+            border: 1px solid #658352;
+            background-color: #658352;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        #confirmPasswordBtn:hover {
+            background-color: #94A687;
+            color: #F5F4ED;
+        }
+    </style>
+</head>
+<body>
+    <button class="mypage-button" onclick="openModal()">마이페이지 가기</button>
+
+    <!-- Password Modal -->
+    <div id="passwordModal" class="modal">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>비밀번호 확인</h2>
+        <p>계속하려면 비밀번호를 입력하세요.</p>
+        <input type="password" id="passwordInput" placeholder="비밀번호" autocomplete="current-password">
+        <div id="modalErrorMessage" class="error-msg"></div>
+        <button id="confirmPasswordBtn">확인</button>
+      </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('passwordModal');
+        const closeButton = document.querySelector('.close-button');
+        const confirmPasswordBtn = document.getElementById('confirmPasswordBtn');
+        const passwordInput = document.getElementById('passwordInput');
+        const modalErrorMessage = document.getElementById('modalErrorMessage');
+
+        function openModal() {
+            passwordInput.value = '';
+            modalErrorMessage.textContent = '';
+            modal.style.display = 'block';
+            passwordInput.focus();
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        function proceedWithAction() {
+            closeModal();
+            location.href = './buyer/buyer_info.html';
+        }
+
+        function handlePasswordConfirm() {
+            const enteredPassword = passwordInput.value;
+            const correctPassword = "123";
+
+            if (enteredPassword === correctPassword) {
+                proceedWithAction();
+            } else if (enteredPassword === '') {
+                modalErrorMessage.textContent = '비밀번호를 입력해주세요.';
+            } else {
+                modalErrorMessage.textContent = '비밀번호가 올바르지 않습니다.';
+            }
+        }
+
+        closeButton.onclick = closeModal;
+        confirmPasswordBtn.onclick = handlePasswordConfirm;
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        passwordInput.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                handlePasswordConfirm();
+            }
+        });
+    </script>
+</body>
+</html> 

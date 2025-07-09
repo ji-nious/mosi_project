@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <th:block th:replace="~{fragments/common :: headFragment('구매자 정보 수정')}"></th:block>
+  <style>
+    /* ===== 전체 레이아웃 및 폰트 ===== */
+    body {
+      margin: 0;
+      font-family: 'Inter', 'Cabin', sans-serif;
+      background-color: #FBF9EF;
+      color: #1E2203;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+    .page-title {
+        font-family: 'Cabin', sans-serif;
+        font-weight: 700;
+        color: #658352;
+        font-size: 2.4rem;
+        margin-bottom: 24px;
+        text-align: center;
+    }
+    h2 {
+      font-family: 'Cabin', sans-serif;
+      font-weight: 700;
+      color: #658352;
+      text-align: center;
+    }
+    /* ===== 정보 수정 폼 컨테이너 ===== */
+    .edit-container {
+      background-color: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);
+      width: fit-content;
+      min-width: 360px;
+      max-width: 600px;
+    }
+    /* ===== 폼 입력란 ===== */
+    form label {
+      display: block;
+      margin-top: 18px;
+      font-weight: bold;
+      color: #658352;
+    }
+    form input, form select {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    .form-row {
+      margin-bottom: 10px;
+    }
+    .form-actions {
+      margin-top: 32px;
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+    /* ===== 버튼 ===== */
+    .form-actions button,
+    .form-actions .cancel-btn {
+        width: 140px;
+        padding: 12px 0;
+        font-size: 1.08rem;
+        border-radius: 24px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        box-sizing: border-box;
+    }
+
+    .form-actions button {
+        border: 1px solid #658352;
+        background-color: #658352;
+        color: white;
+    }
+
+    .form-actions button:hover {
+      background-color: #94A687;
+      color: #F5F4ED;
+    }
+    .cancel-btn {
+      background: #eee;
+      color: #333;
+      border: 1px solid #bbb;
+    }
+    .cancel-btn:hover {
+      background: #ccc;
+      color: #222;
+    }
+    @media screen and (max-width: 500px) {
+      .edit-container {
+        padding: 20px;
+        min-width: 300px;
+      }
+      button {
+        width: 100%;
+      }
+    }
+    /* ===== 읽기전용/비활성화 입력란 스타일 ===== */
+    form input[readonly], form input:disabled, form select:disabled {
+      background: #f3f3f3 !important;
+      color: #888;
+      cursor: not-allowed;
+    }
+    /* 주소 입력란은 항상 흰색 배경 */
+    #address[readonly] {
+      background: #fff !important;
+      color: #222;
+      cursor: pointer;
+    }
+    .postcode-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .postcode-group input {
+        flex: 1;
+    }
+    .postcode-group button {
+        width: auto;
+        min-width: 90px;
+        padding: 11px 16px;
+        font-size: 0.98rem;
+        background-color: #658352;
+        color: white;
+        border: 1px solid #658352;
+        border-radius: 24px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .postcode-group button:hover {
+        background-color: #94A687;
+        border-color: #94A687;
+    }
+    .field-error {
+        color: red;
+        font-size: 0.85rem;
+        padding-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 공통 내비게이션 바 삽입 -->
+  <div th:replace="~{fragments/common :: navbarFragment}"></div>
+
+  <h2 class="page-title">구매자 정보 수정</h2>
+  <div class="edit-container">
+    <!-- 정보 수정 폼 -->
+    <form id="editForm" th:action="@{/buyer/edit}" th:object="${editForm}" method="post" autocomplete="off">
+      <div class="form-row">
+        <label for="email">이메일(아이디)</label>
+        <input type="email" id="email" th:field="*{email}" readonly />
+      </div>
+      <div class="form-row">
+        <label for="password">새 비밀번호 (선택)</label>
+        <input type="password" id="password" th:field="*{password}" placeholder="새 비밀번호 입력 (변경 시)" autocomplete="new-password" />
+        <div class="field-error" th:errors="*{password}"></div>
+      </div>
+      <div class="form-row">
+        <label for="passwordConfirm">비밀번호 확인</label>
+        <input type="password" id="passwordConfirm" th:field="*{passwordConfirm}" placeholder="비밀번호 확인" autocomplete="new-password" />
+        <div class="field-error" th:errors="*{passwordConfirm}"></div>
+      </div>
+      <div class="form-row">
+        <label for="tel">전화번호</label>
+        <input type="text" id="tel" th:field="*{tel}" />
+        <div class="field-error" th:errors="*{tel}"></div>
+      </div>
+      <div class="form-row">
+        <label for="name">이름</label>
+        <input type="text" id="name" th:field="*{name}" readonly />
+      </div>
+      <div class="form-row">
+        <label for="nickname">닉네임</label>
+        <input type="text" id="nickname" th:field="*{nickname}" />
+        <div class="field-error" th:errors="*{nickname}"></div>
+      </div>
+      <div class="form-row">
+        <label for="gender">성별</label>
+        <select id="gender" th:field="*{gender}" disabled>
+          <option th:each="g : ${T(com.example.project.domain.Gender).values()}" th:value="${g}" th:text="${g.displayName}"></option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="birth">생일</label>
+        <input type="date" id="birth" th:field="*{birth}" readonly />
+      </div>
+
+      <div class="form-row">
+        <label for="postcode">우편번호</label>
+        <div class="postcode-group">
+            <input type="text" id="postcode" th:field="*{postcode}" readonly>
+            <button type="button" id="searchPostcodeBtn">주소 검색</button>
+        </div>
+        <div class="field-error" th:errors="*{postcode}"></div>
+      </div>
+      <div class="form-row">
+        <label for="address">주소</label>
+        <input type="text" id="address" th:field="*{address}" readonly>
+        <div class="field-error" th:errors="*{address}"></div>
+      </div>
+      <div class="form-row">
+        <label for="detailAddress">상세주소</label>
+        <input type="text" id="detailAddress" th:field="*{detailAddress}" placeholder="상세주소를 입력하세요">
+        <div class="field-error" th:errors="*{detailAddress}"></div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit">저장</button>
+        <a th:href="@{/buyer/info}" class="cancel-btn">취소</a>
+      </div>
+    </form>
+  </div>
+
+  <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <script>
+  document.getElementById('searchPostcodeBtn').addEventListener('click', function() {
+      new daum.Postcode({
+          oncomplete: function(data) {
+              document.getElementById('postcode').value = data.zonecode; // 우편번호
+              document.getElementById('address').value = data.roadAddress; // 도로명 주소
+              document.getElementById('detailAddress').focus(); // 상세주소로 포커스 이동
+          }
+      }).open();
+  });
+  </script>
+</body>
+</html> 

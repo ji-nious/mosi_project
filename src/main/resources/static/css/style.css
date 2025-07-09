@@ -1,0 +1,217 @@
+/* -------------------------------
+   🌐 기본 폰트 & 전체 레이아웃
+-------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Inter:wght@400;600&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Inter', 'Cabin', sans-serif;
+  background-color: #FBF9EF;
+  color: #1E2203;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+h1, h2 {
+  font-family: 'Cabin', sans-serif;
+  font-weight: 700;
+  color: #658352;
+  text-align: center;
+}
+/* -------------------------------
+   🟢 공통 스타일
+-------------------------------- */
+span {
+  background-color: #fff;
+  font-weight: bold;
+  display: flex;
+  justify-content: end;
+  
+
+}
+
+/* -------------------------------
+   🟢 공통 버튼 스타일
+-------------------------------- */
+button {
+  display: block;
+  width: 220px;
+  padding: 12px 0;
+  margin: 12px auto;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 24px;
+  border: 1px solid #658352;
+  background-color: #658352;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+button:hover {
+  background-color: #94A687;
+  color: #F5F4ED;
+}
+
+
+/* -------------------------------
+   🔻 메시지 스타일 (에러/성공/정보)
+-------------------------------- */
+.message-container {
+  margin: 10px 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  min-height: 20px;
+  transition: all 0.3s ease;
+}
+
+.error-message {
+  background-color: #fee;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+.success-message {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.info-message {
+  background-color: #d1ecf1;
+  border: 1px solid #bee5eb;
+  color: #0c5460;
+}
+
+.warning-message {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+}
+
+.message-container.hidden {
+  display: none;
+}
+
+.error-msg {
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  min-height: 1.2em;
+  text-align: left;
+  width: 340px;
+  word-wrap: break-word;
+}
+
+/* 실시간 유효성 검사 스타일 */
+.field-error {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.field-success {
+  border-color: #28a745 !important;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+
+/* -------------------------------
+   📋 홈으로 돌아가기 버튼
+-------------------------------- */
+.home-button {
+  position: fixed;
+  left: 20px;
+  top: 20px;
+  background-color: #658352;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.home-button:hover {
+  background-color: #4d683f;
+}
+
+
+/* -------------------------------
+   🧾 폼 레이아웃
+-------------------------------- */
+form {
+  background-color: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);
+  width: fit-content;
+  min-width: 360px;
+}
+
+.buyer-form,
+.seller-form {
+  margin-top: 40px;
+}
+
+
+/* -------------------------------
+   🔠 입력 필드 라벨 구조
+-------------------------------- */
+.form-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: nowrap;
+}
+
+label {
+  width: 120px;
+  text-align: left;
+  font-weight: bold;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+
+/* -------------------------------
+   🔡 입력창 및 셀렉트 박스
+-------------------------------- */
+.input-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+input,
+select,
+textarea {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  width: 360px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+input:focus,
+select:focus {
+  border-color: #658352;
+  outline: none;
+}
+
+
+/* -------------------------------
+   ✅ 반응형 여유 공간
+-------------------------------- */
+@media screen and (max-width: 400px) {
+  form {
+    padding: 20px;
+  }
+}

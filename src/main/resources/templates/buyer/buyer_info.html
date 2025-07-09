@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <th:block th:replace="~{fragments/common :: headFragment('계정 정보')}"></th:block>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      overflow-x: auto;
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', 'Cabin', sans-serif;
+      background: #FBF9EF;
+      color: #1E2203;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      box-sizing: border-box;
+    }
+    .page-wrapper {
+      display: flex;
+      align-items: stretch;
+      gap: 24px;
+      width: 900px;
+      height: 700px;
+      margin: 0 auto;
+      flex-wrap: nowrap;
+    }
+    .order-panel,
+    .account-container {
+      box-sizing: border-box;
+      height: 650px;
+    }
+    .order-panel {
+      background: #fff;
+      padding: 20px 24px;
+      border-radius: 20px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      width: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 32px;
+    }
+    .panel-button {
+      width: 150px;
+      padding: 12px 0;
+      font-size: 0.95rem;
+      font-weight: bold;
+      border-radius: 24px;
+      border: 1px solid #658352;
+      background: #658352;
+      color: #fff;
+      cursor: pointer;
+      margin-bottom: 0;
+      transition: background 0.2s, color 0.2s;
+    }
+    .panel-button:hover {
+      background: #94A687;
+      color: #F5F4ED;
+    }
+    .account-container {
+      background: #fff;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      width: 650px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .account-container h2 {
+      font-family: 'Cabin', sans-serif;
+      font-weight: 700;
+      color: #658352;
+      text-align: center;
+      margin-bottom: 28px;
+      font-size: 1.3rem;
+    }
+    .account-info p {
+      display: flex;
+      align-items: center;
+      margin: 12px 0;
+      padding: 8px 12px;
+      border-bottom: 1px solid #ddd;
+      font-size: 1rem;
+    }
+    .account-info p:last-child {
+      border-bottom: none;
+    }
+    .account-info strong {
+      width: 70px;
+      text-align: left;
+      font-weight: 600;
+      color: #3d4d2b;
+    }
+    .account-info .colon {
+      width: 16px;
+      text-align: center;
+      color: #bbb;
+    }
+    .account-info span:not(.colon) {
+      flex: 1;
+      text-align: right;
+      font-weight: bold;
+      color: #222;
+    }
+    .account-actions {
+      margin-top: 30px;
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+    }
+    .account-actions button {
+      width: 120px;
+      padding: 10px 0;
+      font-size: 1rem;
+      border-radius: 20px;
+      border: 1px solid #658352;
+      background: #658352;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .account-actions button:hover {
+      background: #94A687;
+    }
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 24px;
+      border: 1px solid #888;
+      width: 90%;
+      max-width: 400px;
+      border-radius: 16px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    @keyframes modalPop {
+      0% { transform: scale(0.9); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .modal-content h2 {
+      margin-top: 0;
+      color: #658352;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+    .close-button {
+      color: #aaa;
+      position: absolute;
+      top: 12px;
+      right: 18px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .close-button:hover {
+      color: #658352;
+    }
+    #passwordInput {
+      width: 100%;
+      margin: 16px 0 8px 0;
+      box-sizing: border-box;
+      padding: 12px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #bbb;
+      outline: none;
+      transition: border 0.2s;
+    }
+    #passwordInput {
+        width: calc(100% - 24px);
+        margin: 10px 0;
+        box-sizing: border-box;
+        padding: 20px;
+        font-size: 1rem;
+    }
+
+    .modal-content .error-msg {
+        color: red;
+        font-size: 0.85rem;
+        min-height: 1.5em;
+        text-align: center;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    .modal-content button {
+      width: 100%;
+      padding: 10px 0;
+      font-size: 1rem;
+      border-radius: 20px;
+      border: 1px solid #658352;
+      background: #658352;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.2s;
+    }
+    .modal-content button:hover {
+      background: #94A687;
+    }
+    .modal-content .danger {
+      background: #b82a0b;
+      border: none;
+      color: #fff;
+    }
+    .modal-content .danger:hover {
+      background: #d33c1a;
+    }
+    .page-title {
+        font-family: 'Cabin', sans-serif;
+        font-weight: 700;
+        color: #658352;
+        font-size: 2.4rem;
+        margin-bottom: 24px;
+        text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 공통 내비게이션 바 삽입 -->
+  <div th:replace="~{fragments/common :: navbarFragment}"></div>
+
+  <h2 class="page-title">마이페이지</h2>
+  <div class="page-wrapper">
+    <div class="order-panel">
+      <button class="panel-button" th:onclick="|location.href='@{/buyer/info}'|">회원 정보 조회</button>
+      <button class="panel-button" th:onclick="|location.href='@{/buyer/order-history}'|">전체 주문내역</button>
+      <button class="panel-button" th:onclick="|location.href='@{/buyer/cart}'|">장바구니</button>
+    </div>
+
+    <div class="account-container">
+      <h2>계정 정보</h2>
+
+      <div id="account-info" class="account-info" th:if="${buyer != null}" th:object="${buyer}">
+        <p><strong>이메일</strong><span class="colon">:</span><span id="email" th:text="*{email}"></span></p>
+        <p><strong>비밀번호</strong><span class="colon">:</span><span>********</span></p>
+        <p><strong>전화번호</strong><span class="colon">:</span><span id="phone" th:text="*{tel}"></span></p>
+        <p><strong>이름</strong><span class="colon">:</span><span id="realName" th:text="*{name}"></span></p>
+        <p><strong>닉네임</strong><span class="colon">:</span><span id="nickname" th:text="*{nickname}"></span></p>
+        <p><strong>성별</strong><span class="colon">:</span><span id="gender" th:text="*{gender.displayName}"></span></p>
+        <p><strong>생일</strong><span class="colon">:</span><span id="birthDate" th:text="*{#temporals.format(birth, 'yyyy-MM-dd')}"></span></p>
+        <p><strong>주소</strong><span class="colon">:</span><span id="address" th:text="*{address}"></span></p>
+      </div>
+
+    <div class="account-actions">
+      <a th:href="@{/buyer/edit}" class="panel-button" style="text-decoration:none; text-align:center; display:inline-block; line-height:38px;">정보 수정</a>
+      <button id="deleteAccountBtn" type="button" class="panel-button" style="background:#eee;color:#333;border:1px solid #bbb;">회원 탈퇴</button>
+    </div>
+  </div>
+
+  <!-- Delete Confirm Modal -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="deleteCloseBtn">&times;</span>
+      <h2>정말로 계정을 탈퇴 하시겠습니까?</h2>
+      <div style="background:#f8f6e7;padding:16px 12px;border-radius:8px;margin:18px 0 20px 0;color:#a00;font-size:1rem;">
+        <strong>탈퇴 주의사항</strong><br>
+        탈퇴 시 모든 정보가 삭제되며 복구가 불가합니다.
+      </div>
+      <form id="finalDeleteForm" th:action="@{/buyer/delete}" method="post" style="display:flex; gap:12px; justify-content:center;">
+         <input type="hidden" name="_method" value="delete" />
+         <button type="button" id="deleteCancelBtn" style="background:#eee;color:#333;border:1px solid #bbb;width:110px;padding:10px 0;font-size:1rem;border-radius:24px;">취소</button>
+         <button type="submit" id="deleteConfirmBtn" style="background:#a00;color:#fff;width:110px;padding:10px 0;font-size:1rem;border:none;border-radius:24px;">회원 탈퇴</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+        const deleteModal = document.getElementById('deleteModal');
+        const deleteCloseBtn = document.getElementById('deleteCloseBtn');
+        const deleteCancelBtn = document.getElementById('deleteCancelBtn');
+
+        if(deleteAccountBtn) {
+            deleteAccountBtn.onclick = function() {
+                deleteModal.style.display = 'flex';
+                deleteModal.classList.add('active');
+            }
+        }
+
+        const closeDeleteModal = function() {
+            deleteModal.style.display = 'none';
+            deleteModal.classList.remove('active');
+        }
+
+        if(deleteCloseBtn) deleteCloseBtn.onclick = closeDeleteModal;
+        if(deleteCancelBtn) deleteCancelBtn.onclick = closeDeleteModal;
+
+        window.onclick = function(event) {
+            if (event.target == deleteModal) {
+                closeDeleteModal();
+            }
+        }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>전체 주문 내역</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', 'Cabin', sans-serif;
+      background: #FBF9EF;
+      color: #1E2203;
+      display: flex;
+      flex-direction: column; /* 세로 정렬 */
+      align-items: center; /* 가운데 정렬 */
+      justify-content: flex-start;
+      padding: 40px 20px;
+      box-sizing: border-box;
+      min-height: 100vh;
+    }
+    .page-title {
+        font-family: 'Cabin', sans-serif;
+        font-weight: 700;
+        color: #658352;
+        font-size: 2.4rem;
+        margin-bottom: 24px;
+        text-align: center;
+    }
+    .page-wrapper {
+      display: flex;
+      align-items: stretch;
+      gap: 24px;
+      width: 1200px;
+      height: 700px;
+      margin: 0 auto;
+      flex-wrap: nowrap;
+    }
+    .order-panel {
+      background: #fff;
+      padding: 20px 24px;
+      border-radius: 20px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      width: 180px;
+      height: 650px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 32px;
+      box-sizing: border-box;
+    }
+    .panel-button {
+      width: 150px;
+      padding: 12px 0;
+      font-size: 0.95rem;
+      font-weight: bold;
+      border-radius: 24px;
+      border: 1px solid #658352;
+      background: #658352;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .panel-button:hover {
+      background: #94A687;
+      color: #F5F4ED;
+    }
+    .page-container {
+      background: #fff;
+      padding: 20px 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      width: 996px;
+      height: 100%;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+    h2 {
+      font-family: 'Cabin', sans-serif;
+      font-weight: 700;
+      color: #658352;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .order-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .order-item {
+      padding: 20px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      border-bottom: 1px solid #eee;
+    }
+    .order-item:last-child {
+      border-bottom: none;
+    }
+    .product-image {
+      width: 120px;
+      height: 120px;
+      border-radius: 8px;
+      object-fit: cover;
+      background-color: #eee;
+      flex-shrink: 0;
+    }
+    .order-details {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 120px; /* 이미지 높이와 맞춤 */
+    }
+    .order-details .product-name {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin: 0 0 8px 0;
+    }
+    .order-details .seller-name {
+      font-size: 0.95rem;
+      color: #555;
+      margin: 0 0 12px 0;
+    }
+    .order-details .price-quantity {
+      font-size: 1rem;
+      color: #333;
+      margin: 0 0 8px 0;
+      font-weight: 500;
+    }
+    .order-details .order-info {
+      font-size: 0.85rem;
+      color: #777;
+      margin-top: auto; /* 하단에 고정 */
+    }
+    .order-status {
+      align-self: flex-start;
+      padding: 5px 10px;
+      border-radius: 16px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: #fff;
+    }
+    .status-completed { background-color: #658352; }
+    .status-shipping { background-color: #3498db; }
+    .status-cancelled { background-color: #e74c3c; }
+
+    @media (max-width: 600px) {
+      .order-item {
+        flex-direction: column;
+      }
+      .product-image {
+        width: 100%;
+        height: 180px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <a th:href="@{/}" style="width:48px;height:48px;position:fixed;left:20px;top:20px;z-index:100;">
+    <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="홈으로" style="width:100%;height:100%;">
+  </a>
+  <h2 class="page-title">전체 주문 내역</h2>
+  <div class="page-wrapper">
+    <div class="order-panel">
+      <button class="panel-button" th:onclick="|location.href='@{/buyer/info}'|">회원 정보 조회</button>
+      <button class="panel-button" th:onclick="|location.href='@{/buyer/order-history}'|">전체 주문내역</button>
+      <button class="panel-button" th:onclick="|location.href='@{/buyer/cart}'|">장바구니</button>
+    </div>
+
+    <div class="page-container">
+      <div class="order-list">
+        <div th:if="${orders == null or #lists.isEmpty(orders)}" style="text-align:center; padding: 100px 0; color: #888;">
+            주문 내역이 없습니다.
+        </div>
+        <!-- ===== 주문 목록 (동적 생성) ===== -->
+        <div th:each="order : ${orders}" class="order-item">
+          <a th:href="@{/products/{id}(id=${order.productId})}">
+            <img class="product-image" th:src="${order.productImageUrl}" alt="상품 이미지">
+          </a>
+          <div class="order-details">
+            <a th:href="@{/products/{id}(id=${order.productId})}" style="text-decoration: none; color: inherit;">
+              <div class="product-name" th:text="${order.productName}">상품 이름</div>
+            </a>
+            <div class="seller-name" th:text="|판매처: ${order.sellerName}|">판매처: 판매자 이름</div>
+            <div class="price-quantity" th:text="|구매 가격: ${#numbers.formatInteger(order.price, 0, 'COMMA')}원 / 수량: ${order.quantity}개|">가격 / 수량</div>
+            <div class="order-info" th:text="|주문일: ${#temporals.format(order.orderDate, 'yyyy-MM-dd')} / 주문번호: ${order.orderNumber}|">주문일 / 주문번호</div>
+          </div>
+          <div class="order-status" 
+               th:text="${order.status.displayName}"
+               th:classappend="${order.status.name() == 'COMPLETED' ? 'status-completed' : (order.status.name() == 'SHIPPING' ? 'status-shipping' : 'status-cancelled')}">
+               주문 상태
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

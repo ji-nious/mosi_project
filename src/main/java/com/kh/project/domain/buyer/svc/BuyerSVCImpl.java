@@ -1,0 +1,272 @@
+package com.kh.project.domain.buyer.svc;
+
+import com.kh.project.domain.buyer.dao.BuyerDAO;
+import com.kh.project.domain.entity.Buyer;
+import com.kh.project.domain.entity.MemberGubun;
+import com.kh.project.domain.entity.MemberStatus;
+import com.kh.project.web.common.CodeNameInfo;
+import com.kh.project.web.exception.BusinessException;
+import com.kh.project.web.exception.MemberException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+/**
+ * 구매자 서비스 구현체
+ */
+@Slf4j
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class BuyerSVCImpl implements BuyerSVC {
+
+  private final BuyerDAO buyerDAO;
+
+  @Override
+  public Buyer join(Buyer buyer) {
+    log.info("구매자 회원가입 시도: email={}", buyer.getEmail());
+
+    // 중복 체크
+    if (buyerDAO.existsByEmail(buyer.getEmail())) {
+      throw new MemberException.EmailDuplicationException(buyer.getEmail());
+    }
+    if (buyerDAO.existsByNickname(buyer.getNickname())) {
+      throw new BusinessException("이미 사용중인 닉네임입니다.");
+    }
+
+    // 기본값 설정
+    buyer.setGubun(MemberGubun.getDefaultGrade().getCode());
+    buyer.setStatus("활성화");
+
+    Buyer savedBuyer = buyerDAO.save(buyer);
+    log.info("구매자 회원가입 성공: buyerId={}, email={}", savedBuyer.getBuyerId(), savedBuyer.getEmail());
+
+    return savedBuyer;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Buyer login(String email, String password) {
+    log.info("구매자 로그인 시도: email={}", email);
+
+    Buyer buyer = buyerDAO.findByEmail(email)
+        .orElseThrow(() -> new MemberException.LoginFailedException());
+
+    if (!buyer.canLogin()) {
+      log.warn("로그인 불가능한 상태: email={}, status={}", email, buyer.getStatus());
+      throw new MemberException.LoginFailedException();
+    }
+
+    if (!buyer.getPassword().equals(password)) {
+      log.warn("비밀번호 불일치: email={}", email);
+      throw new MemberException.LoginFailedException();
+    }
+
+    log.info("구매자 로그인 성공: email={}", email);
+    return buyer;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<Buyer> findById(Long buyerId) {
+    return buyerDAO.findById(buyerId);
+  }
+
+  @Override
+  public int update(Long buyerId, Buyer buyer) {
+    log.info("구매자 정보 수정: buyerId={}", buyerId);
+
+    // 중복 체크
+    if (buyer.getNickname() != null) {
+      Optional<Buyer> existingBuyer = buyerDAO.findById(buyerId);
+      if (existingBuyer.isPresent() &&
+          !buyer.getNickname().equals(existingBuyer.get().getNickname()) &&
+          buyerDAO.existsByNickname(buyer.getNickname())) {
+        throw new BusinessException("이미 사용중인 닉네임입니다.");
+      }
+    }
+
+    return buyerDAO.update(buyerId, buyer);
+  }
+
+  @Override
+  public int withdraw(Long buyerId, String reason) {
+    log.info("구매자 탈퇴 처리: buyerId={}, 사유={}", buyerId, reason);
+
+    Optional<Buyer> buyerOpt = buyerDAO.findById(buyerId);
+    if (buyerOpt.isEmpty()) {
+      throw new MemberException.MemberNotFoundException();
+    }
+
+    Buyer buyer = buyerOpt.get();
+    if (buyer.isWithdrawn()) {
+      throw new MemberException.AlreadyWithdrawnException();
+    }
+
+    // 탈퇴 사유 설정
+    String withdrawReason = (reason != null && !reason.trim().isEmpty()) ?
+        reason : "사용자 요청";
+
+    return buyerDAO.withdrawWithReason(buyerId, withdrawReason);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean existsByEmail(String email) {
+    return buyerDAO.existsByEmail(email);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean existsByNickname(String nickname) {
+    return buyerDAO.existsByNickname(nickname);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean checkPassword(Long buyerId, String password) {
+    if (password == null) return false;
+
+    return buyerDAO.findById(buyerId)
+        .map(buyer -> buyer.getPassword().equals(password.trim()))
+        .orElse(false);
+  }
+
+  @Override
+  public void upgradeGubun(Long buyerId, String newGubun) {
+    log.info("구매자 등급 승급: buyerId={}, newGubun={}", buyerId, newGubun);
+
+    if (!MemberGubun.isValidCode(newGubun)) {
+      throw new BusinessException("올바르지 않은 등급 코드입니다.");
+    }
+
+    Buyer updateBuyer = new Buyer();
+    updateBuyer.setGubun(newGubun);
+    int result = buyerDAO.update(buyerId, updateBuyer);
+
+    if (result > 0) {
+      log.info("구매자 등급 승급 완료: buyerId={}, newGubun={}", buyerId, newGubun);
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Buyer> getWithdrawnMembers() {
+    return List.of();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, Object> getServiceUsage(Long buyerId) {
+    log.info("구매자 서비스 이용현황 조회: buyerId={}", buyerId);
+
+    Optional<Buyer> buyerOpt = buyerDAO.findById(buyerId);
+    if (buyerOpt.isEmpty()) {
+      throw new MemberException.MemberNotFoundException();
+    }
+
+    Buyer buyer = buyerOpt.get();
+
+    // 서비스 이용현황 기본값
+    int activeOrderCount = 0;
+    int completedOrderCount = 5;
+    int unresolvedDisputeCount = 0;
+    int openInquiryCount = 0;
+    int pointBalance = 0;
+    int pendingRefundAmount = 0;
+
+    // 탈퇴 불가 사유 검사
+    List<String> withdrawBlockReasons = new java.util.ArrayList<>();
+    
+    if (activeOrderCount > 0) {
+      withdrawBlockReasons.add("진행중인 주문이 " + activeOrderCount + "건 있습니다.");
+    }
+    
+    if (unresolvedDisputeCount > 0) {
+      withdrawBlockReasons.add("미해결 분쟁이 " + unresolvedDisputeCount + "건 있습니다.");
+    }
+    
+    if (pointBalance > 0) {
+      withdrawBlockReasons.add("사용하지 않은 포인트가 " + pointBalance + "P 있습니다.");
+    }
+    
+    if (pendingRefundAmount > 0) {
+      withdrawBlockReasons.add("환불 대기 금액이 " + pendingRefundAmount + "원 있습니다.");
+    }
+
+    // 가입 기간 검사
+    if (buyer.getCdate() != null) {
+      long daysSinceJoin = (System.currentTimeMillis() - buyer.getCdate().getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSinceJoin < 1) {
+        withdrawBlockReasons.add("가입 후 1일이 지나지 않아 탈퇴할 수 없습니다.");
+      }
+    }
+
+    boolean canWithdraw = withdrawBlockReasons.isEmpty();
+
+    Map<String, Object> serviceUsage = new HashMap<>();
+    serviceUsage.put("memberId", buyerId);
+    serviceUsage.put("memberType", "BUYER");
+    serviceUsage.put("joinDate", buyer.getCdate());
+    serviceUsage.put("activeOrderCount", activeOrderCount);
+    serviceUsage.put("completedOrderCount", completedOrderCount);
+    serviceUsage.put("unresolvedDisputeCount", unresolvedDisputeCount);
+    serviceUsage.put("openInquiryCount", openInquiryCount);
+    serviceUsage.put("pointBalance", pointBalance);
+    serviceUsage.put("pendingRefundAmount", pendingRefundAmount);
+    serviceUsage.put("canWithdraw", canWithdraw);
+    serviceUsage.put("withdrawBlockReasons", withdrawBlockReasons);
+
+    log.info("구매자 서비스 이용현황 조회 완료: buyerId={}, canWithdraw={}, blockReasons={}", 
+             buyerId, canWithdraw, withdrawBlockReasons.size());
+
+    return serviceUsage;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canWithdraw(Long buyerId) {
+    Map<String, Object> usage = getServiceUsage(buyerId);
+    return (Boolean) usage.get("canWithdraw");
+  }
+
+  @Override
+  public boolean canLogin(Buyer buyer) {
+    return buyer != null && buyer.canLogin();
+  }
+
+  @Override
+  public boolean isWithdrawn(Buyer buyer) {
+    return buyer != null && buyer.isWithdrawn();
+  }
+
+  @Override
+  public CodeNameInfo getGubunInfo(Buyer buyer) {
+    if (buyer == null || buyer.getGubun() == null) {
+      return CodeNameInfo.of("UNKNOWN", "알 수 없음");
+    }
+
+    String code = buyer.getGubun();
+    String name = MemberGubun.getDescriptionByCode(code);
+
+    return CodeNameInfo.of(code, name);
+  }
+
+  @Override
+  public CodeNameInfo getStatusInfo(Buyer buyer) {
+    if (buyer == null || buyer.getStatus() == null) {
+      return CodeNameInfo.of("UNKNOWN", "알 수 없음");
+    }
+
+    String code = buyer.getStatus();
+    String name = MemberStatus.getDescriptionByCode(code);
+
+    return CodeNameInfo.of(code, name);
+  }
+}

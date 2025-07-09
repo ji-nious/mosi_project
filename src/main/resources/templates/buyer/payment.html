@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주문/결제</title>
+    <!-- Daum Postcode API -->
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --color-primary: #658352;
+          --color-primary-light: #94A687;
+          --color-background: #FBF9EF;
+          --color-text: #1E2203;
+          --color-border: #E9E7DE;
+          --color-white: #fff;
+        }
+        body {
+            font-family: 'Inter', 'Cabin', sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text);
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .payment-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .payment-container h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            color: var(--color-primary);
+            margin-bottom: 40px;
+        }
+        .payment-layout {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+        .main-content {
+            flex-grow: 1;
+        }
+        .section-box {
+            background-color: var(--color-white);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        .section-box h2 {
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: var(--color-primary);
+            border-bottom: 2px solid var(--color-border);
+            padding-bottom: 15px;
+        }
+        /* Order Items Styles */
+        .order-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .order-item:last-child { border-bottom: none; }
+        .order-item img {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            margin-right: 20px;
+            object-fit: cover;
+        }
+        .order-item .info {
+            flex-grow: 1;
+        }
+        .order-item .name { font-weight: 600; }
+        .order-item .quantity, .order-item .price { color: #555; font-size: 0.95rem; }
+
+        /* Address Form Styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            box-sizing: border-box; /* Important for width 100% */
+        }
+        .postcode-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .postcode-group input { flex-grow: 1; }
+        .postcode-group button {
+            width: 90px;
+            padding: 12px 0;
+            border: 1px solid var(--color-primary);
+            background-color: var(--color-white);
+            color: var(--color-primary);
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .postcode-group button:hover{
+            background-color: var(--color-primary);
+            color: var(--color-white);
+        }
+
+        /* Payment Method Styles */
+        .payment-options { display: flex; gap: 20px; }
+        .payment-options label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        
+        /* Summary Box Styles */
+        .summary-box {
+            width: 320px;
+            flex-shrink: 0;
+            background-color: var(--color-white);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 40px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        .summary-row.total {
+            font-weight: bold;
+            font-size: 1.2rem;
+            padding-top: 20px;
+            border-top: 1px solid var(--color-border);
+        }
+        #payBtn {
+            display: block;
+            box-sizing: border-box;
+            text-decoration: none;
+            text-align: center;
+            width: 100%;
+            padding: 15px;
+            border-radius: 24px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background-color: var(--color-primary);
+            color: var(--color-white);
+            margin-top: 20px;
+            transition: background-color 0.2s;
+        }
+        #payBtn:hover {
+            background-color: var(--color-primary-light);
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <h1>주문/결제</h1>
+        <form th:action="@{/payment}" th:object="${paymentForm}" method="post">
+            <div class="payment-layout">
+                <main class="main-content">
+                    <section class="section-box">
+                        <h2>주문 상품 정보</h2>
+                        <div id="orderItemsList">
+                            <!-- 주문 상품이 여기에 표시됩니다. -->
+                            <div th:if="${order == null or #lists.isEmpty(order.orderItems)}" style="color:#888; text-align:center; padding:40px 0;">주문할 상품이 없습니다.</div>
+                            <div th:each="item : ${order.orderItems}" class="order-item">
+                                <img th:src="${item.imageUrl}" th:alt="${item.name}">
+                                <div class="info">
+                                    <p class="name" th:text="${item.name}">상품 이름</p>
+                                    <p class="quantity" th:text="|수량: ${item.quantity}개|">수량: 1개</p>
+                                </div>
+                                <p class="price" th:text="|${#numbers.formatInteger(item.price * item.quantity, 0, 'COMMA')}원|">10,000원</p>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="section-box">
+                        <h2>배송지 정보</h2>
+                        <div class="form-group">
+                            <label for="recipientName">받는 분</label>
+                            <input type="text" id="recipientName" th:field="*{recipientName}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="recipientPhone">연락처</label>
+                            <input type="text" id="recipientPhone" th:field="*{recipientPhone}" placeholder="'-' 없이 숫자만 입력" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="postcode">우편번호</label>
+                            <div class="postcode-group">
+                                <input type="text" id="postcode" th:field="*{postcode}" readonly>
+                                <button type="button" id="searchPostcodeBtn">주소 검색</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="address">주소</label>
+                            <input type="text" id="address" th:field="*{address}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="detailAddress">상세주소</label>
+                            <input type="text" id="detailAddress" th:field="*{detailAddress}">
+                        </div>
+                    </section>
+                    <section class="section-box">
+                        <h2>결제 수단</h2>
+                        <div class="payment-options">
+                            <label><input type="radio" th:field="*{paymentMethod}" value="bank" checked> 무통장 입금</label>
+                            <label><input type="radio" th:field="*{paymentMethod}" value="card"> 카드 결제</label>
+                        </div>
+                    </section>
+                </main>
+                <aside class="summary-box">
+                    <h2>최종 결제 금액</h2>
+                    <div class="summary-row">
+                        <span>총 상품 금액</span>
+                        <span id="summarySubtotal" th:text="|${#numbers.formatInteger(order.totalPrice, 0, 'COMMA')}원|">0원</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>배송비</span>
+                        <span id="summaryShipping" th:text="|${#numbers.formatInteger(order.shippingFee, 0, 'COMMA')}원|">0원</span>
+                    </div>
+                    <hr>
+                    <div class="summary-row total">
+                        <span>결제 예정 금액</span>
+                        <span id="summaryTotal" th:text="|${#numbers.formatInteger(order.finalPaymentAmount, 0, 'COMMA')}원|">0원</span>
+                    </div>
+                    <button type="submit" id="payBtn">결제하기</button>
+                </aside>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Daum Postcode API
+            document.getElementById('searchPostcodeBtn').addEventListener('click', () => {
+                new daum.Postcode({
+                    oncomplete: function(data) {
+                        document.getElementById('postcode').value = data.zonecode;
+                        document.getElementById('address').value = data.address;
+                        document.getElementById('detailAddress').focus();
+                    }
+                }).open();
+            });
+        });
+    </script>
+</body>
+</html> 
