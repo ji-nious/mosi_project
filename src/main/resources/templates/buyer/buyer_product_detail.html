@@ -1,29 +1,85 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko">
 <head>
-    <th:block th:replace="~{fragments/common :: headFragment('상품 상세')}"></th:block>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 상세</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-          --dl-color-theme-primary1: #658352;
-          --dl-color-theme-primary2: #94A687;
-          --dl-color-theme-neutral-dark: #1E2203;
-          --dl-color-theme-neutral-light: #FBF9EF;
-          --dl-color-theme-secondary1: #E9E7DE;
-          --dl-color-theme-secondary2: #F5F4ED;
+          --color-primary: #658352;
+          --color-primary-light: #94A687;
+          --color-background: #FBF9EF;
+          --color-text: #1E2203;
+          --color-border: #E9E7DE;
+          --color-white: #fff;
+          --layout-max-width: 1400px;
         }
+
+        /* --- Navbar Styles --- */
+        .navbar-container {
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            z-index: 1000;
+            position: fixed;
+            justify-content: center;
+            background: var(--color-white);
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.06);
+        }
+        .navbar {
+            width: 100%;
+            display: flex;
+            max-width: var(--layout-max-width);
+            align-items: center;
+            padding: 16px 48px;
+            justify-content: space-between;
+        }
+        .navbar-logo-img {
+            height: 3rem;
+            border-radius: 8px;
+        }
+        .navbar-buttons {
+            gap: 16px;
+            display: flex;
+            align-items: center;
+        }
+        .btn-filled, .btn-outline {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            padding: 10px 24px;
+            border-radius: 24px;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: background .2s, color .2s;
+            cursor: pointer;
+            border: 1px solid var(--color-primary);
+        }
+        .btn-filled {
+            color: var(--color-white);
+            background: var(--color-primary);
+        }
+        .btn-filled:hover { opacity: 0.9; }
+        .btn-outline {
+            color: var(--color-primary);
+            background: transparent;
+        }
+        .btn-outline:hover { background: rgba(101, 131, 82, 0.1); }
+        
         body {
             font-family: 'Inter', 'Cabin', sans-serif;
-            background-color: var(--dl-color-theme-neutral-light);
-            color: var(--dl-color-theme-neutral-dark);
+            background-color: var(--color-background);
+            color: var(--color-text);
             margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
+            padding: 120px 20px 40px;
+            box-sizing: border-box;
         }
         .container {
             width: 100%;
             max-width: 1050px;
-            margin: 40px auto;
+            margin: 0 auto;
             background-color: #fff;
             box-shadow: 0 0 10px rgba(0,0,0,0.05);
             border-radius: 8px;
@@ -52,13 +108,13 @@
             font-weight: 700;
             margin: 0 0 16px 0;
             line-height: 1.4;
-            color: var(--dl-color-theme-primary1);
+            color: var(--color-primary);
         }
         .product-price {
             font-size: 32px;
             font-weight: 700;
             margin: 0 0 20px 0;
-            color: var(--dl-color-theme-neutral-dark);
+            color: var(--color-text);
         }
         .product-price span {
             font-size: 20px;
@@ -83,7 +139,7 @@
         }
         .info-table dd {
             margin: 0;
-            color: var(--dl-color-theme-neutral-dark);
+            color: var(--color-text);
         }
         .quantity-selector {
             display: flex;
@@ -99,7 +155,7 @@
             background-color: #fff;
             font-size: 20px;
             cursor: pointer;
-            color: var(--dl-color-theme-primary1);
+            color: var(--color-primary);
         }
         .quantity-selector input {
             width: 40px;
@@ -124,7 +180,7 @@
         }
         .total-price strong {
             font-size: 28px;
-            color: var(--dl-color-theme-primary1);
+            color: var(--color-primary);
         }
         .action-buttons {
             display: flex;
@@ -138,34 +194,34 @@
             border-radius: 24px;
             font-size: 18px;
             font-weight: 700;
-            border: 1px solid var(--dl-color-theme-primary1);
+            border: 1px solid var(--color-primary);
             cursor: pointer;
             transition: background 0.2s, color 0.2s;
         }
         .cart-btn {
             background-color: #fff;
-            color: var(--dl-color-theme-primary1);
+            color: var(--color-primary);
         }
         .cart-btn:hover {
-            background-color: var(--dl-color-theme-secondary2);
+            background-color: #f5f4ed;
         }
         .buy-btn {
-            background-color: var(--dl-color-theme-primary1);
+            background-color: var(--color-primary);
             color: #fff;
         }
         .buy-btn:hover {
-            background-color: var(--dl-color-theme-primary2);
-            border-color: var(--dl-color-theme-primary2);
+            background-color: var(--color-primary-light);
+            border-color: var(--color-primary-light);
         }
         .product-details {
             padding: 60px 40px;
-            border-top: 1px solid var(--dl-color-theme-secondary1);
-            background-color: var(--dl-color-theme-secondary2);
+            border-top: 1px solid var(--color-border);
+            background-color: var(--color-background);
         }
         .product-details h2 {
             text-align: center;
             margin-bottom: 40px;
-            color: var(--dl-color-theme-primary1);
+            color: var(--color-primary);
         }
         .product-details img {
             max-width: 100%;
@@ -220,11 +276,12 @@
             font-size: 20px;
             font-weight: 500;
             margin: 0 0 28px 0;
-            color: var(--dl-color-theme-neutral-dark);
+            color: var(--color-text);
         }
         .modal-buttons {
             display: flex;
             gap: 16px;
+            justify-content: center;
         }
         .modal-buttons button {
             flex-grow: 1;
@@ -238,74 +295,82 @@
     </style>
 </head>
 <body>
-    <!-- 공통 내비게이션 바 삽입 -->
-    <div th:replace="~{fragments/common :: navbarFragment}"></div>
-
-    <div class="container" th:if="${product != null}" th:object="${product}">
+    <header class="navbar-container">
+        <div class="navbar">
+            <a href="../home.html">
+                <img src="../../static/images/free-icon-sprout-7101338.png" alt="로고" class="navbar-logo-img"/>
+            </a>
+            <div class="navbar-buttons">
+                <a href="cart.html" class="btn-outline">장바구니</a>
+                <a href="buyer_info.html" class="btn-outline">마이페이지</a>
+                <a href="../home.html" class="btn-filled">로그아웃</a>
+            </div>
+        </div>
+    </header>
+    <div class="container">
         <main class="product-main">
             <div class="product-image-section">
-                <img th:src="*{thumbnailUrl}" alt="상품 대표 이미지">
+                <img src="https://www.costco.co.kr/medias/sys_master/images/hf2/h20/279080754741278.png" alt="상품 이미지" id="productImage">
             </div>
             <div class="product-info-section">
-                <h1 th:text="*{title}">상품 제목</h1>
-                <p class="product-price">
-                    <span th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')}">15,000</span><span>원</span>
-                </p>
+                <h1 id="productName">GAP 인증 무농약 블루베리 500g</h1>
+                <p class="product-price"><span id="productPrice">15,000</span><span>원</span></p>
 
                 <div class="info-table">
                     <dl>
                         <dt>배송</dt>
-                        <dd th:text="*{shippingMethod}">배송 방법</dd>
+                        <dd>샛별배송 (밤 11시 전 주문 시 내일 아침 7시 전 도착)</dd>
                     </dl>
                     <dl>
                         <dt>판매자</dt>
-                        <dd th:text="*{sellerName}">판매자 이름</dd>
+                        <dd>베리베리 팜</dd>
                     </dl>
                     <dl>
                         <dt>원산지</dt>
-                        <dd th:text="*{origin}">국내산</dd>
+                        <dd>국내산</dd>
+                    </dl>
+                    <dl>
+                        <dt>배송방법</dt>
+                        <dd>냉장 (샛별배송)</dd>
                     </dl>
                     <dl>
                         <dt>배송비</dt>
-                        <dd th:text="|${#numbers.formatInteger(product.shippingFee, 0, 'COMMA')}원|">3,000원</dd>
+                        <dd>3,000원 (4만원 이상 구매 시 무료배송)</dd>
                     </dl>
                      <dl>
                         <dt>배송안내</dt>
-                        <dd th:text="*{shippingInfo}">배송 안내</dd>
+                        <dd>신선식품으로, 단순 변심에 의한 교환/환불이 어려울 수 있습니다.</dd>
                     </dl>
                 </div>
                 
-                <form method="post" id="purchaseForm" style="margin-top: auto; padding-top: 24px; border-top: 1px solid #eee;">
-                    <input type="hidden" name="productId" th:value="*{id}">
-                    <dl>
-                        <dt>수량</dt>
-                        <dd>
-                            <div class="quantity-selector">
-                                <button type="button" class="minus-btn">-</button>
-                                <input type="number" value="1" min="1" id="quantity" name="quantity">
-                                <button type="button" class="plus-btn">+</button>
-                            </div>
-                        </dd>
-                    </dl>
-                    
-                    <div class="total-price">
-                        총 상품금액: <strong id="totalPrice" th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')}">15,000</strong>원
-                    </div>
-                    
-                    <div class="action-buttons">
-                        <button class="cart-btn" type="submit" th:formaction="@{/cart/items}">장바구니</button>
-                        <button class="buy-btn" type="submit" th:formaction="@{/orders/direct}">바로구매</button>
-                    </div>
-                </form>
+                <dl>
+                    <dt>수량</dt>
+                    <dd>
+                        <div class="quantity-selector">
+                            <button class="minus-btn" type="button">-</button>
+                            <input type="number" value="1" min="1" id="quantity">
+                            <button class="plus-btn" type="button">+</button>
+                        </div>
+                    </dd>
+                </dl>
+                
+                <div class="total-price">
+                    총 상품금액: <strong id="totalPrice">15,000</strong>원
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="cart-btn" type="button">장바구니</button>
+                    <button id="buyNowBtn" class="buy-btn" type="button">바로구매</button>
+                </div>
             </div>
         </main>
         
         <section class="product-details">
             <h2>상품 상세 설명</h2>
-            <p th:text="*{description}">상품 상세 설명</p>
-            <th:block th:if="*{imageUrls != null and not #lists.isEmpty(imageUrls)}">
-                <img th:each="url : *{imageUrls}" th:src="${url}" alt="상품 상세 이미지">
-            </th:block>
+            <p>화학 비료와 농약을 사용하지 않고 건강하게 키운 GAP 인증 무농약 블루베리입니다. 탱글탱글한 과육과 새콤달콤한 맛이 일품입니다.</p>
+            <img src="https://m.yummygarden.co.kr/file_data/yummygarden2/2017/08/29/85f725e2e2c4b8ca1890eaf0ee3cadad.jpg" alt="상세 이미지 1">
+            <p>요거트나 샐러드에 곁들여 드시거나, 잼이나 주스로 만들어 드셔도 좋습니다.</p>
+            <img src="https://sitem.ssgcdn.com/05/31/37/item/1000588373105_i1_750.jpg" alt="상세 이미지 2">
         </section>
     </div>
 
@@ -320,75 +385,96 @@
         </div>
     </div>
 
-    <script th:inline="javascript">
-    /*<![CDATA[*/
-        if (document.getElementById('quantity')) {
-            const quantityInput = document.getElementById('quantity');
-            const minusBtn = document.querySelector('.minus-btn');
-            const plusBtn = document.querySelector('.plus-btn');
-            const totalPriceEl = document.getElementById('totalPrice');
-            const pricePerUnit = /*[[${product.price}]]*/ 0;
+    <script src="/js/buyer/buyer_product_detail.js"></script>
+    <script src="/js/common/logout.js"></script>
+    <script>
+        const quantityInput = document.getElementById('quantity');
+        const minusBtn = document.querySelector('.minus-btn');
+        const plusBtn = document.querySelector('.plus-btn');
+        const totalPriceEl = document.getElementById('totalPrice');
+        const pricePerUnit = 15000;
 
-            function updateTotal() {
-                const quantity = parseInt(quantityInput.value);
-                const total = quantity * pricePerUnit;
-                totalPriceEl.textContent = total.toLocaleString();
-            }
-
-            minusBtn.addEventListener('click', () => {
-                let quantity = parseInt(quantityInput.value);
-                if (quantity > 1) {
-                    quantity--;
-                    quantityInput.value = quantity;
-                    updateTotal();
-                }
-            });
-
-            plusBtn.addEventListener('click', () => {
-                let quantity = parseInt(quantityInput.value);
-                quantity++;
-                quantityInput.value = quantity;
-                updateTotal();
-            });
-
-            quantityInput.addEventListener('change', () => {
-                if (parseInt(quantityInput.value) < 1 || !quantityInput.value) {
-                    quantityInput.value = 1;
-                }
-                updateTotal();
-            });
-
-            // Cart Modal Logic
-            const cartModal = document.getElementById('cartModal');
-            const continueShoppingBtn = document.getElementById('continueShoppingBtn');
-            const goToCartBtn = document.getElementById('goToCartBtn');
-            const urlParams = new URLSearchParams(window.location.search);
-            
-            if (urlParams.has('addCartSuccess')) {
-                cartModal.classList.add('active');
-            }
-            
-            if (cartModal && continueShoppingBtn && goToCartBtn) {
-                const closeCartModal = () => {
-                    cartModal.classList.remove('active');
-                    const newUrl = window.location.pathname + window.location.hash;
-                    window.history.replaceState({}, document.title, newUrl);
-                };
-
-                continueShoppingBtn.addEventListener('click', closeCartModal);
-
-                goToCartBtn.addEventListener('click', () => {
-                    window.location.href = /*[[@{/buyer/cart}]]*/ '/';
-                });
-
-                window.addEventListener('click', (event) => {
-                    if (event.target === cartModal) {
-                        closeCartModal();
-                    }
-                });
-            }
+        // --- 수량 및 총액 계산 ---
+        function updateTotal() {
+            const quantity = parseInt(quantityInput.value);
+            const total = quantity * pricePerUnit;
+            totalPriceEl.textContent = total.toLocaleString();
         }
-    /*]]>*/
+
+        minusBtn.addEventListener('click', () => {
+            let quantity = parseInt(quantityInput.value);
+            if (quantity > 1) {
+                quantityInput.value = --quantity;
+                updateTotal();
+            }
+        });
+
+        plusBtn.addEventListener('click', () => {
+            let quantity = parseInt(quantityInput.value);
+            quantityInput.value = ++quantity;
+            updateTotal();
+        });
+
+        quantityInput.addEventListener('change', () => {
+            if (parseInt(quantityInput.value) < 1 || !quantityInput.value) {
+                quantityInput.value = 1;
+            }
+            updateTotal();
+        });
+
+        // --- 장바구니/바로구매 버튼 로직 ---
+        const cartBtn = document.querySelector('.action-buttons .cart-btn');
+        const buyNowBtn = document.getElementById('buyNowBtn');
+        const cartModal = document.getElementById('cartModal');
+
+        // 장바구니 버튼 클릭 시 모달 표시
+        if (cartBtn && cartModal) {
+            cartBtn.addEventListener('click', () => {
+                cartModal.classList.add('active');
+            });
+        }
+
+        // 바로구매 버튼 클릭 시
+        buyNowBtn.addEventListener('click', () => {
+            const product = {
+                id: 'p_detail_001',
+                name: document.getElementById('productName').textContent,
+                price: pricePerUnit,
+                quantity: parseInt(quantityInput.value),
+                imageUrl: document.getElementById('productImage').src
+            };
+            sessionStorage.setItem('orderItems', JSON.stringify([product]));
+            window.location.href = 'payment.html';
+        });
+
+
+        // --- 모달 내부 버튼 로직 ---
+        const continueShoppingBtn = document.getElementById('continueShoppingBtn');
+        const goToCartBtn = document.getElementById('goToCartBtn');
+
+        const closeCartModal = () => {
+            cartModal.classList.remove('active');
+        };
+
+        if (continueShoppingBtn) {
+            continueShoppingBtn.addEventListener('click', closeCartModal);
+        }
+
+        if (goToCartBtn) {
+            goToCartBtn.addEventListener('click', () => {
+                window.location.href = 'cart.html';
+            });
+        }
+
+        // 모달 외부 클릭 시 닫기
+        window.addEventListener('click', (event) => {
+            if (event.target === cartModal) {
+                closeCartModal();
+            }
+        });
+
+        // 초기 가격 표시
+        document.getElementById('productPrice').textContent = pricePerUnit.toLocaleString();
     </script>
 </body>
 </html> 

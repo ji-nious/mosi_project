@@ -1,270 +1,385 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>판매자 센터 - 대시보드</title>
-  <!-- 구글 폰트 적용 -->
-  <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet">
-  <th:block th:replace="~{fragments/common :: headFragment('판매자 대시보드')}"></th:block>
+  <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* ===== Reset & Base ===== */
+    /* CSS 변수 */
+    :root {
+      --dl-color-theme-primary1: #658352;
+      --dl-color-theme-primary2: #94A687;
+      --dl-color-theme-neutral-dark: #1E2203;
+      --dl-color-theme-neutral-light: #FBF9EF;
+      --dl-color-theme-secondary1: #E9E7DE;
+      --dl-color-theme-secondary2: #F5F4ED;
+      --dl-layout-size-maxwidth: 1400px;
+    }
+
+    /* 기본 레이아웃 */
     body {
       margin: 0;
       font-family: 'Inter', 'Cabin', sans-serif;
-      background-color: #FBF9EF;
-      color: #1E2203;
+      background-color: var(--dl-color-theme-neutral-light);
+      color: var(--dl-color-theme-neutral-dark);
+    }
+
+    /* Navbar */
+    .navbar8-container1 {
+      top: 0;
+      width: 100%;
       display: flex;
-      flex-direction: column;
+      z-index: 1000;
+      position: sticky;
+      justify-content: center;
+      background: var(--dl-color-theme-neutral-light);
+      box-shadow: 0 2px 12px 0 rgba(0,0,0,0.06);
+    }
+    .navbar8-navbar-interactive {
+      width: 100%;
+      display: flex;
+      max-width: var(--dl-layout-size-maxwidth);
       align-items: center;
-      padding: 20px;
-      box-sizing: border-box;
-      min-height: 100vh;
+      padding: 24px 48px;
+      justify-content: space-between;
+    }
+    .navbar8-image1 {
+      height: 3rem;
+      border-radius: 8px;
+    }
+    .navbar8-buttons1 {
+      gap: 32px;
+      display: flex;
+      align-items: center;
+    }
+    .thq-button-filled, .thq-button-outline {
+      display: flex;
+      align-items: center;
+      font-weight: bold;
+      padding: 10px 32px;
+      border-radius: 24px;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: background .2s, color .2s;
+    }
+    .thq-button-filled {
+      color: var(--dl-color-theme-secondary1);
+      border: 1px solid var(--dl-color-theme-primary1);
+      background: var(--dl-color-theme-primary1);
+    }
+    .thq-button-filled:hover {
+      color: var(--dl-color-theme-secondary2);
+      background: var(--dl-color-theme-primary2);
+      border-color: var(--dl-color-theme-primary2);
+    }
+    .thq-button-outline {
+      color: var(--dl-color-theme-primary1);
+      border: 1px solid var(--dl-color-theme-primary1);
+      background: transparent;
+    }
+    .thq-button-outline:hover {
+      color: var(--dl-color-theme-secondary2);
+      background: var(--dl-color-theme-primary2);
+      border-color: var(--dl-color-theme-primary2);
     }
 
-    h1, h3 {
+    h2, h3 {
       font-family: 'Cabin', sans-serif;
-      font-weight: 600;
-      color: #5a7247;
+      font-weight: 700;
+      color: #658352;
+      text-align: center;
     }
 
-    /* ===== Main Layout Wrappers ===== */
-    .dashboard-wrapper {
-        width: 100%;
-        max-width: 1024px;
-        margin: 0 auto;
-        padding-top: 60px;
-    }
-
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        padding: 0 10px;
-    }
-
-    .page-header h1 {
-        font-size: 1.8rem;
-        margin: 0;
-    }
-
-    .header-actions button {
-        padding: 9px 18px;
-        font-size: 0.95rem;
-        font-weight: bold;
-        border-radius: 8px;
-        border: 1.5px solid #658352;
-        background-color: #658352;
-        color: white;
-        cursor: pointer;
-        transition: all 0.2s;
-        margin-left: 10px;
-    }
-
-    .header-actions button:hover {
-        background-color: #526942;
-        border-color: #526942;
-    }
-
+    /* ===== 대시보드 컨테이너 ===== */
     .dashboard-container {
-        width: 100%;
-        background-color: #fff;
-        padding: 24px;
-        border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
-        box-sizing: border-box;
+      width: 100%;
+      max-width: 960px;
+      background-color: #fff;
+      padding: 32px 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+      margin: 40px auto;
+      box-sizing: border-box;
+    }
+    /* ===== 헤더(타이틀+버튼) ===== */
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .dashboard-header h2 {
+      margin: 0;
+      text-align: left;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+    }
+    .actions button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 12px;
+      border: 1px solid #658352;
+      background-color: #658352;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .actions button:hover {
+      background-color: #4d683f;
     }
 
-    /* ===== Grid & Cards ===== */
+    /* ===== 카드형 그리드 ===== */
     .dashboard-grid {
-        display: grid;
-        grid-template-columns: 1fr 2.5fr;
-        gap: 24px;
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 24px;
     }
-
     .dashboard-card {
-        background: #f8f9fa;
-        padding: 24px;
-        border-radius: 12px;
+      background: #f8f9fa;
+      padding: 24px;
+      border-radius: 16px;
+      border: 1px solid #eee;
     }
-
     .dashboard-card h3 {
-        margin-top: 0;
-        margin-bottom: 24px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid #e0e0e0;
-        font-size: 1.2rem;
+      margin-top: 0;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
     }
-    
-    /* ===== Left Card: Sales Status ===== */
-    .sales-status {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-    }
-    
+
+    /* ===== 판매 현황 카드 ===== */
     .sales-status .count {
-        font-size: 3.5rem;
-        font-weight: 700;
-        color: #658352;
-        line-height: 1.2;
+      font-size: 3rem;
+      font-weight: 700;
+      text-align: center;
+      color: #658352;
     }
-
     .sales-status .count-label {
-        font-size: 1rem;
-        color: #555;
-        margin-top: 8px;
+      text-align: center;
+      font-size: 1rem;
+      color: #555;
+      margin-top: 8px;
     }
 
-    /* ===== Right Card: Settlement Info ===== */
+    /* ===== 정산 그래프 카드 ===== */
     .settlement-graph {
-        display: flex;
-        justify-content: space-around;
-        align-items: flex-end;
-        height: 160px;
-        border-bottom: 2px solid #e0e0e0;
-        padding: 0 10px 5px 10px;
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      height: 150px;
+      border-bottom: 2px solid #ccc;
+      padding-bottom: 5px;
     }
-
     .graph-bar {
-        width: 11%;
-        background-color: #94A687;
-        border-radius: 4px 4px 0 0;
-        position: relative;
-        text-align: center;
-        transition: background-color 0.2s;
+      width: 10%;
+      background-color: #94A687;
+      text-align: center;
+      position: relative;
+      transition: background-color 0.2s;
     }
     .graph-bar:hover {
-        background-color: #7a8c70;
+      background-color: #658352;
     }
-
     .graph-bar .label {
         position: absolute;
         bottom: -25px;
         width: 100%;
         left: 0;
-        font-size: 0.85rem;
-        color: #666;
+        font-size: 0.8rem;
     }
-    
+    /* 금액 툴팁 스타일 */
+    .graph-bar .amount-tooltip {
+        position: absolute;
+        bottom: 105%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: var(--dl-color-theme-neutral-dark);
+        color: white;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s, visibility 0.2s;
+        pointer-events: none;
+    }
+    .graph-bar .amount-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: var(--dl-color-theme-neutral-dark) transparent transparent transparent;
+    }
+    .graph-bar:hover .amount-tooltip {
+        opacity: 1;
+        visibility: visible;
+    }
+    /* ===== 정산 상세 금액 ===== */
     .settlement-details {
-        margin-top: 35px;
-        padding: 0 10px;
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px dashed #ddd;
     }
-    
     .settlement-details .detail-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 9px 0;
-        font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 4px;
+      font-size: 0.95rem;
     }
-    
     .settlement-details .detail-item span {
-        color: #555;
+      color: #555;
     }
-    
     .settlement-details .detail-item strong {
-        font-weight: 600;
-        font-size: 1rem;
-        color: #1E2203;
+      font-weight: bold;
+      font-size: 1.05rem;
+      color: #1E2203;
     }
 
     .settlement-total {
-        margin-top: 24px;
-        padding-top: 20px;
-        border-top: 1px solid #e0e0e0;
-        text-align: right;
-        padding-right: 10px;
+      margin-top: 32px;
+      text-align: right;
     }
-    
-    .settlement-total span {
-        font-size: 1.05rem;
-        color: #333;
+    .settlement-total strong {
+      font-size: 1.5rem;
+      color: #1E2203;
     }
 
-    .settlement-total strong {
-        font-size: 1.25rem;
-        font-weight: bold;
-        color: #1E2203;
-        margin-left: 12px;
-    }
-    
-    /* ===== Responsive ===== */
+    /* ===== 반응형 ===== */
     @media screen and (max-width: 768px) {
         .dashboard-grid {
             grid-template-columns: 1fr;
         }
-        .page-header {
+        .dashboard-header {
             flex-direction: column;
-            align-items: flex-start;
-            gap: 16px;
+            gap: 20px;
         }
     }
   </style>
 </head>
 <body>
-
-<!-- 공통 내비게이션 바 삽입 -->
-<div th:replace="~{fragments/common :: navbarFragment}"></div>
-
-<div class="dashboard-wrapper">
-    <header class="page-header">
-        <h1>판매자 센터</h1>
-        <div class="header-actions">
-            <button th:onclick="|location.href='@{/seller/products}'|">판매글 목록</button>
-            <button th:onclick="|location.href='@{/seller/products/new}'|">판매글 등록</button>
-        </div>
-    </header>
-
-    <div class="dashboard-container">
-        <div class="dashboard-grid">
-            <!-- 판매 현황 카드 -->
-            <div class="dashboard-card sales-status">
-                <h3>판매 현황</h3>
-                <div class="count" th:text="${totalOrderCount}">25</div>
-                <p class="count-label">총 주문 건수</p>
-            </div>
-
-            <!-- 주간 정산 현황 카드 -->
-            <div class="dashboard-card settlement-info">
-                <h3>주간 정산 현황</h3>
-                <div class="settlement-graph">
-                    <th:block th:if="${weeklyData != null and not #lists.isEmpty(weeklyData)}">
-                        <div th:each="data : ${weeklyData}" class="graph-bar" th:with="barHeight=${maxAmount > 0 ? (data.amount * 100 / maxAmount) : 0}" th:style="|height: ${barHeight}%;|">
-                            <span class="label" th:text="${data.date}"></span>
-                        </div>
-                    </th:block>
-                    <div th:if="${weeklyData == null or #lists.isEmpty(weeklyData)}" style="text-align:center; color:#888; width:100%; align-self:center;">
-                        주간 정산 데이터가 없습니다.
-                    </div>
-                </div>
-                
-                <div class="settlement-details">
-                    <div class="detail-item">
-                        <span>정산완료 금액</span>
-                        <strong th:text="|₩${#numbers.formatInteger(completedAmount, 0, 'COMMA')}|">₩0</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>정산중 금액</span>
-                        <strong th:text="|₩${#numbers.formatInteger(pendingAmount, 0, 'COMMA')}|">₩0</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>정산보류 금액</span>
-                        <strong th:text="|₩${#numbers.formatInteger(onHoldAmount, 0, 'COMMA')}|">₩0</strong>
-                    </div>
-                </div>
-
-                <div class="settlement-total">
-                    <span>이번 주 정산 금액:</span>
-                    <strong th:text="|₩${#numbers.formatInteger(weeklyTotalAmount, 0, 'COMMA')}|">₩0</strong>
-                </div>
-            </div>
-        </div>
+<!-- Navbar -->
+<header class="navbar8-container1">
+  <div class="navbar8-navbar-interactive">
+    <a href="../home.html">
+      <img src="../../static/images/free-icon-sprout-7101338.png" alt="로고" class="navbar8-image1"/>
+    </a>
+    <div class="navbar8-buttons1">
+      <!-- 이 부분은 로그인 된 상태이므로, '로그아웃' 과 '마이페이지' 등으로 변경될 수 있습니다.
+           현재는 정적 페이지이므로, 다른 페이지로 가는 링크를 유지합니다. -->
+      <button onclick="location.href='../home.html'" class="thq-button-outline">로그아웃</button>
+      <button onclick="location.href='seller_info.html'" class="thq-button-filled">내 정보</button>
     </div>
+  </div>
+</header>
+<div class="dashboard-container">
+  <!-- 대시보드 헤더: 타이틀 + 판매글 버튼 -->
+  <div class="dashboard-header">
+    <h2>판매자 센터</h2>
+    <div class="actions">
+      <!-- 판매글 목록 버튼 -->
+      <button onclick="location.href='product_list.html'">판매글 목록</button>
+      <!-- 판매글 등록 버튼 (가상 동작) -->
+      <button onclick="location.href='product_form.html'">판매글 등록</button>
+    </div>
+  </div>
+
+  <!-- 판매 현황/정산 현황 카드 그리드 -->
+  <div class="dashboard-grid">
+    <!-- 판매 현황 카드 -->
+    <div class="dashboard-card sales-status">
+      <h3>판매 현황</h3>
+      <div class="count">25</div> <!-- 총 주문 건수 (가상 데이터) -->
+      <p class="count-label">총 주문 건수</p>
+    </div>
+
+    <!-- 정산 현황 카드 -->
+    <div class="dashboard-card settlement-status">
+      <h3>주간 정산 현황</h3>
+      <!-- 정산 그래프 영역 -->
+      <div class="settlement-graph" id="settlementGraph">
+      </div>
+      
+      <!-- 정산 상세 금액 -->
+      <div class="settlement-details">
+        <div class="detail-item">
+          <span>정산완료 금액</span>
+          <strong>₩285,000</strong>
+        </div>
+        <div class="detail-item">
+          <span>정산중 금액</span>
+          <strong>₩89,000</strong>
+        </div>
+        <div class="detail-item">
+          <span>정산보류 금액</span>
+          <strong>₩0</strong>
+        </div>
+      </div>
+
+      <div class="settlement-total">
+        <span>이번 주 정산 금액: </span>
+        <strong id="settlementTotal"></strong> <!-- JS로 총액 표시 -->
+      </div>
+    </div>
+  </div>
 </div>
+
+<script>
+  // ===== JS: 주간 정산 그래프 및 금액 표시 =====
+  document.addEventListener('DOMContentLoaded', function() {
+    // 7일치 가상 정산 데이터 (MM/DD, 금액)
+    const weeklyData = [
+      { date: '05/15', amount: 35000 },
+      { date: '05/16', amount: 42000 },
+      { date: '05/17', amount: 28000 },
+      { date: '05/18', amount: 55000 },
+      { date: '05/19', amount: 72000 },
+      { date: '05/20', amount: 89000 },
+      { date: '05/21', amount: 61000 },
+    ];
+
+    const graphContainer = document.getElementById('settlementGraph'); // 그래프 영역
+    const totalAmountEl = document.getElementById('settlementTotal'); // 총 정산금액 표시 영역
+
+    const maxAmount = Math.max(...weeklyData.map(d => d.amount)); // 최대값(그래프 비율용)
+    let totalAmount = 0;
+
+    // 각 날짜별로 그래프 바 생성
+    weeklyData.forEach(data => {
+      const barHeight = (data.amount / maxAmount) * 100; // 비율 계산
+      totalAmount += data.amount;
+
+      const bar = document.createElement('div');
+      bar.className = 'graph-bar';
+      bar.style.height = `${barHeight}%`;
+      
+      const tooltip = document.createElement('span');
+      tooltip.className = 'amount-tooltip';
+      tooltip.textContent = `₩${data.amount.toLocaleString()}`;
+
+      const label = document.createElement('span');
+      label.className = 'label';
+      label.textContent = data.date; // 날짜 라벨
+      
+      bar.appendChild(tooltip);
+      bar.appendChild(label);
+      graphContainer.appendChild(bar);
+    });
+
+    // 총 정산금액 표시
+    totalAmountEl.textContent = `₩${totalAmount.toLocaleString()}`;
+  });
+</script>
 </body>
 </html> 

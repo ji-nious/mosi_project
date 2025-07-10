@@ -2,104 +2,124 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>판매자 회원 탈퇴</title>
+  <title>판매자 탈퇴</title>
   <link rel="stylesheet" th:href="@{/css/style.css}">
-  <link rel="stylesheet" href="../../static/css/style.css" />
+  <link rel="stylesheet" th:href="@{/css/modal.css}">
 </head>
 <body>
-
-<!-- 🏠 홈으로 이동 버튼 -->
-<a th:href="@{/home}"><img src="../../static/images/free-icon-sprout-7101338.png" alt="홈으로" style="width:48px;height:48px;margin:20px 0 0 20px;position:fixed;left:20px;top:20px;z-index:100;"></a>
-<a href="../index.html"><img src="../../static/images/free-icon-sprout-7101338.png" alt="홈으로" style="width:48px;height:48px;margin:20px 0 0 20px;position:fixed;left:20px;top:20px;z-index:100;"></a>
-
-<!-- 👤 판매자 탈퇴 폼 -->
-<form id="seller-withdraw-form" class="seller-form" th:action="@{/api/sellers/{id}(id=${sellerId})}" method="delete">
-  <h2>판매자 회원 탈퇴</h2>
-
-  <!-- 탈퇴 안내 -->
-  <div style="background:#f8f6e7;padding:20px;border-radius:8px;margin:20px 0;color:#a00;">
-    <h3>⚠️ 탈퇴 전 확인사항</h3>
-    <ul style="text-align:left;margin:10px 0;">
-      <li>탈퇴 시 모든 개인정보가 삭제되며 복구가 불가능합니다.</li>
-      <li>진행 중인 판매 상품과 주문이 있다면 완료 후 탈퇴를 진행해주세요.</li>
-      <li>정산 예정 금액 등 모든 혜택이 사라집니다.</li>
-      <li>동일한 이메일로 재가입이 제한될 수 있습니다.</li>
+<header>
+  <div class="header_container">
+    <div class="logo_container">
+      <a th:href="@{/}"><img th:src="@{/images/free-icon-sprout-7101338.png}" alt="홈으로" style="width:48px;height:48px;"></a>
+    </div>
+  </div>
+</header>
+<div class="container">
+  <h1>판매자 탈퇴</h1>
+  <div class="withdraw-form">
+    <p>회원 탈퇴를 신청하기 전에 아래 내용을 반드시 확인해주세요.</p>
+    <ul>
+      <li>진행 중인 거래(판매, 정산 등)가 있는 경우 탈퇴가 불가능합니다.</li>
+      <li>탈퇴 후에는 동일한 이메일로 재가입이 불가능할 수 있습니다.</li>
+      <li>회원님의 모든 정보는 관련 법령에 따라 일정 기간 보관 후 삭제됩니다.</li>
     </ul>
-  </div>
-
-  <!-- 비밀번호 확인 -->
-  <div class="form-row">
-    <label for="password">비밀번호 확인</label>
-    <div class="input-col">
-      <input type="password" id="password" name="password" placeholder="본인 확인을 위해 비밀번호를 입력하세요" required />
-      <div class="error-msg" id="error-password"></div>
+    <div id="serviceUsage" class="service-usage">
+      <!-- 서비스 이용 현황 표시 -->
     </div>
+    <form id="withdrawForm" th:action="@{/api/sellers/{sellerId}/withdraw(sellerId=${sellerId})}" method="post">
+      <div class="form-group">
+        <label for="password">비밀번호 확인</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+      <div class="form-group">
+        <label for="reason">탈퇴 사유</label>
+        <textarea id="reason" name="reason" rows="4" required></textarea>
+      </div>
+      <button type="submit" class="btn btn-danger">탈퇴 신청</button>
+      <a th:href="@{/sellers/info}" class="btn">취소</a>
+    </form>
   </div>
-
-  <!-- 탈퇴 사유 -->
-  <div class="form-row">
-    <label for="reason">탈퇴 사유</label>
-    <div class="input-col">
-      <select id="reason" name="reason">
-        <option value="">선택해주세요</option>
-        <option value="no_use">더 이상 이용하지 않음</option>
-        <option value="inconvenience">서비스 불편함</option>
-        <option value="business_change">사업 변경</option>
-        <option value="privacy">개인정보 우려</option>
-        <option value="other">기타</option>
-      </select>
-      <div class="error-msg" id="error-reason"></div>
-    </div>
-  </div>
-
-  <!-- ▶ 탈퇴 버튼 -->
-  <button type="submit" style="background-color:#a00;">회원 탈퇴</button>
-</form>
-
+</div>
+<div th:replace="~{fragment/modal :: modalFragment}"></div>
+<script th:src="@{/js/common/modal.js}"></script>
 <script>
-document.getElementById('seller-withdraw-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  
-  const password = document.getElementById('password').value;
-  const reason = document.getElementById('reason').value;
-  
-  if (!password) {
-    alert('비밀번호를 입력해주세요.');
-    return;
-  }
-  
-  if (!reason) {
-    alert('탈퇴 사유를 선택해주세요.');
-    return;
-  }
-  
-  if (!confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-    return;
-  }
-  
-  // 세션에서 사용자 ID 가져오기 (임시로 1 사용)
-  const userId = 1; // 실제로는 세션에서 가져와야 함
-  
-  fetch(`/api/sellers/${userId}?password=${encodeURIComponent(password)}`, {
-    method: 'DELETE'
-  })
-  .then(res => res.json())
-  .then(response => {
-    console.log('서버 응답:', response); // 디버깅용
-    if (response.success === true) {
-      alert('회원 탈퇴가 완료되었습니다.');
-      window.location.href = '/';
-    } else {
-      alert('탈퇴 실패: ' + (response.message || '알 수 없는 오류'));
-    }
-  })
-  .catch(err => {
-    console.error('탈퇴 오류:', err); // 디버깅용
-    alert('탈퇴 실패: ' + err.message);
-  });
-});
-</script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const sellerId = '[[${sellerId}]]'; // 타임리프로 sellerId 가져오기
 
+    // 서비스 이용 현황 조회
+    fetch(`/api/sellers/${sellerId}/service-usage`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const usage = data.data;
+            const usageDiv = document.getElementById('serviceUsage');
+            let usageHtml = '<h4>서비스 이용 현황</h4>';
+            usageHtml += `<p>진행중인 판매 건: ${usage.ongoingSales}건</p>`;
+            usageHtml += `<p>정산 예정 금액: ${usage.pendingSettlement.toLocaleString()}원</p>`;
+
+            if (!usage.canWithdraw) {
+              usageHtml += '<p class="withdraw-block"><strong>탈퇴 불가 사유:</strong></p>';
+              usageHtml += '<ul>';
+              usage.withdrawBlockReasons.forEach(reason => {
+                usageHtml += `<li class="withdraw-block">${reason}</li>`;
+              });
+              usageHtml += '</ul>';
+              document.querySelector('#withdrawForm button[type="submit"]').disabled = true;
+            }
+            usageDiv.innerHTML = usageHtml;
+          } else {
+            showModal(data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showModal('서비스 이용 현황을 불러오는 데 실패했습니다.');
+        });
+
+
+    // 탈퇴 신청 처리
+    document.getElementById('withdrawForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const password = document.getElementById('password').value;
+      const reason = document.getElementById('reason').value;
+
+      if (!password || !reason) {
+        showModal('비밀번호와 탈퇴 사유를 모두 입력해주세요.');
+        return;
+      }
+
+      if (!confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+        return;
+      }
+
+      fetch(`/api/sellers/${sellerId}/withdraw`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password, reason })
+      })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              showModal(data.message, () => {
+                window.location.href = '/';
+              });
+            } else {
+              let errorMessage = data.message;
+              if(data.serviceUsage && !data.serviceUsage.canWithdraw) {
+                errorMessage += '\\n' + data.serviceUsage.withdrawBlockReasons.join('\\n');
+              }
+              showModal(errorMessage);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            showModal('탈퇴 처리 중 오류가 발생했습니다.');
+          });
+    });
+  });
+</script>
 </body>
 </html> 

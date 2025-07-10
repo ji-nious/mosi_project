@@ -1,8 +1,52 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko">
 <head>
-    <th:block th:replace="~{fragments/common :: headFragment('상품 상세')}"></th:block>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>판매자 상품 상세</title>
+    <meta property="og:title" content="Seller-Product-Detail - Project" />
+    <meta property="twitter:card" content="summary_large_image" />
+    <link
+            rel="stylesheet"
+            href="https://unpkg.com/animate.css@4.1.1/animate.css"
+    />
+    <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&amp;display=swap"
+            data-tag="font"
+    />
+    <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&amp;display=swap"
+            data-tag="font"
+    />
+    <link
+            rel="stylesheet"
+            href="https://unpkg.com/@teleporthq/teleport-custom-scripts/dist/style.css"
+    />
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <link th:href="@{/css/seller-product-detail.css}" rel="stylesheet" />
+    <style data-tag="reset-style-sheet">
+        html {  line-height: 1.15;}body {  margin: 0;}* {  box-sizing: border-box;  border-width: 0;  border-style: solid;}p,li,ul,pre,div,h1,h2,h3,h4,h5,h6,figure,blockquote,figcaption {  margin: 0;  padding: 0;}button {  background-color: transparent;}button,input,select,textarea {  font-family: inherit;  font-size: 100%;  line-height: 1.15;  margin: 0;}button,select {  text-transform: none;}button,[type="button"],[type="reset"],[type="submit"] {  -webkit-appearance: button;}button::-moz-focus-inner,[type="button"]::-moz-focus-inner,[type="reset"]::-moz-focus-inner,[type="submit"]::-moz-focus-inner {  border-style: none;  padding: 0;}button:-moz-focus,[type="button"]:-moz-focus,[type="reset"]:-moz-focus,[type="submit"]:-moz-focus {  outline: 1px dotted ButtonText;}a {  color: inherit;  text-decoration: inherit;}input {  padding: 2px 4px;}img {  display: block;}html { scroll-behavior: smooth  }
+    </style>
+    <style data-tag="default-style-sheet">
+        html {
+            font-family: Inter;
+            font-size: 16px;
+        }
+        body {
+            font-weight: 400;
+            font-style:normal;
+            text-decoration: none;
+            text-transform: none;
+            letter-spacing: normal;
+            line-height: 1.15;
+            color: var(--dl-color-gray-black);
+            background-color: var(--dl-color-gray-white);
+        }
+    </style>
     <style>
+        /* CSS 변수 */
         :root {
           --dl-color-theme-primary1: #658352;
           --dl-color-theme-primary2: #94A687;
@@ -10,24 +54,73 @@
           --dl-color-theme-neutral-light: #FBF9EF;
           --dl-color-theme-secondary1: #E9E7DE;
           --dl-color-theme-secondary2: #F5F4ED;
+          --dl-layout-size-maxwidth: 1400px;
         }
+        
+        /* 기본 레이아웃 */
         body {
-            /* 상단 여백은 common.css에서 관리합니다. */
             font-family: 'Inter', 'Cabin', sans-serif;
             background-color: var(--dl-color-theme-neutral-light);
             color: var(--dl-color-theme-neutral-dark);
             margin: 0;
             padding: 0;
+        }
+
+        /* Navbar Styles */
+        .navbar-container {
+            top: 0;
+            width: 100%;
             display: flex;
+            z-index: 1000;
+            position: sticky;
             justify-content: center;
+            background: var(--dl-color-theme-neutral-light);
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.06);
         }
-        .page-title {
-            font-family: 'Cabin', sans-serif;
-            font-weight: 700;
+        .navbar {
+            width: 100%;
+            display: flex;
+            max-width: var(--dl-layout-size-maxwidth);
+            align-items: center;
+            padding: 16px 48px;
+            justify-content: space-between;
+        }
+        .navbar-logo-img {
+            height: 3rem;
+            border-radius: 8px;
+        }
+        .navbar-buttons {
+            gap: 16px;
+            display: flex;
+            align-items: center;
+        }
+        .btn-filled, .btn-outline {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            padding: 10px 24px;
+            border-radius: 24px;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: background .2s, color .2s, opacity .2s;
+            cursor: pointer;
+            border: 1px solid var(--dl-color-theme-primary1);
+        }
+        .btn-filled {
+            color: #fff;
+            background: var(--dl-color-theme-primary1);
+        }
+        .btn-filled:hover {
+            opacity: 0.9;
+        }
+        .btn-outline {
             color: var(--dl-color-theme-primary1);
-            font-size: 2.4rem;
-            margin-bottom: 24px;
+            background: transparent;
         }
+        .btn-outline:hover {
+            background: rgba(101, 131, 82, 0.1);
+        }
+
         .container {
             width: 100%;
             max-width: 1050px;
@@ -102,7 +195,6 @@
         }
         .action-buttons button {
             flex-grow: 1;
-            width: 230px;
             height: 56px;
             border-radius: 24px;
             font-size: 18px;
@@ -217,103 +309,71 @@
     </style>
 </head>
 <body>
-<!-- 공통 내비게이션 바 삽입 -->
-<div th:replace="~{fragments/common :: navbarFragment}"></div>
 
-<div class="container" th:if="${product != null}" th:object="${product}">
-    <main class="product-main">
-        <div class="product-image-section">
-            <img th:src="*{thumbnailUrl}" alt="상품 대표 이미지">
-        </div>
-        <div class="product-info-section">
-            <h1 th:text="*{title}">상품 제목</h1>
-            <p class="product-price">
-                <th:block th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')}"></th:block><span>원</span>
-            </p>
-
-            <div class="info-table">
-                <dl>
-                    <dt>배송</dt>
-                    <dd th:text="*{shippingMethod}">배송 방법</dd>
-                </dl>
-                <dl>
-                    <dt>판매자</dt>
-                    <dd th:text="*{sellerName}">판매자 이름</dd>
-                </dl>
-                <dl>
-                    <dt>원산지</dt>
-                    <dd th:text="*{origin}">국내산</dd>
-                </dl>
-                <dl>
-                    <dt>배송비</dt>
-                    <dd th:text="|${#numbers.formatInteger(product.shippingFee, 0, 'COMMA')}원|">3,000원</dd>
-                </dl>
-                 <dl>
-                    <dt>배송안내</dt>
-                    <dd th:text="*{shippingInfo}">배송 안내</dd>
-                </dl>
-                <dl>
-                    <dt>재고</dt>
-                    <dd th:text="|*{stock}개|">100개</dd>
-                </dl>
-            </div>
-            
-            <div class="action-buttons">
-                <button class="edit-btn" th:onclick="|location.href='@{/seller/products/{id}/edit(id=*{id})}'|">수정하기</button>
-                <button class="delete-btn" id="deleteBtn">삭제하기</button>
+    <!-- Navbar -->
+    <header class="navbar-container">
+        <div class="navbar">
+            <a th:href="@{/home_login}">
+                <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="로고" class="navbar-logo-img"/>
+            </a>
+            <div class="navbar-buttons">
+                <a href="../home.html" class="btn-outline">로그아웃</a>
+                <a href="seller_dashboard.html" class="btn-filled">대시보드</a>
             </div>
         </div>
-    </main>
-    
-    <section class="product-details">
-        <h2>상품 상세 설명</h2>
-        <p th:text="*{description}">상품 상세 설명</p>
+    </header>
 
-        <th:block th:if="*{imageUrls != null and not #lists.isEmpty(imageUrls)}">
-            <img th:each="url : *{imageUrls}" th:src="${url}" alt="상품 상세 이미지">
-        </th:block>
-    </section>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="modal">
-    <div class="modal-content">
-        <p>정말로 이 상품을 삭제하시겠습니까?</p>
-        <form th:action="@{/seller/products/{id}(id=${product.id})}" method="post" id="deleteForm">
-            <input type="hidden" name="_method" value="delete" />
-            <div class="modal-buttons">
-                <button type="button" id="cancelDeleteBtn" class="cancel-btn">취소</button>
-                <button type="submit" id="confirmDeleteBtn" class="confirm-delete-btn">삭제</button>
+    <div class="container">
+        <main class="product-main">
+            <div class="product-image-section">
+                <img src="data:image/jpeg;base64,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" alt="GAP 인증 받은 강원도 홍천 꿀고구마">
             </div>
-        </form>
+            <div class="product-info-section">
+                <h1>GAP 인증 받은 강원도 홍천 꿀고구마 2kg</h1>
+                <p class="product-price">18,900<span>원</span></p>
+
+                <div class="info-table">
+                    <dl>
+                        <dt>배송</dt>
+                        <dd>새벽배송 (밤 11시 전 주문 시 내일 아침 7시 전 도착)</dd>
+                    </dl>
+                    <dl>
+                        <dt>판매자</dt>
+                        <dd>홍천 꿀고구마 농장</dd>
+                    </dl>
+                    <dl>
+                        <dt>원산지</dt>
+                        <dd>국내산 (강원도 홍천)</dd>
+                    </dl>
+                    <dl>
+                        <dt>배송방법</dt>
+                        <dd>냉장 (새벽배송)</dd>
+                    </dl>
+                    <dl>
+                        <dt>배송비</dt>
+                        <dd>3,000원 (4만원 이상 구매 시 무료배송)</dd>
+                    </dl>
+                     <dl>
+                        <dt>포장타입</dt>
+                        <dd>상온/종이포장</dd>
+                    </dl>
+                    <dl>
+                        <dt>재고</dt>
+                        <dd>84개</dd>
+                    </dl>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="edit-btn" onclick="location.href='product_edit.html'">수정하기</button>
+                    <button class="delete-btn" id="deleteBtn">삭제하기</button>
+                </div>
+            </div>
+        </main>
+        
+        <section class="product-details">
+            <h2>상품 상세 설명</h2>
+            <p>강원도 홍천의 맑은 공기와 깨끗한 물을 머금고 자란 꿀고구마입니다. GAP(농산물우수관리) 인증을 받아 더욱 믿고 드실 수 있습니다. 밤처럼 포슬포슬하면서도 꿀처럼 달콤한 맛이 일품입니다.</p>
+        </section>
     </div>
-</div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const deleteBtn = document.getElementById('deleteBtn');
-        const deleteModal = document.getElementById('deleteModal');
-        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-
-        if (deleteBtn && deleteModal && cancelDeleteBtn) {
-            deleteBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                deleteModal.classList.add('active');
-            });
-
-            const closeModal = () => {
-                deleteModal.classList.remove('active');
-            };
-
-            cancelDeleteBtn.addEventListener('click', closeModal);
-
-            window.addEventListener('click', (event) => {
-                if (event.target === deleteModal) {
-                    closeModal();
-                }
-            });
-        }
-    });
-</script>
 </body>
 </html>

@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>주문/결제</title>
     <!-- Daum Postcode API -->
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
           --color-primary: #658352;
@@ -21,8 +21,66 @@
             background-color: var(--color-background);
             color: var(--color-text);
             margin: 0;
-            padding: 40px 20px;
+            padding: 120px 20px 40px; /* 상단 여백 확보 */
+            box-sizing: border-box;
         }
+
+        /* --- Navbar Styles --- */
+        .navbar-container {
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            z-index: 1000;
+            position: fixed;
+            justify-content: center;
+            background: var(--color-white);
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.06);
+        }
+        .navbar {
+            width: 100%;
+            display: flex;
+            max-width: 1400px;
+            align-items: center;
+            padding: 16px 48px;
+            justify-content: space-between;
+        }
+        .navbar-logo-img {
+            height: 3rem;
+            border-radius: 8px;
+        }
+        .navbar-buttons {
+            gap: 16px;
+            display: flex;
+            align-items: center;
+        }
+        .btn-filled, .btn-outline {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            padding: 10px 24px;
+            border-radius: 24px;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: background .2s, color .2s;
+            cursor: pointer;
+            border: 1px solid var(--color-primary);
+        }
+        .btn-filled {
+            color: var(--color-white);
+            background: var(--color-primary);
+        }
+        .btn-filled:hover {
+            opacity: 0.9;
+        }
+        .btn-outline {
+            color: var(--color-primary);
+            background: transparent;
+        }
+        .btn-outline:hover {
+            background: rgba(101, 131, 82, 0.1);
+        }
+
         .payment-container {
             width: 100%;
             max-width: 1200px;
@@ -101,24 +159,25 @@
         }
         .postcode-group input { flex-grow: 1; }
         .postcode-group button {
-            width: 90px;
-            padding: 12px 0;
+            padding: 10px 20px;
             border: 1px solid var(--color-primary);
             background-color: var(--color-white);
             color: var(--color-primary);
             border-radius: 4px;
             cursor: pointer;
             font-weight: 600;
-            text-align: center;
-            box-sizing: border-box;
+            box-sizing: border-box; /* 높이 맞춤 */
         }
-        .postcode-group button:hover{
+        .postcode-group button {
+            width: 130px;
+        }
+        .postcode-group button:hover {
             background-color: var(--color-primary);
             color: var(--color-white);
         }
 
         /* Payment Method Styles */
-        .payment-options { display: flex; gap: 20px; }
+        .payment-options { display: flex; gap: 20px; align-items: center; }
         .payment-options label {
             display: flex;
             align-items: center;
@@ -126,6 +185,30 @@
             cursor: pointer;
         }
         
+        /* 결제 상세 정보 스타일 */
+        .payment-details {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: var(--color-background);
+            border-radius: 6px;
+            border: 1px solid var(--color-border);
+        }
+        .payment-details p {
+            margin: 0 0 10px;
+        }
+        .payment-details p:last-child {
+            margin-bottom: 0;
+        }
+        .payment-details .card-number-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .payment-details .card-number-group input {
+            flex-grow: 1;
+            text-align: center;
+        }
+
         /* Summary Box Styles */
         .summary-box {
             width: 320px;
@@ -172,83 +255,153 @@
     </style>
 </head>
 <body>
+    <header class="navbar-container">
+        <div class="navbar">
+            <a href="../home.html">
+                <img src="../../static/images/free-icon-sprout-7101338.png" alt="로고" class="navbar-logo-img"/>
+            </a>
+            <div class="navbar-buttons">
+                <a href="buyer_info.html" class="btn-outline">마이페이지</a>
+                <a href="../home.html" class="btn-filled">로그아웃</a>
+            </div>
+        </div>
+    </header>
     <div class="payment-container">
         <h1>주문/결제</h1>
-        <form th:action="@{/payment}" th:object="${paymentForm}" method="post">
-            <div class="payment-layout">
-                <main class="main-content">
-                    <section class="section-box">
-                        <h2>주문 상품 정보</h2>
-                        <div id="orderItemsList">
-                            <!-- 주문 상품이 여기에 표시됩니다. -->
-                            <div th:if="${order == null or #lists.isEmpty(order.orderItems)}" style="color:#888; text-align:center; padding:40px 0;">주문할 상품이 없습니다.</div>
-                            <div th:each="item : ${order.orderItems}" class="order-item">
-                                <img th:src="${item.imageUrl}" th:alt="${item.name}">
-                                <div class="info">
-                                    <p class="name" th:text="${item.name}">상품 이름</p>
-                                    <p class="quantity" th:text="|수량: ${item.quantity}개|">수량: 1개</p>
-                                </div>
-                                <p class="price" th:text="|${#numbers.formatInteger(item.price * item.quantity, 0, 'COMMA')}원|">10,000원</p>
-                            </div>
-                        </div>
-                    </section>
-                    <section class="section-box">
-                        <h2>배송지 정보</h2>
+        <div class="payment-layout">
+            <main class="main-content">
+                <section class="section-box">
+                    <h2>주문 상품 정보</h2>
+                    <div id="orderItemsList">
+                        <!-- 주문 상품이 여기에 표시됩니다. (백엔드에서 동적으로 렌더링) -->
+                        <div style="color:#888; text-align:center; padding:40px 0;">주문할 상품이 없습니다.</div>
+                    </div>
+                </section>
+                <section class="section-box">
+                    <h2>배송지 정보</h2>
+                    <form id="shippingForm">
                         <div class="form-group">
                             <label for="recipientName">받는 분</label>
-                            <input type="text" id="recipientName" th:field="*{recipientName}" required>
+                            <input type="text" id="recipientName" name="recipientName" required>
                         </div>
                         <div class="form-group">
                             <label for="recipientPhone">연락처</label>
-                            <input type="text" id="recipientPhone" th:field="*{recipientPhone}" placeholder="'-' 없이 숫자만 입력" required>
+                            <input type="text" id="recipientPhone" name="recipientPhone" placeholder="'-' 없이 숫자만 입력" required>
                         </div>
                         <div class="form-group">
                             <label for="postcode">우편번호</label>
                             <div class="postcode-group">
-                                <input type="text" id="postcode" th:field="*{postcode}" readonly>
+                                <input type="text" id="postcode" name="postcode" readonly>
                                 <button type="button" id="searchPostcodeBtn">주소 검색</button>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="address">주소</label>
-                            <input type="text" id="address" th:field="*{address}" readonly>
+                            <input type="text" id="address" name="address" readonly>
                         </div>
                         <div class="form-group">
                             <label for="detailAddress">상세주소</label>
-                            <input type="text" id="detailAddress" th:field="*{detailAddress}">
+                            <input type="text" id="detailAddress" name="detailAddress">
                         </div>
-                    </section>
-                    <section class="section-box">
-                        <h2>결제 수단</h2>
-                        <div class="payment-options">
-                            <label><input type="radio" th:field="*{paymentMethod}" value="bank" checked> 무통장 입금</label>
-                            <label><input type="radio" th:field="*{paymentMethod}" value="card"> 카드 결제</label>
+                    </form>
+                </section>
+                <section class="section-box">
+                    <h2>결제 수단</h2>
+                    <div class="payment-options">
+                        <label><input type="radio" name="paymentMethod" value="bank" checked> 무통장 입금</label>
+                        <label><input type="radio" name="paymentMethod" value="card"> 카드 결제</label>
+                    </div>
+
+                    <!-- 무통장 입금 정보 -->
+                    <div id="bankTransferInfo" class="payment-details">
+                        <p><strong>입금 은행:</strong> 신선 은행</p>
+                        <p><strong>계좌 번호:</strong> 123-456-789012 (예금주: 새싹마켓)</p>
+                        <p style="font-size:0.9em; color:#555;">※ 주문자명과 입금자명이 동일해야 확인이 빠릅니다.</p>
+                    </div>
+
+                    <!-- 카드 결제 정보 (기본 숨김) -->
+                    <div id="cardPaymentForm" class="payment-details" style="display: none;">
+                        <div class="form-group">
+                            <label for="cardNumber">카드번호</label>
+                            <div class="card-number-group">
+                                <input type="text" id="card1" class="card-input" maxlength="4" placeholder="1234">
+                                <span>-</span>
+                                <input type="text" id="card2" class="card-input" maxlength="4" placeholder="5678">
+                                <span>-</span>
+                                <input type="text" id="card3" class="card-input" maxlength="4" placeholder="xxxx">
+                                <span>-</span>
+                                <input type="text" id="card4" class="card-input" maxlength="4" placeholder="xxxx">
+                            </div>
                         </div>
-                    </section>
-                </main>
-                <aside class="summary-box">
-                    <h2>최종 결제 금액</h2>
-                    <div class="summary-row">
-                        <span>총 상품 금액</span>
-                        <span id="summarySubtotal" th:text="|${#numbers.formatInteger(order.totalPrice, 0, 'COMMA')}원|">0원</span>
                     </div>
-                    <div class="summary-row">
-                        <span>배송비</span>
-                        <span id="summaryShipping" th:text="|${#numbers.formatInteger(order.shippingFee, 0, 'COMMA')}원|">0원</span>
-                    </div>
-                    <hr>
-                    <div class="summary-row total">
-                        <span>결제 예정 금액</span>
-                        <span id="summaryTotal" th:text="|${#numbers.formatInteger(order.finalPaymentAmount, 0, 'COMMA')}원|">0원</span>
-                    </div>
-                    <button type="submit" id="payBtn">결제하기</button>
-                </aside>
-            </div>
-        </form>
+                </section>
+            </main>
+            <aside class="summary-box">
+                <h2>최종 결제 금액</h2>
+                <div class="summary-row">
+                    <span>총 상품 금액</span>
+                    <span id="summarySubtotal"></span>
+                </div>
+                <div class="summary-row">
+                    <span>배송비</span>
+                    <span id="summaryShipping"></span>
+                </div>
+                <hr>
+                <div class="summary-row total">
+                    <span>결제 예정 금액</span>
+                    <span id="summaryTotal"></span>
+                </div>
+                <a href="payment_complete.html" id="payBtn">결제하기</a>
+            </aside>
+        </div>
     </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Retrieve order data from sessionStorage
+            const orderItemsJSON = sessionStorage.getItem('orderItems');
+            const orderItems = orderItemsJSON ? JSON.parse(orderItemsJSON) : [];
+
+            // If no items, redirect to cart
+            if (!orderItems || orderItems.length === 0) {
+                alert("주문할 상품이 없습니다. 장바구니로 돌아갑니다.");
+                window.location.href = 'cart.html';
+                return;
+            }
+
+            const orderListEl = document.getElementById('orderItemsList');
+            const summarySubtotalEl = document.getElementById('summarySubtotal');
+            const summaryShippingEl = document.getElementById('summaryShipping');
+            const summaryTotalEl = document.getElementById('summaryTotal');
+
+            function renderOrder() {
+                orderListEl.innerHTML = '';
+                orderItems.forEach(item => {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'order-item';
+                    itemEl.innerHTML = `
+                        <img src="${item.imageUrl}" alt="${item.name}">
+                        <div class="info">
+                            <p class="name">${item.name}</p>
+                            <p class="quantity">수량: ${item.quantity}개</p>
+                        </div>
+                        <p class="price">${(item.price * item.quantity).toLocaleString()}원</p>
+                    `;
+                    orderListEl.appendChild(itemEl);
+                });
+                updateSummary();
+            }
+
+            function updateSummary() {
+                const subtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const shippingFee = subtotal > 0 && subtotal < 40000 ? 3000 : 0;
+                const total = subtotal + shippingFee;
+
+                summarySubtotalEl.textContent = `${subtotal.toLocaleString()}원`;
+                summaryShippingEl.textContent = `${shippingFee.toLocaleString()}원`;
+                summaryTotalEl.textContent = `${total.toLocaleString()}원`;
+            }
+
             // Daum Postcode API
             document.getElementById('searchPostcodeBtn').addEventListener('click', () => {
                 new daum.Postcode({
@@ -259,6 +412,63 @@
                     }
                 }).open();
             });
+
+            // 연락처 자동 하이픈
+            const phoneInput = document.getElementById('recipientPhone');
+            phoneInput.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                const length = value.length;
+                let result = '';
+                if (length < 4) {
+                    result = value;
+                } else if (value.startsWith('02')) { // 서울 지역번호
+                    if (length < 7) {
+                        result = `${value.slice(0, 2)}-${value.slice(2)}`;
+                    } else if (length < 11) {
+                        result = `${value.slice(0, 2)}-${value.slice(2, 6)}-${value.slice(6)}`;
+                    } else {
+                        result = `${value.slice(0, 2)}-${value.slice(2, 6)}-${value.slice(6, 10)}`;
+                    }
+                } else { // 그 외 휴대폰 및 지역번호
+                    if (length < 8) {
+                        result = `${value.slice(0, 3)}-${value.slice(3)}`;
+                    } else if (length < 12) {
+                        result = `${value.slice(0, 3)}-${value.slice(3, 7)}-${value.slice(7)}`;
+                    } else {
+                        result = `${value.slice(0, 3)}-${value.slice(3, 7)}-${value.slice(7, 11)}`;
+                    }
+                }
+                e.target.value = result;
+            });
+
+            // 결제 수단 선택
+            const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
+            const bankInfo = document.getElementById('bankTransferInfo');
+            const cardForm = document.getElementById('cardPaymentForm');
+
+            paymentRadios.forEach(radio => {
+                radio.addEventListener('change', (event) => {
+                    if (event.target.value === 'bank') {
+                        bankInfo.style.display = 'block';
+                        cardForm.style.display = 'none';
+                    } else {
+                        bankInfo.style.display = 'none';
+                        cardForm.style.display = 'block';
+                    }
+                });
+            });
+
+            // 카드 번호 입력 시 다음 칸으로 자동 이동
+            const cardInputs = document.querySelectorAll('.card-input');
+            cardInputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    if (e.target.value.length === 4 && index < cardInputs.length - 1) {
+                        cardInputs[index + 1].focus();
+                    }
+                });
+            });
+
+            renderOrder();
         });
     </script>
 </body>

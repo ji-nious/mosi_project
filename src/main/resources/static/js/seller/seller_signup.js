@@ -161,17 +161,43 @@ document.getElementById("seller-signup-form").addEventListener("submit", functio
     },
     body: JSON.stringify(formData)
   })
-    .then(response => {
-      if (response.redirected) {
-        window.location.href = response.url; // 서버에서 redirect:/home 했을 경우
-      } else if (response.ok) {
-        alert("회원가입이 완료되었습니다.");
-        window.location.href = "/home";
+    .then(res => res.json()) // 1. 응답을 JSON으로 파싱
+    .then(data => {
+      // 2. 응답 본문(data)을 바탕으로 처리
+      if (data.header.code === "0" && data.data.redirectUrl) {
+        alert("회원가입이 완료되었습니다. 메인 페이지로 이동합니다.");
+        window.location.href = data.data.redirectUrl; // data 객체 안의 redirectUrl 사용
       } else {
-        return response.text().then(msg => { throw new Error(msg); });
+        // 회원가입 실패 시 서버가 보낸 메시지 표시
+        throw new Error(data.header.message || "알 수 없는 오류가 발생했습니다.");
       }
     })
     .catch(err => {
       alert("회원가입 실패: " + err.message);
     });
 });
+
+// -------------------------------------------
+// ✅ 주소 검색 팝업 관련 함수
+// -------------------------------------------
+
+// 팝업 열기
+function openAddressPopup() {
+    const url = "/common/juso-popup";
+    const name = "jusoPopup";
+    const options = "width=570,height=420,scrollbars=yes,resizable=yes";
+    window.open(url, name, options);
+}
+
+// 팝업으로부터 주소 데이터 수신 및 처리
+window.addEventListener("message", (event) => {
+    // juso_popup.html에서 보낸 데이터인지 확인 (보안 강화)
+    if (event.source.name === "jusoPopup") {
+        const data = event.data;
+        if (data.zipNo && data.roadAddr) {
+            document.getElementById("postcode").value = data.zipNo;
+            document.getElementById("address").value = data.roadAddr;
+            document.getElementById("detailAddress").focus(); // 상세주소로 포커스 이동
+        }
+    }
+}, false);

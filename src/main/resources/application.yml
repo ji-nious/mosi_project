@@ -2,41 +2,48 @@ spring:
   # app 이름
   application:
     name: project
-
   # DB연결 정보
   datasource:
-    driver-class-name: oracle.jdbc.OracleDriver
+    driver-class-name: oracle.jdbc.driver.OracleDriver
     url: jdbc:oracle:thin:@localhost:1521/xe
     username: c##project
     password: project1234
-
-  # Thymeleaf 템플릿 엔진 설정 (페이지 컨트롤러용)
-  thymeleaf:
-    prefix: classpath:/templates/
-    suffix: .html
-    cache: false  # 개발 시 캐시 비활성화 (변경사항 즉시 반영)
-    encoding: UTF-8
-    mode: HTML
-
-  # 정적 리소스 설정
-  web:
-    resources:
-      static-locations: classpath:/static/
-      cache:
-        period: 0  # 개발 시 캐시 비활성화
-
-  # MVC 설정
-  mvc:
-    static-path-pattern: /static/**
+  #ai
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
 
 # 웹서버 포트
 server:
   port: 9080
+  #서버 세션 타임아웃 설정
+  #기본은 1800(30분), 최소값 60(1분)
+  servlet:
+    session:
+      timeout: 60
+      #클라이언트의 세션아이디를 서버가 받는 방식
+      #1. 클라이언트의 쿠키정보를 읽어 요청할때마다 요청메세지 헤더에 세션아이디를 취득
+      #2. 클라이언트의 쿼리스트링을 읽어 세션아이디를 취득
+      tracking-mode: cookie
 
 # 로그레벨
 # trace > debug > info > warn > error > fatal
 logging:
   level:
-    com.kh.project: debug # 프로젝트 패키지는 디버그 레벨로 상세히 로깅
-    org.springframework.jdbc: debug # JDBC 관련 로깅 디버그 레벨로 설정
-    org.springframework.web: debug # 웹 관련 로깅 추가
+    org:
+      springframework:
+        jdbc: DEBUG     #JDBCTemplate sql log
+#    root: info
+
+  # Thymeleaf 템플릿 엔진 설정
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false      # 개발 중 캐시 비활성화
+    encoding: UTF-8
+    mode: HTML
+
+# 외부 API 키 설정
+juso:
+  api:
+    confmKey: U01TX0FVVEgyMDI1MDcxMDE0MzMzNTExNTkzMTE=

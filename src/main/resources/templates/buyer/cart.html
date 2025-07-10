@@ -1,7 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko">
 <head>
-    <th:block th:replace="~{fragments/common :: headFragment('장바구니')}"></th:block>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>장바구니</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
           --color-primary: #658352;
@@ -11,29 +14,101 @@
           --color-border: #E9E7DE;
           --color-white: #fff;
         }
-        /* body와 page-title 스타일은 common.css에서 관리하므로 제거합니다. */
+        body {
+            font-family: 'Inter', 'Cabin', sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text);
+            margin: 0;
+            padding: 120px 20px 40px; /* Navbar 높이만큼 상단 여백 추가 */
+        }
+        
+        /* --- Navbar Styles --- */
+        .navbar-container {
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            z-index: 1000;
+            position: fixed;
+            justify-content: center;
+            background: var(--color-white);
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.06);
+        }
+        .navbar {
+            width: 100%;
+            display: flex;
+            max-width: 1400px;
+            align-items: center;
+            padding: 16px 48px;
+            justify-content: space-between;
+        }
+        .navbar-logo-img {
+            height: 3rem;
+            border-radius: 8px;
+        }
+        .navbar-buttons {
+            gap: 16px;
+            display: flex;
+            align-items: center;
+        }
+        .btn-filled, .btn-outline {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            padding: 10px 24px;
+            border-radius: 24px;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: background .2s, color .2s;
+            cursor: pointer;
+            border: 1px solid var(--color-primary);
+        }
+        .btn-filled {
+            color: var(--color-white);
+            background: var(--color-primary);
+        }
+        .btn-filled:hover {
+            opacity: 0.9;
+        }
+        .btn-outline {
+            color: var(--color-primary);
+            background: transparent;
+        }
+        .btn-outline:hover {
+            background: rgba(101, 131, 82, 0.1);
+        }
 
-        .page-wrapper {
+        .cart-container {
+            width: 100%;
+            /* max-width: 1200px; */
+            margin: 0 auto;
+        }
+        .cart-container h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            color: var(--color-primary);
+            margin-bottom: 40px;
+        }
+        .cart-layout {
             display: flex;
             gap: 30px;
-            width: 100%;
-            max-width: 1400px;
             align-items: flex-start;
         }
         .order-panel {
             background: var(--color-white);
-            padding: 20px;
+            padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            width: 180px;
+            width: 130px;
             height: 650px;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 15px;
+            align-self: flex-start;
             position: sticky;
-            top: 40px;
+            top: 120px; /* Navbar 높이를 고려하여 조정 */
         }
         .panel-button {
             width: 150px;
@@ -50,13 +125,8 @@
         .panel-button:hover {
             background: var(--color-primary-light);
         }
-        .page-container {
-            display: flex;
-            gap: 30px;
-            align-items: flex-start;
-            flex-grow: 1;
-        }
         .cart-items {
+            min-width: 790px;
             flex-grow: 1;
             background-color: var(--color-white);
             padding: 30px;
@@ -152,7 +222,7 @@
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             position: sticky;
-            top: 40px;
+            top: 120px; /* Navbar 높이를 고려하여 조정 */
         }
         .summary-title {
             font-size: 1.5rem;
@@ -237,49 +307,33 @@
     </style>
 </head>
 <body>
-    <!-- 공통 내비게이션 바 삽입 -->
-    <div th:replace="~{fragments/common :: navbarFragment}"></div>
-
-    <h2 class="page-title">장바구니</h2>
-
-    <div class="page-wrapper">
-        <aside class="order-panel">
-            <button class="panel-button" th:onclick="|location.href='@{/buyer/info}'|">회원 정보 조회</button>
-            <button class="panel-button" th:onclick="|location.href='@{/buyer/order-history}'|">전체 주문내역</button>
-            <button class="panel-button" th:onclick="|location.href='@{/buyer/cart}'|">장바구니</button>
-        </aside>
-        <div class="page-container">
+    <header class="navbar-container">
+        <div class="navbar">
+            <a href="../home.html">
+                <img src="../../static/images/free-icon-sprout-7101338.png" alt="로고" class="navbar-logo-img"/>
+            </a>
+            <div class="navbar-buttons">
+                <a href="buyer_info.html" class="btn-outline">마이페이지</a>
+                <a href="../home.html" class="btn-filled">로그아웃</a>
+            </div>
+        </div>
+    </header>
+    <div class="cart-container">
+        <h1>장바구니</h1>
+        <div class="cart-layout">
+            <aside class="order-panel">
+                <button class="panel-button" onclick="location.href='buyer_info.html'">회원 정보 조회</button>
+                <button class="panel-button" onclick="location.href='order_history.html'">전체 주문내역</button>
+                <button class="panel-button" onclick="location.href='cart.html'">장바구니</button>
+            </aside>
             <main class="cart-items">
-                <form id="cartForm" th:action="@{/orders/from-cart}" method="post">
+                <form id="cartForm" action="" method="post">
                     <div class="cart-header">
                         <input type="checkbox" id="selectAllCheckbox">
                         <label for="selectAllCheckbox">전체선택</label>
                     </div>
                     <div id="cartList">
-                        <div th:if="${cart == null or #lists.isEmpty(cart.items)}" style="text-align:center; padding: 100px 0; color: #888;">
-                            장바구니가 비어 있습니다.
-                        </div>
-                        <!-- Cart Item Loop -->
-                        <div th:each="item : ${cart.items}" class="cart-item">
-                            <input type="checkbox" name="cartItemIds" th:value="${item.id}" class="item-checkbox">
-                            <img th:src="${item.imageUrl}" alt="상품 이미지" class="item-image">
-                            <div class="item-info">
-                                <a th:href="@{/products/{id}(id=${item.productId})}" style="text-decoration:none; color:inherit;">
-                                    <p class="name" th:text="${item.name}">상품 이름</p>
-                                </a>
-                                <p class="price" th:text="|${#numbers.formatInteger(item.price, 0, 'COMMA')}원|">가격</p>
-                            </div>
-                            <div class="quantity-selector">
-                                <a th:href="@{/cart/update-quantity(itemId=${item.id}, change=-1)}">-</a>
-                                <input type="text" th:value="${item.quantity}" readonly>
-                                <a th:href="@{/cart/update-quantity(itemId=${item.id}, change=1)}">+</a>
-                            </div>
-                            <p class="item-total-price" th:text="|${#numbers.formatInteger(item.price * item.quantity, 0, 'COMMA')}원|">소계</p>
-                            <form th:action="@{/cart/items/{id}(id=${item.id})}" method="post" style="margin-left: 20px;">
-                                <input type="hidden" name="_method" value="delete" />
-                                <button type="submit" class="item-delete-btn">×</button>
-                            </form>
-                        </div>
+                        <!-- 상품이 없을 때 메시지를 표시하거나, 백엔드에서 동적으로 상품 목록을 렌더링 합니다. -->
                     </div>
                 </form>
             </main>
@@ -287,20 +341,20 @@
                 <h2 class="summary-title">결제 정보</h2>
                 <div class="summary-row">
                     <span>총 상품 금액</span>
-                    <span id="summarySubtotal" th:text="|${#numbers.formatInteger(cart.totalItemPrice, 0, 'COMMA')}원|">0원</span>
+                    <span id="summarySubtotal">0원</span>
                 </div>
                 <div class="summary-row">
                     <span>배송비</span>
-                    <span id="summaryShipping" th:text="|${#numbers.formatInteger(cart.shippingFee, 0, 'COMMA')}원|">0원</span>
+                    <span id="summaryShipping">0원</span>
                 </div>
                 <hr>
                 <div class="summary-row total">
                     <span>결제 예정 금액</span>
-                    <span id="summaryTotal" th:text="|${#numbers.formatInteger(cart.totalPriceToPay, 0, 'COMMA')}원|">0원</span>
+                    <span id="summaryTotal">0원</span>
                 </div>
                 <div class="order-buttons">
                     <button class="btn-selected" id="purchaseSelectedBtn" type="submit" form="cartForm">선택 상품 주문하기</button>
-                    <a th:href="@{/orders/from-cart(all=true)}" class="btn-all">전체 상품 주문하기</a>
+                    <button class="btn-all" id="purchaseAllBtn" type="button">전체 상품 주문하기</button>
                 </div>
             </aside>
         </div>
@@ -316,37 +370,138 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const cartListEl = document.getElementById('cartList');
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const summarySubtotalEl = document.getElementById('summarySubtotal');
+            const summaryShippingEl = document.getElementById('summaryShipping');
+            const summaryTotalEl = document.getElementById('summaryTotal');
             const cartForm = document.getElementById('cartForm');
             const purchaseAllBtn = document.getElementById('purchaseAllBtn');
             const modal = document.getElementById('noSelectionModal');
             const modalCloseBtn = document.getElementById('modalCloseBtn');
 
-            function showModal() {
-                modal.style.display = 'flex';
-            }
+            // 가상의 장바구니 데이터
+            let cartItemsData = [
+                { id: 'p001', name: '유기농 햇감자 2kg', price: 15000, quantity: 1, imageUrl: 'https://via.placeholder.com/100/A0C49E/3D550C?text=Potato' },
+                { id: 'p002', name: '새벽에 수확한 대파 1단', price: 3500, quantity: 2, imageUrl: 'https://via.placeholder.com/100/C2D8B9/3D550C?text=Green+Onion' },
+                { id: 'p003', name: '무농약 블루베리 500g', price: 22000, quantity: 1, imageUrl: 'https://via.placeholder.com/100/A8D0E6/3D550C?text=Blueberry' }
+            ];
 
-            function hideModal() {
-                modal.style.display = 'none';
-            }
-
-            cartForm.addEventListener('submit', (e) => {
-                const selectedItems = document.querySelectorAll('.item-checkbox:checked');
-                if (selectedItems.length === 0) {
-                    e.preventDefault();
-                    showModal();
-                } // else: submit 진행
-            });
-
-            // "전체 상품 주문하기" 버튼 리스너는 링크로 대체되었으므로 삭제
-            // purchaseAllBtn.addEventListener('click', () => { ... });
-
-            modalCloseBtn.addEventListener('click', hideModal);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    hideModal();
+            // --- Main Functions ---
+            function renderCartItems() {
+                if (cartItemsData.length === 0) {
+                    cartListEl.innerHTML = '<p style="text-align:center; padding: 50px 0; color: #888;">장바구니에 담긴 상품이 없습니다.</p>';
+                } else {
+                    cartListEl.innerHTML = cartItemsData.map(item => `
+                        <div class="cart-item" data-id="${item.id}" data-price="${item.price}" data-quantity="${item.quantity}">
+                            <input type="checkbox" class="item-checkbox" checked>
+                            <img src="${item.imageUrl}" alt="${item.name}" class="item-image">
+                            <div class="item-info">
+                                <p class="name">${item.name}</p>
+                                <p class="price">${item.price.toLocaleString()}원</p>
+                            </div>
+                            <div class="quantity-selector">
+                                <button class="minus-btn" type="button">-</button>
+                                <input type="text" value="${item.quantity}" readonly class="quantity-input">
+                                <button class="plus-btn" type="button">+</button>
+                            </div>
+                            <div class="item-total-price">${(item.price * item.quantity).toLocaleString()}원</div>
+                            <button class="item-delete-btn" type="button">×</button>
+                        </div>
+                    `).join('');
                 }
+                addEventListenersToItems();
+                updateSummary();
+            }
+
+            function updateSummary() {
+                const selectedItems = document.querySelectorAll('.cart-item .item-checkbox:checked');
+                let subtotal = 0;
+                selectedItems.forEach(checkbox => {
+                    const itemEl = checkbox.closest('.cart-item');
+                    subtotal += parseFloat(itemEl.dataset.price) * parseInt(itemEl.dataset.quantity);
+                });
+
+                const shippingFee = subtotal > 0 && subtotal < 40000 ? 3000 : 0;
+                const total = subtotal + shippingFee;
+
+                summarySubtotalEl.textContent = `${subtotal.toLocaleString()}원`;
+                summaryShippingEl.textContent = `${shippingFee.toLocaleString()}원`;
+                summaryTotalEl.textContent = `${total.toLocaleString()}원`;
+
+                const allCheckboxes = document.querySelectorAll('.item-checkbox');
+                selectAllCheckbox.checked = allCheckboxes.length > 0 && selectedItems.length === allCheckboxes.length;
+            }
+
+            function addEventListenersToItems() {
+                document.querySelectorAll('.cart-item').forEach(itemEl => {
+                    itemEl.querySelector('.plus-btn').addEventListener('click', () => changeQuantity(itemEl, 1));
+                    itemEl.querySelector('.minus-btn').addEventListener('click', () => changeQuantity(itemEl, -1));
+                    itemEl.querySelector('.item-delete-btn').addEventListener('click', () => deleteItem(itemEl));
+                    itemEl.querySelector('.item-checkbox').addEventListener('change', updateSummary);
+                });
+            }
+
+            function changeQuantity(itemEl, amount) {
+                let quantity = parseInt(itemEl.dataset.quantity) + amount;
+                if (quantity < 1) quantity = 1;
+                itemEl.dataset.quantity = quantity;
+                itemEl.querySelector('.quantity-input').value = quantity;
+                const price = parseFloat(itemEl.dataset.price);
+                itemEl.querySelector('.item-total-price').textContent = `${(price * quantity).toLocaleString()}원`;
+                updateSummary();
+            }
+
+            function deleteItem(itemEl) {
+                if (confirm("이 상품을 장바구니에서 삭제하시겠습니까?")) {
+                    const itemId = itemEl.dataset.id;
+                    cartItemsData = cartItemsData.filter(item => item.id !== itemId);
+                    renderCartItems();
+                }
+            }
+
+            function proceedToPayment(itemsToOrder) {
+                if (itemsToOrder.length === 0) {
+                    showModal();
+                    return;
+                }
+                sessionStorage.setItem('orderItems', JSON.stringify(itemsToOrder));
+                window.location.href = 'payment.html';
+            }
+
+            selectAllCheckbox.addEventListener('change', e => {
+                document.querySelectorAll('.item-checkbox').forEach(checkbox => checkbox.checked = e.target.checked);
+                updateSummary();
             });
+            
+            cartForm.addEventListener('submit', e => {
+                e.preventDefault();
+                const selectedItemElements = document.querySelectorAll('.cart-item .item-checkbox:checked');
+                const itemsToOrder = Array.from(selectedItemElements).map(checkbox => {
+                    const itemEl = checkbox.closest('.cart-item');
+                    const id = itemEl.dataset.id;
+                    const originalItem = cartItemsData.find(item => item.id === id);
+                    return { ...originalItem, quantity: parseInt(itemEl.dataset.quantity) };
+                });
+                proceedToPayment(itemsToOrder);
+            });
+
+            purchaseAllBtn.addEventListener('click', () => {
+                const itemsToOrder = cartItemsData.map(itemData => {
+                    const itemEl = document.querySelector(`.cart-item[data-id="${itemData.id}"]`);
+                    return { ...itemData, quantity: parseInt(itemEl.dataset.quantity) };
+                });
+                proceedToPayment(itemsToOrder);
+            });
+
+            const showModal = () => modal.style.display = 'flex';
+            const hideModal = () => modal.style.display = 'none';
+            modalCloseBtn.addEventListener('click', hideModal);
+            modal.addEventListener('click', e => { if (e.target === modal) hideModal(); });
+
+            renderCartItems();
         });
     </script>
 </body>
-</html>
+</html> 

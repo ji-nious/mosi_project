@@ -1,36 +1,97 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko">
 <head>
-    <th:block th:replace="~{fragments/common :: headFragment('상품 목록')}"></th:block>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>판매자 센터 - 상품 목록</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        .container {
-            width: 100%;
+        :root {
+            --color-primary: #658352;
+            --color-danger: #e74c3c;
+            --color-white: #ffffff;
+            --layout-max-width: 1200px;
+        }
+
+        body {
             margin: 0;
             font-family: 'Inter', 'Cabin', sans-serif;
             background-color: #FBF9EF;
             color: #1E2203;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
-            min-height: 100vh;
-            padding: 40px 20px;
+            padding: 120px 20px 40px; /* 상단 여백 확보, 기존 여백 유지 */
             box-sizing: border-box;
-            text-align: center;
-            margin-top: 40px;
         }
+
+        /* --- Navbar Styles --- */
+        .navbar-container {
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            z-index: 1000;
+            position: fixed;
+            justify-content: center;
+            background: var(--color-white);
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.06);
+        }
+        .navbar {
+            width: 100%;
+            display: flex;
+            max-width: var(--layout-max-width);
+            align-items: center;
+            padding: 16px 48px;
+            justify-content: space-between;
+        }
+        .navbar-logo-img {
+            height: 3rem;
+            border-radius: 8px;
+        }
+        .navbar-buttons {
+            gap: 16px;
+            display: flex;
+            align-items: center;
+        }
+        .btn-filled, .btn-outline {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            padding: 10px 24px;
+            border-radius: 24px;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: background .2s, color .2s;
+            cursor: pointer;
+            border: 1px solid var(--color-primary);
+        }
+        .btn-filled {
+            color: var(--color-white);
+            background: var(--color-primary);
+        }
+        .btn-filled:hover {
+            opacity: 0.9;
+        }
+        .btn-outline {
+            color: var(--color-primary);
+            background: transparent;
+        }
+        .btn-outline:hover {
+            background: rgba(101, 131, 82, 0.1);
+        }
+
+        /* --- List Styles --- */
         h2 {
             font-family: 'Cabin', sans-serif;
             font-weight: 700;
-            color: #658352;
+            color: var(--color-primary);
             text-align: center;
             font-size: 2.4rem;
-            margin: 0 0 24px 0;
+            margin-bottom: 24px;
         }
         .list-container {
             width: 100%;
             max-width: 960px;
-            background-color: #fff;
+            margin: 0 auto;
+            background-color: var(--color-white);
             padding: 32px 40px;
             border-radius: 20px;
             box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);
@@ -39,32 +100,35 @@
             display: flex;
             justify-content: flex-end;
             align-items: center;
-            padding-bottom: 20px;
             margin-bottom: 20px;
         }
-        .action-btn {
+        .action-buttons {
+            display:flex;
+            gap:12px;
+        }
+        .register-btn, .delete-btn {
             padding: 8px 16px;
             font-size: 0.95rem;
             font-weight: bold;
             border-radius: 8px;
-            color: white;
+            color: var(--color-white);
             cursor: pointer;
             transition: all 0.2s;
-            text-decoration: none;
-            display: inline-block;
-            border: none;
+            border: 1px solid;
+        }
+        .register-btn {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+        .register-btn:hover {
+            opacity: 0.9;
         }
         .delete-btn {
-            background-color: #e74c3c;
+            background-color: var(--color-danger);
+            border-color: var(--color-danger);
         }
         .delete-btn:hover {
-            background-color: #c0392b;
-        }
-        .add-btn {
-            background:#658352;
-        }
-        .add-btn:hover {
-            background:#4d683f;
+            opacity: 0.9;
         }
         .edit-btn {
             padding: 4px 12px;
@@ -76,7 +140,6 @@
             cursor: pointer;
             font-weight: bold;
             transition: all 0.2s;
-            text-decoration: none;
         }
         .edit-btn:hover {
             background-color: #658352;
@@ -99,11 +162,11 @@
         .product-table tbody tr:hover {
             background-color: #f9f9f9;
         }
-        .product-table .title a {
-            color: inherit;
-            text-decoration: none;
+        .product-table .title {
+            text-align: left;
+            cursor: pointer;
         }
-        .product-table .title a:hover {
+        .product-table .title:hover {
             text-decoration: underline;
         }
         .pagination {
@@ -135,70 +198,190 @@
             font-weight: bold;
             font-size: 0.9rem;
         }
-        .status-tag.SELLING { background-color: #e0f0e3; color: #2a7c3e; }
-        .status-tag.SOLD_OUT { background-color: #fbeae5; color: #b82a0b; }
+        .status-tag.selling { background-color: #e0f0e3; color: #2a7c3e; }
+        .status-tag.sold-out { background-color: #fbeae5; color: #b82a0b; }
+        .status-tag.hidden { background-color: #f0f0f0; color: #777; }
     </style>
 </head>
 <body>
-<!-- 공통 내비게이션 바 삽입 -->
-<div th:replace="~{fragments/common :: navbarFragment}"></div>
-
-<div class="container">
-    <h2 class="page-title">상품 목록</h2>
-
-    <div class="list-container">
-        <form id="productActionForm" th:action="@{/seller/products/delete-selected}" method="post">
-            <div class="list-header">
-                <div style="display:flex; gap:12px;">
-                    <a th:href="@{/seller/products/new}" class="action-btn add-btn">상품 등록</a>
-                    <button type="submit" class="action-btn delete-btn" onclick="return confirm('선택된 상품을 삭제하시겠습니까?');">선택 삭제</button>
-                </div>
+    <header class="navbar-container">
+        <div class="navbar">
+            <a href="../home.html">
+                <img src="../../static/images/free-icon-sprout-7101338.png" alt="로고" class="navbar-logo-img"/>
+            </a>
+            <div class="navbar-buttons">
+                <a href="seller_dashboard.html" class="btn-outline">대시보드</a>
+                <a href="../home.html" class="btn-filled">로그아웃</a>
             </div>
-            <table class="product-table">
-                <thead>
-                    <tr>
-                        <th style="width:5%;"><input type="checkbox" id="selectAll" /></th>
-                        <th style="width:5%;">번호</th>
-                        <th style="width:35%;">게시글 제목</th>
-                        <th style="width:15%;">가격</th>
-                        <th style="width:10%;">재고</th>
-                        <th style="width:10%;">판매 상태</th>
-                        <th style="width:10%;">등록일</th>
-                        <th style="width:10%;">관리</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!--/* 상품 목록이 비어있을 경우 메시지를 표시합니다. */-->
-                    <tr th:if="${products.isEmpty()}">
-                        <td colspan="8">등록된 상품이 없습니다.</td>
-                    </tr>
-                    <!--/*
-                        상품 목록(products)을 반복하여 테이블의 각 행(tr)을 생성합니다.
-                        - stat: 반복 상태 변수 (stat.count: 1부터 시작하는 인덱스)
-                    */-->
-                    <tr th:each="product, stat : ${products}">
-                        <td><input type="checkbox" name="productIds" th:value="${product.id}" /></td>
-                        <td th:text="${stat.count}">1</td>
-                        <td class="title">
-                            <a th:href="@{/seller/products/{id}(id=${product.id})}" th:text="${product.title}">게시글 제목</a>
-                        </td>
-                        <td th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + '원'">18,000원</td>
-                        <td th:text="${product.stock} + '개'">50개</td>
-                        <td>
-                            <span class="status-tag" th:classappend="${product.status.name()}" th:text="${product.status.displayName}">판매중</span>
-                        </td>
-                        <td th:text="${#temporals.format(product.createdAt, 'yyyy/MM/dd')}">2024/05/21</td>
-                        <td><a th:href="@{/seller/products/{id}/edit(id=${product.id})}" class="edit-btn">수정</a></td>
-                    </tr>
-                </tbody>
-            </table>
-        </form>
+        </div>
+    </header>
+    <div class="list-container">
+        <h2>나의 상품 목록</h2>
+        <div class="list-header">
+            <div class="action-buttons">
+                <button class="delete-btn" onclick="deleteSelectedItems()">선택 삭제</button>
+                <button class="register-btn" onclick="location.href='product_form.html'">판매글 등록</button>
+            </div>
+        </div>
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th style="width:5%;"><input type="checkbox" id="selectAll" /></th>
+                    <th style="width:5%;">번호</th>
+                    <th style="width:35%;">게시글 제목</th>
+                    <th style="width:15%;">가격</th>
+                    <th style="width:10%;">재고</th>
+                    <th style="width:10%;">판매 상태</th>
+                    <th style="width:10%;">등록일</th>
+                    <th style="width:10%;">관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 가상의 상품 데이터 (10개) -->
+                <tr>
+                    <td><input type="checkbox" name="product_item" /></td>
+                    <td>10</td>
+                    <td class="title" onclick="location.href='../buyer/buyer_product_detail.html'">새벽에 수확한 유기농 딸기 1kg</td>
+                    <td>18,000원</td>
+                    <td>50개</td>
+                    <td><span class="status-tag selling">판매중</span></td>
+                    <td>2024/05/21</td>
+                    <td><button class="edit-btn" onclick="location.href='product_edit.html'">수정</button></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" name="product_item" /></td>
+                    <td>9</td>
+                    <td class="title" onclick="location.href='../buyer/buyer_product_detail.html'">아삭아삭 유기농 오이 5개 묶음</td>
+                    <td>5,500원</td>
+                    <td>120개</td>
+                    <td><span class="status-tag selling">판매중</span></td>
+                    <td>2024/05/20</td>
+                    <td><button class="edit-btn" onclick="location.href='product_edit.html'">수정</button></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" name="product_item" /></td>
+                    <td>8</td>
+                    <td class="title" onclick="location.href='../buyer/buyer_product_detail.html'">오늘 아침에 짠 신선한 우유 1L</td>
+                    <td>4,200원</td>
+                    <td>0개</td>
+                    <td><span class="status-tag sold-out">품절</span></td>
+                    <td>2024/05/19</td>
+                    <td><button class="edit-btn" onclick="location.href='product_edit.html'">수정</button></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" name="product_item" /></td>
+                    <td>7</td>
+                    <td class="title" onclick="location.href='../buyer/buyer_product_detail.html'">고당도 하우스 수박 1통 (5kg 이상)</td>
+                    <td>25,000원</td>
+                    <td>30개</td>
+                    <td><span class="status-tag selling">판매중</span></td>
+                    <td>2024/05/18</td>
+                    <td><button class="edit-btn" onclick="location.href='product_edit.html'">수정</button></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" name="product_item" /></td>
+                    <td>6</td>
+                    <td class="title" onclick="location.href='../buyer/buyer_product_detail.html'">2024년 햅쌀 10kg</td>
+                    <td>38,000원</td>
+                    <td>15개</td>
+                    <td><span class="status-tag hidden">숨김</span></td>
+                    <td>2024/05/17</td>
+                    <td><button class="edit-btn" onclick="location.href='product_edit.html'">수정</button></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" name="product_item" /></td>
+                    <td>5</td>
+                    <td class="title" onclick="location.href='../buyer/buyer_product_detail.html'">강원도 고랭지 배추 1포기</td>
+                    <td>3,000원</td>
+                    <td>200개</td>
+                    <td><span class="status-tag selling">판매중</span></td>
+                    <td>2024/05/16</td>
+                    <td><button class="edit-btn" onclick="location.href='product_edit.html'">수정</button></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" name="product_item" /></td>
+                    <td>4</td>
+                    <td class="title" onclick="location.href='../buyer/buyer_product_detail.html'">GAP 인증 블루베리 500g</td>
+                    <td>15,000원</td>
+                    <td>0개</td>
+                    <td><span class="status-tag sold-out">품절</span></td>
+                    <td>2024/05/15</td>
+                    <td><button class="edit-btn" onclick="location.href='product_edit.html'">수정</button></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" name="product_item" /></td>
+                    <td>3</td>
+                    <td class="title" onclick="location.href='../buyer/buyer_product_detail.html'">수제 그릭요거트 500g</td>
+                    <td>9,800원</td>
+                    <td>40개</td>
+                    <td><span class="status-tag selling">판매중</span></td>
+                    <td>2024/05/14</td>
+                    <td><button class="edit-btn" onclick="location.href='product_edit.html'">수정</button></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" name="product_item" /></td>
+                    <td>2</td>
+                    <td class="title" onclick="location.href='../buyer/buyer_product_detail.html'">유기농 양파 2kg (특품)</td>
+                    <td>6,000원</td>
+                    <td>80개</td>
+                    <td><span class="status-tag selling">판매중</span></td>
+                    <td>2024/05/13</td>
+                    <td><button class="edit-btn" onclick="location.href='product_edit.html'">수정</button></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" name="product_item" /></td>
+                    <td>1</td>
+                    <td class="title" onclick="location.href='../buyer/buyer_product_detail.html'">제주산 못난이 하우스 감귤 5kg</td>
+                    <td>12,000원</td>
+                    <td>0개</td>
+                    <td><span class="status-tag sold-out">품절</span></td>
+                    <td>2024/05/12</td>
+                    <td><button class="edit-btn" onclick="location.href='product_edit.html'">수정</button></td>
+                </tr>
+            </tbody>
+        </table>
 
-        <!--/* 페이지네이션: 백엔드에서 Page 객체를 전달받아 동적으로 생성하는 로직이 필요합니다. */-->
-        <div class="pagination" th:if="${!products.isEmpty()}">
-            <!-- 예: <a th:href="@{/seller/products(page=${currentPage - 1})}">&laquo; 이전</a> -->
+        <!-- 페이지네이션 -->
+        <div class="pagination">
+            <a href="#">&laquo; 이전</a>
+            <span class="active">1</span>
+            <a href="#">2</a>
+            <a href="#">3</a>
+            <a href="#">다음 &raquo;</a>
         </div>
     </div>
-</div>
+    <script>
+        // 전체 선택/해제 체크박스 기능
+        document.getElementById('selectAll').addEventListener('change', function(e) {
+            const checkboxes = document.querySelectorAll('input[name="product_item"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = e.target.checked;
+            });
+        });
+
+        // 선택 삭제 기능
+        function deleteSelectedItems() {
+            // 1. 선택된 체크박스들을 모두 가져옵니다.
+            const selectedCheckboxes = document.querySelectorAll('input[name="product_item"]:checked');
+
+            // 2. 선택된 항목이 없으면 알림을 띄우고 함수를 종료합니다.
+            if (selectedCheckboxes.length === 0) {
+                alert('삭제할 상품을 선택해주세요.');
+                return;
+            }
+
+            // 3. 사용자에게 정말 삭제할 것인지 확인합니다.
+            if (confirm(`선택된 ${selectedCheckboxes.length}개의 상품을 정말 삭제하시겠습니까?`)) {
+                selectedCheckboxes.forEach(checkbox => {
+                    // 4. 각 체크박스에서 가장 가까운 부모 <tr>을 찾아 제거합니다.
+                    const row = checkbox.closest('tr');
+                    if (row) {
+                        row.remove();
+                    }
+                });
+                alert('선택된 상품이 삭제되었습니다.');
+            }
+        }
+    </script>
 </body>
 </html> 

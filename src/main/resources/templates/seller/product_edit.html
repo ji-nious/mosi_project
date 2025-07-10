@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>판매자 센터 - 상품 등록</title>
+    <title>판매자 센터 - 상품 수정</title>
     <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -182,27 +182,27 @@
         </div>
     </header>
 
-    <h2>상품 등록</h2>
+    <h2>상품 수정</h2>
     <div class="form-container">
-        <form id="productForm" action="" method="post">
+        <form id="productEditForm" action="" method="post">
             
             <div class="form-section">
                 <h3>기본 정보</h3>
                 <div class="form-group">
                     <label for="productName">상품 이름</label>
-                    <input type="text" id="productName" name="productName" placeholder="예: 유기농 햇감자" required>
+                    <input type="text" id="productName" name="productName" value="강원도 홍천 꿀고구마" required>
                 </div>
                 <div class="form-group">
                     <label for="title">고객에게 보여줄 제목</label>
-                    <input type="text" id="title" name="title" placeholder="예: 강원도 청정지역에서 막 캐낸 유기농 햇감자 2kg" required>
+                    <input type="text" id="title" name="title" value="GAP 인증 받은 강원도 홍천 꿀고구마 2kg" required>
                 </div>
                 <div class="form-group">
                     <label for="description">상품 내용</label>
-                    <textarea id="description" name="description" placeholder="상품에 대한 상세한 설명을 입력하세요." required></textarea>
+                    <textarea id="description" name="description" required>강원도 홍천의 맑은 공기와 깨끗한 물을 머금고 자란 꿀고구마입니다. GAP(농산물우수관리) 인증을 받아 더욱 믿고 드실 수 있습니다. 밤처럼 포슬포슬하면서도 꿀처럼 달콤한 맛이 일품입니다.</textarea>
                 </div>
                  <div class="form-group">
                     <label for="origin">원산지</label>
-                    <input type="text" id="origin" name="origin" placeholder="예: 대한민국 강원도" required>
+                    <input type="text" id="origin" name="origin" value="국내산 (강원도 홍천)" required>
                 </div>
             </div>
 
@@ -210,26 +210,16 @@
                 <h3>판매 정보</h3>
                 <div class="form-group">
                     <label for="price">가격 (원)</label>
-                    <input type="number" id="price" name="price" placeholder="숫자만 입력" required>
+                    <input type="number" id="price" name="price" value="18900" required>
                 </div>
                 <div class="form-group">
                     <label for="stock">수량 (재고)</label>
-                    <input type="number" id="stock" name="stock" placeholder="숫자만 입력" required>
+                    <input type="number" id="stock" name="stock" value="84" required>
                 </div>
-                <!-- <div class="form-group">
-                    <label for="category">카테고리</label>
-                    <select id="category" name="category" required>
-                        <option value="">카테고리 선택</option>
-                        <option value="fruit">과일</option>
-                        <option value="vegetable">채소</option>
-                        <option value="grain">곡물</option>
-                        <option value="etc">기타</option>
-                    </select>
-                </div> -->
                 <div class="form-group">
                     <label for="status">판매 상태</label>
                     <select id="status" name="status" required>
-                        <option value="SELLING">판매중</option>
+                        <option value="SELLING" selected>판매중</option>
                         <option value="SOLD_OUT">재고소진</option>
                     </select>
                 </div>
@@ -239,7 +229,7 @@
                 <h3>이미지 등록</h3>
                 <div class="form-group">
                     <label for="thumbnail">섬네일 사진 URL</label>
-                    <input type="url" id="thumbnail" name="thumbnail" placeholder="대표 이미지 URL을 입력하세요">
+                    <input type="url" id="thumbnail" name="thumbnail" value="https://via.placeholder.com/430x430.png?text=Sweet+Potato" placeholder="대표 이미지 URL을 입력하세요">
                 </div>
                 <div class="form-group">
                     <label for="productImages">제품 사진 URL (쉼표(,)로 구분)</label>
@@ -251,43 +241,31 @@
                 <h3>배송 정보</h3>
                 <div class="form-group">
                     <label for="shippingFee">배송비 (원)</label>
-                    <input type="number" id="shippingFee" name="shippingFee" placeholder="무료배송 시 0 입력" required>
+                    <input type="number" id="shippingFee" name="shippingFee" value="3000" required>
                 </div>
                 <div class="form-group">
                     <label for="shippingMethod">배송 방법</label>
-                    <textarea id="shippingMethod" name="shippingMethod" rows="3" placeholder="예: CJ대한통운 (평일 오후 2시 이전 주문 시 당일 출고)"></textarea>
+                    <textarea id="shippingMethod" name="shippingMethod" rows="3">새벽배송 (밤 11시 전 주문 시 내일 아침 7시 전 도착)</textarea>
                 </div>
                 <div class="form-group">
                     <label for="shippingInfo">배송 안내</label>
-                    <textarea id="shippingInfo" name="shippingInfo" rows="3" placeholder="예: 제주 및 도서산간 지역은 추가 배송비가 발생할 수 있습니다."></textarea>
+                    <textarea id="shippingInfo" name="shippingInfo" rows="3">4만원 이상 구매 시 무료배송</textarea>
                 </div>
             </div>
 
             <div class="form-actions">
                 <button type="button" class="cancel-btn" onclick="history.back()">취소</button>
-                <button type="submit" class="submit-btn">등록</button>
+                <button type="submit" class="submit-btn">수정 완료</button>
             </div>
         </form>
     </div>
     <script>
-        document.getElementById('productForm').addEventListener('submit', function(event) {
+        document.getElementById('productEditForm').addEventListener('submit', function(event) {
             event.preventDefault();
-            // 모든 필수 필드가 채워졌는지 간단히 확인
-            const requiredInputs = document.querySelectorAll('#productForm [required]');
-            let allFilled = true;
-            for (const input of requiredInputs) {
-                if (!input.value.trim()) {
-                    allFilled = false;
-                    break;
-                }
-            }
-
-            if (allFilled) {
-                alert('상품이 성공적으로 등록되었습니다.');
-                window.location.href = 'product_list.html';
-            } else {
-                alert('필수 입력 항목을 모두 채워주세요.');
-            }
+            // 실제 프로덕션에서는 여기서 폼 데이터를 서버로 전송합니다.
+            // 여기서는 수정이 완료되었다는 가정 하에 페이지를 이동시킵니다.
+            alert('상품 정보가 수정되었습니다.');
+            window.location.href = 'seller_product_detail.html';
         });
     </script>
 </body>

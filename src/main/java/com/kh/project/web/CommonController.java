@@ -24,7 +24,7 @@ public class CommonController {
   @GetMapping("/")
   public String home() {
     log.info("메인 페이지 요청");
-    return "index";
+    return "home";
   }
 
   /**
@@ -71,5 +71,11 @@ public class CommonController {
       redirectAttributes.addFlashAttribute("message", "서버 오류가 발생했습니다.");
       return "redirect:/";
     }
+  }
+
+  @GetMapping("/common/juso-popup")
+  public String jusoPopup() {
+    log.info("주소 검색 팝업 요청");
+    return "common/juso_popup";
   }
 }

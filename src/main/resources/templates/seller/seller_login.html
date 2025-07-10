@@ -1,43 +1,193 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <th:block th:replace="~{fragments/common :: headFragment('판매자 로그인')}"></th:block>
-  <link rel="stylesheet" th:href="@{/css/style.css}">
-  <link rel="stylesheet" href="../../static/css/style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>판매자 로그인</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-primary: #658352;
+      --color-primary-light: #94A687;
+      --color-background: #FBF9EF;
+      --color-text: #1E2203;
+      --color-border: #E9E7DE;
+      --color-white: #fff;
+    }
+
+    body {
+        font-family: 'Inter', 'Cabin', sans-serif;
+        background-color: var(--color-background);
+        color: var(--color-text);
+        margin: 0;
+        padding: 120px 20px 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        box-sizing: border-box;
+    }
+
+    /* Navbar Styles */
+    .navbar-container {
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        z-index: 1000;
+        position: fixed;
+        justify-content: center;
+        background: var(--color-white);
+        box-shadow: 0 2px 12px 0 rgba(0,0,0,0.06);
+    }
+    .navbar {
+        width: 100%;
+        display: flex;
+        max-width: 1400px;
+        align-items: center;
+        padding: 16px 48px;
+        justify-content: space-between;
+    }
+    .navbar-logo-img {
+        height: 3rem;
+        border-radius: 8px;
+    }
+    .navbar-buttons {
+        gap: 16px;
+        display: flex;
+        align-items: center;
+    }
+    .btn-filled, .btn-outline {
+        display: flex;
+        align-items: center;
+        font-weight: bold;
+        padding: 10px 24px;
+        border-radius: 24px;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: background .2s, color .2s;
+        cursor: pointer;
+        border: 1px solid var(--color-primary);
+    }
+    .btn-filled {
+        color: var(--color-white);
+        background: var(--color-primary);
+    }
+    .btn-filled:hover { opacity: 0.9; }
+    .btn-outline {
+        color: var(--color-primary);
+        background: transparent;
+    }
+    .btn-outline:hover { background: rgba(101, 131, 82, 0.1); }
+
+    .login-container {
+        width: 100%;
+        max-width: 450px;
+        text-align: center;
+    }
+
+    .login-container h1 {
+        font-size: 2.5rem;
+        color: var(--color-primary);
+        margin-bottom: 30px;
+        font-family: 'Cabin', sans-serif;
+    }
+
+    .login-form {
+        background-color: var(--color-white);
+        padding: 40px 50px;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+        text-align: left;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #333;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 14px;
+        font-size: 1rem;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+    }
+    
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--color-primary);
+    }
+
+    .login-button {
+        width: 100%;
+        padding: 15px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        border-radius: 24px;
+        border: none;
+        background-color: var(--color-primary);
+        color: var(--color-white);
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: 10px;
+    }
+
+    .login-button:hover {
+        background-color: var(--color-primary-light);
+    }
+
+    .error-message {
+        color: #D8000C;
+        background-color: #FFD2D2;
+        border: 1px solid #D8000C;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+  </style>
 </head>
 <body>
 
-<!-- 공통 내비게이션 바 삽입 -->
-<div th:replace="~{fragments/common :: navbarFragment}"></div>
-
-<h2 class="page-title">판매자 로그인</h2>
-
-<!-- 🛒 판매자 로그인 폼 -->
-<form class="seller-form" th:action="@{/seller/login}" method="post" th:object="${loginForm}">
-  <div th:if="${#fields.hasGlobalErrors()}">
-    <p class="field-error" th:each="err : ${#fields.globalErrors()}" th:text="${err}">글로벌 오류 메시지</p>
-  </div>
-  <!-- 이메일 -->
-  <div class="form-row">
-    <label for="email">이메일</label>
-    <div class="input-col">
-      <input type="email" id="email" name="email" placeholder="이메일 입력" required />
+  <header class="navbar-container">
+    <div class="navbar">
+      <a th:href="@{/}">
+        <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="로고" class="navbar-logo-img"/>
+      </a>
+      <div class="navbar-buttons">
+        <a th:href="@{/common/select_login}" class="btn-outline">로그인</a>
+        <a th:href="@{/common/select_signup}" class="btn-filled">회원가입</a>
+      </div>
     </div>
-  </div>
+  </header>
 
-  <!-- 비밀번호 -->
-  <div class="form-row">
-    <label for="password">비밀번호</label>
-    <div class="input-col">
-      <input type="password" id="password" name="password" placeholder="비밀번호 입력" required />
-    </div>
-  </div>
+<div class="login-container">
+    <h1>판매자 로그인</h1>
+    <form id="loginForm" class="login-form" th:action="@{/login}" method="post">
+        <div th:if="${param.error}" class="error-message">
+            아이디 또는 비밀번호가 올바르지 않습니다.
+        </div>
+        <div class="form-group">
+            <label for="username">이메일</label>
+            <input type="email" id="username" name="username" placeholder="이메일 주소" required>
+        </div>
+        <div class="form-group">
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" name="password" placeholder="비밀번호" required>
+        </div>
+        <button type="submit" class="login-button">로그인</button>
+    </form>
+</div>
 
-  <!-- 로그인 버튼 -->
-  <button type="submit">로그인</button>
-</form>
-
-<script th:src="@{/js/common/message.js}"></script>
-<script th:src="@{/js/seller/seller_login.js}"></script>
 </body>
 </html>
