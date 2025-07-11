@@ -77,8 +77,15 @@
             background: transparent;
         }
         .btn-outline:hover { background: rgba(101, 131, 82, 0.1); }
+        
+        .welcome-message {
+            color: #444;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-right: 16px;
+        }
 
-        /* --- Form Container --- */
+        /* --- Form Container Override --- */
         .signup-container {
             width: 100%;
             max-width: 600px;
@@ -88,6 +95,7 @@
             border-radius: 20px;
             box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
         }
+
         .signup-container h2 {
             font-family: 'Cabin', sans-serif;
             font-weight: 700;
@@ -98,26 +106,29 @@
             margin-bottom: 30px;
         }
 
-        /* --- Form Elements --- */
+        /* --- Form Elements Override --- */
         .form-row {
             display: flex;
             align-items: flex-start;
             gap: 16px;
             margin-bottom: 18px;
         }
+
         .form-row label {
             width: 120px;
             text-align: left;
             font-weight: bold;
             flex-shrink: 0;
-            padding-top: 10px; /* Align with input box */
+            padding-top: 10px;
             font-size: 0.95rem;
         }
+
         .input-col {
             flex: 1;
             display: flex;
             flex-direction: column;
         }
+
         input[type="text"],
         input[type="email"],
         input[type="password"],
@@ -131,16 +142,22 @@
             box-sizing: border-box;
             transition: border-color 0.2s;
         }
+
         input:focus, select:focus {
             border-color: var(--color-primary);
             outline: none;
         }
+
         .postcode-group {
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
         }
-        #postcode { background-color: #f8f9fa; }
+
+        #postcode { 
+            background-color: #f8f9fa; 
+        }
+
         #searchPostcodeBtn {
             padding: 10px 16px;
             font-size: 0.9rem;
@@ -153,12 +170,19 @@
             flex-shrink: 0;
             transition: all 0.2s;
         }
+
         #searchPostcodeBtn:hover {
             background-color: var(--color-primary);
             color: var(--color-white);
         }
-        #address, #detailAddress { margin-bottom: 10px; }
-        #address { background-color: #f8f9fa; }
+
+        #address, #detailAddress { 
+            margin-bottom: 10px; 
+        }
+
+        #address { 
+            background-color: #f8f9fa; 
+        }
 
         .signup-btn {
             display: block;
@@ -174,13 +198,41 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .signup-btn:hover { opacity: 0.9; }
+
+        .signup-btn:hover { 
+            opacity: 0.9; 
+        }
 
         .error-msg {
             color: var(--color-danger);
             font-size: 0.8rem;
             margin-top: 6px;
-            min-height: 1.2em; /* Prevent layout shift */
+            min-height: 1.2em;
+        }
+
+        .error-message, .success-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .error-message {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef5350;
+        }
+
+        .success-message {
+            background-color: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #4caf50;
+        }
+
+        /* 전화번호 필드부터 추가 간격 */
+        .tel-field-spacing {
+            margin-top: 24px;
         }
     </style>
 </head>
@@ -191,46 +243,62 @@
             <a th:href="@{/}">
                 <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="로고" class="navbar-logo-img"/>
             </a>
-            <div class="navbar-buttons">
-                <a th:href="@{/common/select_login}" class="btn-outline">로그인</a>
-                <a th:href="@{/common/select_signup}" class="btn-filled">회원가입</a>
+            <!-- 로그인 상태에 따른 네비게이션 버튼 -->
+            <div class="navbar-buttons" th:if="${session.loginMember == null}">
+                <a th:href="@{/login}" class="btn-outline">로그인</a>
+                <a th:href="@{/signup}" class="btn-filled">회원가입</a>
+            </div>
+            <div class="navbar-buttons" th:if="${session.loginMember != null}">
+                <span class="welcome-message" th:text="${userNickname} + '님, 환영합니다.'"></span>
+                                                 <a th:href="@{/buyer/info}" th:if="${session.loginMember.memberType == 'BUYER'}" class="btn-outline">마이페이지</a>
+         <a th:href="@{/seller/info}" th:if="${session.loginMember.memberType == 'SELLER'}" class="btn-outline">마이페이지</a>
+                <a href="#" onclick="logout()" class="btn-filled">로그아웃</a>
             </div>
         </div>
     </header>
 
     <div class="signup-container">
-        <form id="buyer-signup-form" novalidate>
+        <!-- 에러/성공 메시지 표시 -->
+        <div th:if="${error}" class="error-message" th:text="${error}"></div>
+        <div th:if="${message}" class="success-message" th:text="${message}"></div>
+        
+        <form th:action="@{/buyer/signup}" method="post" th:object="${buyerSignupForm}" novalidate>
             <h2>구매자 회원가입</h2>
+            
+            <!-- 글로벌 에러 메시지 표시 -->
+            <div th:if="${#fields.hasGlobalErrors()}" class="error-message">
+                <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+            </div>
 
             <div class="form-row">
                 <label for="name">이름</label>
                 <div class="input-col">
-                    <input type="text" id="name" name="name" required placeholder="이름을 입력해주세요" />
-                    <div class="error-msg" id="error-name"></div>
+                    <input type="text" th:field="*{name}" required placeholder="이름을 입력해주세요" />
+                    <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="error-msg"></div>
                 </div>
             </div>
 
             <div class="form-row">
                 <label for="nickname">닉네임</label>
                 <div class="input-col">
-                    <input type="text" id="nickname" name="nickname" required placeholder="2~8자, 한글/영문/숫자" />
-                    <div class="error-msg" id="error-nickname"></div>
+                    <input type="text" th:field="*{nickname}" required placeholder="2~8자, 한글/영문/숫자" />
+                    <div th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}" class="error-msg"></div>
                 </div>
             </div>
 
             <div class="form-row">
                 <label for="email">이메일</label>
                 <div class="input-col">
-                    <input type="email" id="email" name="email" required placeholder="example@email.com" />
-                    <div class="error-msg" id="error-email"></div>
+                    <input type="email" th:field="*{email}" required placeholder="example@email.com" />
+                    <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error-msg"></div>
                 </div>
             </div>
 
             <div class="form-row">
                 <label for="password">비밀번호</label>
                 <div class="input-col">
-                    <input type="password" id="password" name="password" required placeholder="8~15자, 영문/숫자/특수문자 포함" />
-                    <div class="error-msg" id="error-password"></div>
+                    <input type="password" th:field="*{password}" required placeholder="8~15자, 영문/숫자/특수문자 포함" />
+                    <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="error-msg"></div>
                 </div>
             </div>
 
@@ -242,10 +310,10 @@
                 </div>
             </div>
 
-            <div class="form-row">
+            <div class="form-row tel-field-spacing">
                 <label for="tel">전화번호</label>
                 <div class="input-col">
-                    <input type="text" id="tel" name="tel" maxlength="13" placeholder="010-1234-5678" required />
+                    <input type="text" th:field="*{tel}" maxlength="13" placeholder="010-1234-5678" required />
                     <div class="error-msg" id="error-tel"></div>
                 </div>
             </div>
@@ -253,10 +321,10 @@
             <div class="form-row">
                 <label for="gender">성별</label>
                 <div class="input-col">
-                    <select id="gender" name="gender" required>
+                    <select th:field="*{gender}" required>
                         <option value="">선택</option>
-                        <option value="male">남성</option>
-                        <option value="female">여성</option>
+                        <option value="남성">남성</option>
+                        <option value="여성">여성</option>
                     </select>
                     <div class="error-msg" id="error-gender"></div>
                 </div>
@@ -265,7 +333,7 @@
             <div class="form-row">
                 <label for="birth">생년월일</label>
                 <div class="input-col">
-                    <input type="date" id="birth" name="birth" required />
+                    <input type="date" th:field="*{birth}" required />
                     <div class="error-msg" id="error-birth"></div>
                 </div>
             </div>
@@ -274,11 +342,11 @@
                 <label for="postcode">주소</label>
                 <div class="input-col">
                     <div class="postcode-group">
-                        <input type="text" id="postcode" name="postcode" placeholder="우편번호" readonly>
+                        <input type="text" id="postcode" th:field="*{postcode}" placeholder="우편번호" readonly>
                         <button type="button" id="searchPostcodeBtn" onclick="openAddressPopup()">주소 검색</button>
                     </div>
-                    <input type="text" id="address" name="address" placeholder="주소" readonly>
-                    <input type="text" id="detailAddress" name="detailAddress" placeholder="상세주소를 입력해주세요">
+                    <input type="text" id="address" th:field="*{address}" placeholder="주소" readonly>
+                    <input type="text" id="detailAddress" th:field="*{detailAddress}" placeholder="상세주소를 입력해주세요">
                     <div class="error-msg" id="error-address"></div>
                 </div>
             </div>
@@ -287,8 +355,24 @@
         </form>
     </div>
 
-    <script th:src="@{/js/buyer/buyer_signup.js}"></script>
-    <script th:src="@{/js/common/message.js}"></script>
+    <!-- 주소 검색을 위한 스크립트 -->
+    <script>
+        function openAddressPopup() {
+            window.open('/common/juso-popup', 'popup', 'width=600,height=700,scrollbars=yes');
+        }
+
+        // 로그아웃 기능
+        function logout() {
+            if (confirm('로그아웃 하시겠습니까?')) {
+                // POST 방식으로 로그아웃 요청
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/logout';
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
 
 </body>
 </html>

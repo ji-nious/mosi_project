@@ -1,10 +1,11 @@
 package com.kh.project.domain.seller.svc;
 
+import com.kh.project.domain.entity.Seller;
 import com.kh.project.domain.entity.MemberGubun;
 import com.kh.project.domain.entity.MemberStatus;
-import com.kh.project.domain.entity.Seller;
 import com.kh.project.domain.seller.dao.SellerDAO;
 import com.kh.project.web.common.CodeNameInfo;
+import com.kh.project.web.common.MemberGubunUtils;
 import com.kh.project.web.exception.BusinessException;
 import com.kh.project.web.exception.MemberException;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,12 @@ public class SellerSVCImpl implements SellerSVC {
     if (sellerDAO.existsByShopName(seller.getShopName())) {
       throw new BusinessException("이미 사용중인 상점명입니다.");
     }
+    if (sellerDAO.existsByName(seller.getName())) {
+      throw new BusinessException("이미 등록된 대표자명입니다.");
+    }
+    if (sellerDAO.existsByShopAddress(seller.getShopAddress())) {
+      throw new BusinessException("이미 등록된 사업장 주소입니다.");
+    }
 
     // 사업자번호 형식 검증
     if (!validateBizRegNo(seller.getBizRegNo())) {
@@ -49,7 +56,6 @@ public class SellerSVCImpl implements SellerSVC {
     }
 
     // 기본값 설정
-    seller.setGubun(MemberGubun.getDefaultGrade().getCode());
     seller.setStatus("활성화");
 
     Seller savedSeller = sellerDAO.save(seller);
@@ -144,6 +150,18 @@ public class SellerSVCImpl implements SellerSVC {
 
   @Override
   @Transactional(readOnly = true)
+  public boolean existsByName(String name) {
+    return sellerDAO.existsByName(name);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean existsByShopAddress(String shopAddress) {
+    return sellerDAO.existsByShopAddress(shopAddress);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public boolean checkPassword(Long sellerId, String password) {
     if (password == null) return false;
 
@@ -152,23 +170,9 @@ public class SellerSVCImpl implements SellerSVC {
         .orElse(false);
   }
 
-  @Override
-  public void upgradeGubun(Long sellerId, String newGubun) {
-    log.info("판매자 등급 승급: sellerId={}, newGubun={}", sellerId, newGubun);
-
-    if (!MemberGubun.isValidCode(newGubun)) {
-      throw new BusinessException("올바르지 않은 등급 코드입니다.");
-    }
-
-    Seller updateSeller = new Seller();
-    updateSeller.setGubun(newGubun);
-    int result = sellerDAO.update(sellerId, updateSeller);
-
-    if (result > 0) {
-      log.info("판매자 등급 승급 완료: sellerId={}, newGubun={}", sellerId, newGubun);
-    }
-  }
-
+  /**
+   * 회원 등급 업그레이드
+   */
   @Override
   @Transactional(readOnly = true)
   public List<Seller> getWithdrawnMembers() {
@@ -279,12 +283,12 @@ public class SellerSVCImpl implements SellerSVC {
 
   @Override
   public CodeNameInfo getGubunInfo(Seller seller) {
-    if (seller == null || seller.getGubun() == null) {
+    if (seller == null || seller.getMemberGubun() == null) {
       return CodeNameInfo.of("UNKNOWN", "알 수 없음");
     }
 
-    String code = seller.getGubun();
-    String name = MemberGubun.getDescriptionByCode(code);
+    String code = seller.getMemberGubun();
+    String name = MemberGubunUtils.getDescriptionByCode(code);
 
     return CodeNameInfo.of(code, name);
   }

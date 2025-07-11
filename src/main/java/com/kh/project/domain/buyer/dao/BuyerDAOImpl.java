@@ -31,28 +31,28 @@ public class BuyerDAOImpl implements BuyerDAO {
         SELECT 
             Buyer_id as buyerId,
             EMAIL as email,
-            password,
-            name,
-            nickname,
-            tel,
-            gender,
-            birth,
-            address,
-            pic,
-            gubun,
-            status,
-            cdate,
-            udate,
+            PASSWORD as password,
+            NAME as name,
+            NICKNAME as nickname,
+            TEL as tel,
+            GENDER as gender,
+            BIRTH as birth,
+            ADDRESS as address,
+            MEMBER_GUBUN as memberGubun,
+            PIC as pic,
+            STATUS as status,
+            CDATE as cdate,
+            UDATE as udate,
             withdrawn_at as withdrawnAt,
-            withdraw_reason as withdrawReason
-        FROM BUYER
+            withdrawn_reason as withdrawnReason
+        FROM buyer
         """;
 
     @Override
     public Buyer save(Buyer buyer) {
         String sql = """
-            INSERT INTO BUYER (EMAIL, password, name, nickname, tel, gender, birth, address, gubun, status) 
-            VALUES (:email, :password, :name, :nickname, :tel, :gender, :birth, :address, :gubun, :status)
+            INSERT INTO buyer (EMAIL, PASSWORD, NAME, NICKNAME, TEL, GENDER, BIRTH, ADDRESS, MEMBER_GUBUN, STATUS) 
+            VALUES (:email, :password, :name, :nickname, :tel, :gender, :birth, :address, :memberGubun, :status)
             """;
 
         SqlParameterSource param = new BeanPropertySqlParameterSource(buyer);
@@ -69,7 +69,7 @@ public class BuyerDAOImpl implements BuyerDAO {
 
     @Override
     public Optional<Buyer> findById(Long buyerId) {
-        String sql = BASE_SELECT + " WHERE Buyer_id = :buyerId AND status != '탈퇴'";
+        String sql = BASE_SELECT + " WHERE Buyer_id = :buyerId AND STATUS != '탈퇴'";
 
         try {
             MapSqlParameterSource param = new MapSqlParameterSource("buyerId", buyerId);
@@ -85,7 +85,7 @@ public class BuyerDAOImpl implements BuyerDAO {
 
     @Override
     public Optional<Buyer> findByEmail(String email) {
-        String sql = BASE_SELECT + " WHERE EMAIL = :email AND status != '탈퇴'";
+        String sql = BASE_SELECT + " WHERE EMAIL = :email AND STATUS != '탈퇴'";
 
         try {
             MapSqlParameterSource param = new MapSqlParameterSource("email", email);
@@ -100,7 +100,7 @@ public class BuyerDAOImpl implements BuyerDAO {
 
     @Override
     public boolean existsByEmail(String email) {
-        String sql = "SELECT COUNT(*) FROM BUYER WHERE EMAIL = :email AND status != '탈퇴'";
+        String sql = "SELECT COUNT(*) FROM buyer WHERE EMAIL = :email AND STATUS IN ('활성화', '비활성화', '정지')";
 
         MapSqlParameterSource param = new MapSqlParameterSource("email", email);
 
@@ -110,7 +110,7 @@ public class BuyerDAOImpl implements BuyerDAO {
 
     @Override
     public boolean existsByNickname(String nickname) {
-        String sql = "SELECT COUNT(*) FROM BUYER WHERE nickname = :nickname AND status != '탈퇴'";
+        String sql = "SELECT COUNT(*) FROM buyer WHERE NICKNAME = :nickname AND STATUS IN ('활성화', '비활성화', '정지')";
 
         MapSqlParameterSource param = new MapSqlParameterSource("nickname", nickname);
 
@@ -122,50 +122,50 @@ public class BuyerDAOImpl implements BuyerDAO {
     @Override
     public int update(Long buyerId, Buyer buyer) {
         StringBuilder sql = new StringBuilder();
-        sql.append("UPDATE BUYER SET ");
+        sql.append("UPDATE buyer SET ");
 
         MapSqlParameterSource param = new MapSqlParameterSource();
         StringBuilder setClauses = new StringBuilder();
 
         // 동적 쿼리 생성 (null이 아닌 필드만 업데이트)
         if (buyer.getPassword() != null) {
-            setClauses.append("password = :password, ");
+            setClauses.append("PASSWORD = :password, ");
             param.addValue("password", buyer.getPassword());
         }
         if (buyer.getName() != null) {
-            setClauses.append("name = :name, ");
+            setClauses.append("NAME = :name, ");
             param.addValue("name", buyer.getName());
         }
         if (buyer.getNickname() != null) {
-            setClauses.append("nickname = :nickname, ");
+            setClauses.append("NICKNAME = :nickname, ");
             param.addValue("nickname", buyer.getNickname());
         }
         if (buyer.getTel() != null) {
-            setClauses.append("tel = :tel, ");
+            setClauses.append("TEL = :tel, ");
             param.addValue("tel", buyer.getTel());
         }
         if (buyer.getGender() != null) {
-            setClauses.append("gender = :gender, ");
+            setClauses.append("GENDER = :gender, ");
             param.addValue("gender", buyer.getGender());
         }
         if (buyer.getBirth() != null) {
-            setClauses.append("birth = :birth, ");
+            setClauses.append("BIRTH = :birth, ");
             param.addValue("birth", buyer.getBirth());
         }
         if (buyer.getAddress() != null) {
-            setClauses.append("address = :address, ");
+            setClauses.append("ADDRESS = :address, ");
             param.addValue("address", buyer.getAddress());
         }
-        if (buyer.getGubun() != null) {
-            setClauses.append("gubun = :gubun, ");
-            param.addValue("gubun", buyer.getGubun());
+        if (buyer.getMemberGubun() != null) {
+            setClauses.append("MEMBER_GUBUN = :memberGubun, ");
+            param.addValue("memberGubun", buyer.getMemberGubun());
         }
 
         // 항상 업데이트되는 필드
-        setClauses.append("udate = SYSTIMESTAMP ");
+        setClauses.append("UDATE = SYSTIMESTAMP ");
 
         sql.append(setClauses.toString());
-        sql.append("WHERE Buyer_id = :buyerId AND status != '탈퇴'");
+        sql.append("WHERE Buyer_id = :buyerId AND STATUS != '탈퇴'");
 
         param.addValue("buyerId", buyerId);
 
@@ -175,12 +175,12 @@ public class BuyerDAOImpl implements BuyerDAO {
     @Override
     public int withdrawWithReason(Long buyerId, String reason) {
         String sql = """
-            UPDATE BUYER SET 
-                status = '탈퇴', 
-                withdrawn_at = SYSTIMESTAMP, 
-                withdraw_reason = :reason, 
-                udate = SYSTIMESTAMP 
-            WHERE Buyer_id = :buyerId AND status = '활성화'
+            UPDATE buyer SET 
+                STATUS = '탈퇴', 
+                UDATE = SYSTIMESTAMP,
+                withdrawn_at = SYSDATE,
+                withdrawn_reason = :reason
+            WHERE Buyer_id = :buyerId AND STATUS = '활성화'
             """;
 
         MapSqlParameterSource param = new MapSqlParameterSource();
@@ -192,24 +192,15 @@ public class BuyerDAOImpl implements BuyerDAO {
 
     @Override
     public List<Buyer> findWithdrawnMembers() {
-        String sql = BASE_SELECT + " WHERE status = '탈퇴' ORDER BY withdrawn_at DESC";
+        String sql = BASE_SELECT + " WHERE STATUS = '탈퇴' ORDER BY UDATE DESC";
 
         return template.query(sql, BeanPropertyRowMapper.newInstance(Buyer.class));
     }
 
     @Override
     public List<Buyer> findAll() {
-        String sql = BASE_SELECT + " WHERE status != '탈퇴' ORDER BY cdate DESC";
+        String sql = BASE_SELECT + " WHERE STATUS != '탈퇴' ORDER BY CDATE DESC";
 
         return template.query(sql, BeanPropertyRowMapper.newInstance(Buyer.class));
-    }
-
-    @Override
-    public int deleteById(Long buyerId) {
-        String sql = "DELETE FROM BUYER WHERE Buyer_id = :buyerId";
-
-        MapSqlParameterSource param = new MapSqlParameterSource("buyerId", buyerId);
-
-        return template.update(sql, param);
     }
 }

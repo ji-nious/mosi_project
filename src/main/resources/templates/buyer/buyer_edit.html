@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -132,27 +132,46 @@
             cursor: not-allowed;
         }
 
+        .input-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
         .postcode-group {
             display: flex;
             gap: 10px;
-            align-items: center;
+            margin-bottom: 10px;
         }
-        .postcode-group input { flex-grow: 1; }
-        .postcode-group button {
-            padding: 12px 20px;
-            border: 1px solid var(--color-primary);
-            background-color: var(--color-white);
-            color: var(--color-primary);
+
+        #postcode { 
+            background-color: #f8f9fa; 
+        }
+
+        #searchPostcodeBtn {
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            font-weight: bold;
             border-radius: 8px;
+            border: 1px solid var(--color-primary);
+            background-color: transparent;
+            color: var(--color-primary);
             cursor: pointer;
-            font-weight: 600;
+            flex-shrink: 0;
+            transition: all 0.2s;
         }
-        .postcode-group button {
-            width: 110px;
-        }
-        .postcode-group button:hover {
+
+        #searchPostcodeBtn:hover {
             background-color: var(--color-primary);
             color: var(--color-white);
+        }
+
+        #address, #detailAddress { 
+            margin-bottom: 10px; 
+        }
+
+        #address { 
+            background-color: #f8f9fa; 
         }
 
         .form-actions {
@@ -203,45 +222,67 @@
 
     <div class="edit-container">
         <h1>구매자 정보 수정</h1>
-        <form id="editForm" class="edit-form" action="/buyer/edit" method="post">
+        <form th:action="@{/buyer/edit}" method="post" th:object="${buyerEditForm}" class="edit-form">
+            <!-- 이름을 hidden field로 전송 -->
+            <input type="hidden" th:field="*{name}"/>
+            
+            <!-- 전역 오류 메시지 표시 -->
+            <div th:if="${#fields.hasGlobalErrors()}" style="margin-bottom: 20px;">
+                <div th:each="error : ${#fields.globalErrors()}" th:text="${error}" style="color: red; text-align: center; margin: 10px; padding: 10px; background-color: #ffe6e6; border: 1px solid #ff0000; border-radius: 4px;"></div>
+            </div>
+            
             <div class="form-row">
                 <label for="email">이메일 (수정 불가)</label>
-                <input type="email" id="email" name="email" readonly>
-            </div>
-            <div class="form-row">
-                <label for="realName">이름 (수정 불가)</label>
-                <input type="text" id="realName" name="realName" readonly>
+                <input type="email" id="email" name="email" th:value="${buyerEmail}" readonly>
             </div>
             <div class="form-row">
                 <label for="password">새 비밀번호</label>
-                <input type="password" id="password" name="password" placeholder="변경을 원할 경우에만 입력">
+                <input type="password" id="password" th:field="*{password}" placeholder="8~15자, 영문+숫자+특수문자" required>
+                <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
             </div>
             <div class="form-row">
                 <label for="passwordConfirm">새 비밀번호 확인</label>
-                <input type="password" id="passwordConfirm" name="passwordConfirm" placeholder="비밀번호를 한번 더 입력하세요">
+                <input type="password" id="passwordConfirm" th:field="*{passwordConfirm}" placeholder="비밀번호를 다시 입력하세요" required>
+                <div th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
+            </div>
+            <div class="form-row">
+                <label for="realName">이름 (수정 불가)</label>
+                <input type="text" id="realName" name="realName" th:value="${buyerName}" readonly>
             </div>
             <div class="form-row">
                 <label for="nickname">닉네임</label>
-                <input type="text" id="nickname" name="nickname" required>
+                <input type="text" id="nickname" th:field="*{nickname}" required>
+                <div th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
             </div>
             <div class="form-row">
-                <label for="phone">연락처</label>
-                <input type="text" id="phone" name="phone" placeholder="'-' 없이 숫자만 입력" required>
+                <label for="tel">연락처</label>
+                <input type="text" id="tel" th:field="*{tel}" maxlength="13" placeholder="02-1234-5678">
+                <div th:if="${#fields.hasErrors('tel')}" th:errors="*{tel}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
             </div>
             <div class="form-row">
-                <label for="postcode">우편번호</label>
-                <div class="postcode-group">
-                    <input type="text" id="postcode" name="postcode" readonly>
-                    <button type="button" id="searchPostcodeBtn">주소 검색</button>
+                <label for="gender">성별</label>
+                <select id="gender" th:field="*{gender}">
+                    <option value="">선택해주세요</option>
+                    <option value="남성">남성</option>
+                    <option value="여성">여성</option>
+                </select>
+                <div th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
+            </div>
+            <div class="form-row">
+                <label for="birth">생년월일</label>
+                <input type="date" id="birth" th:field="*{birth}">
+                <div th:if="${#fields.hasErrors('birth')}" th:errors="*{birth}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
+            </div>
+            <div class="form-row">
+                <label for="postcode">주소</label>
+                <div class="input-col">
+                    <div class="postcode-group">
+                        <input type="text" id="postcode" th:field="*{postcode}" placeholder="우편번호" readonly>
+                        <button type="button" id="searchPostcodeBtn" onclick="openAddressPopup()">주소 검색</button>
+                    </div>
+                    <input type="text" id="address" th:field="*{address}" placeholder="주소" readonly>
+                    <input type="text" id="detailAddress" th:field="*{detailAddress}" placeholder="상세주소를 입력해주세요">
                 </div>
-            </div>
-            <div class="form-row">
-                <label for="address">주소</label>
-                <input type="text" id="address" name="address" readonly>
-            </div>
-            <div class="form-row">
-                <label for="detailAddress">상세주소</label>
-                <input type="text" id="detailAddress" name="detailAddress">
             </div>
             <div class="form-actions">
                 <button type="button" class="cancel-btn" onclick="location.href='/buyer/info'">취소</button>
@@ -249,85 +290,12 @@
             </div>
         </form>
     </div>
-    
-    <script src="/js/buyer/buyer_edit.js"></script>
-    <script src="/js/common/logout.js"></script>
+
+    <!-- 주소 검색을 위한 스크립트 -->
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- 가상 데이터 ---
-        const mockUserData = {
-            email: 'buyer@example.com',
-            phone: '010-1234-5678',
-            realName: '김구매',
-            nickname: '알뜰쇼핑러',
-            address: {
-                postcode: '12345',
-                address: '서울특별시 강남구 테헤란로 123',
-                detailAddress: '456호'
-            }
-        };
-
-        // --- DOM 요소 ---
-        const editForm = document.getElementById('editForm');
-        const phoneInput = document.getElementById('phone');
-
-        // --- 함수 ---
-        function populateForm(user) {
-            document.getElementById('email').value = user.email;
-            document.getElementById('realName').value = user.realName;
-            document.getElementById('nickname').value = user.nickname;
-            phoneInput.value = user.phone;
-            document.getElementById('postcode').value = user.address.postcode;
-            document.getElementById('address').value = user.address.address;
-            document.getElementById('detailAddress').value = user.address.detailAddress;
-        }
-
-        // Daum Postcode API
-        document.getElementById('searchPostcodeBtn').addEventListener('click', () => {
-            new daum.Postcode({
-                oncomplete: function(data) {
-                    document.getElementById('postcode').value = data.zonecode;
-                    document.getElementById('address').value = data.address;
-                    document.getElementById('detailAddress').focus();
-                }
-            }).open();
-        });
-
-        // 연락처 자동 하이픈
-        phoneInput.addEventListener('input', e => {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 11) value = value.slice(0, 11);
-            let result = '';
-            if (value.length < 4) {
-                result = value;
-            } else if (value.startsWith('02')) {
-                if (length < 7) result = `${value.slice(0, 2)}-${value.slice(2)}`;
-                else result = `${value.slice(0, 2)}-${value.slice(2, 6)}-${value.slice(6)}`;
-            } else {
-                if (value.length < 8) result = `${value.slice(0, 3)}-${value.slice(3)}`;
-                else result = `${value.slice(0, 3)}-${value.slice(3, 7)}-${value.slice(7)}`;
-            }
-            e.target.value = result;
-        });
-
-        // 폼 제출 처리
-        editForm.addEventListener('submit', e => {
-            e.preventDefault();
-            const password = document.getElementById('password').value;
-            const passwordConfirm = document.getElementById('passwordConfirm').value;
-
-            if (password && password !== passwordConfirm) {
-                alert('새 비밀번호와 비밀번호 확인이 일치하지 않습니다.');
-                return;
-            }
-            
-            alert('정보가 성공적으로 수정되었습니다.');
-            window.location.href = 'buyer_info.html';
-        });
-
-        // --- 초기화 ---
-        populateForm(mockUserData);
-    });
+    function openAddressPopup() {
+        window.open('/common/juso-popup', 'popup', 'width=600,height=700,scrollbars=yes');
+    }
     </script>
 </body>
 </html> 

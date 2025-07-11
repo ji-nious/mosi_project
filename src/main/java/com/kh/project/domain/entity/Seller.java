@@ -12,6 +12,7 @@ import java.util.Date;
 
 /**
  * 판매자 엔티티
+ * 판매자의 기본 정보, 사업자 정보, 등급, 상태 관리
  */
 @Data
 @NoArgsConstructor
@@ -51,41 +52,68 @@ public class Seller {
   @Pattern(regexp = "^(0\\d{1,2})-\\d{3,4}-\\d{4}$", message = "전화번호 형식: 지역번호-0000-0000")
   private String tel;
 
+  /** 회원 등급 코드 (NEW, BRONZE, SILVER, GOLD) */
+  private String memberGubun = "NEW";
+
   private byte[] pic;
   private String status = "활성화";
   private Date cdate;
   private Date udate;
-  private String gubun = MemberGubun.NEW.getCode();
   private Date withdrawnAt;
-  private String withdrawReason;
+  private String withdrawnReason;
 
   /**
-   * 로그인 가능 여부 검사
+   * 로그인 가능 여부 확인
+   * 
+   * @return boolean - 활성화 상태이고 탈퇴하지 않은 경우 true
    */
   public boolean canLogin() {
     return "활성화".equals(this.status) && this.withdrawnAt == null;
   }
 
   /**
-   * 탈퇴 여부 검사
+   * 탈퇴 여부 확인
+   * 
+   * @return boolean - 탈퇴 상태인 경우 true
    */
   public boolean isWithdrawn() {
-    return "탈퇴".equals(this.status) || this.withdrawnAt != null;
+    return "탈퇴".equals(this.status);
   }
 
   /**
-   * 등급 승급 가능 여부
-   */
-  public boolean canUpgradeGrade() {
-    MemberGubun currentGrade = MemberGubun.fromCodeOrDefault(this.gubun);
-    return currentGrade == MemberGubun.NEW || currentGrade == MemberGubun.BRONZE;
-  }
-
-  /**
-   * 사업자등록번호 유효성 검사 (간단한 형식 체크)
+   * 사업자등록번호 유효성 검사
+   * 
+   * @return boolean - 올바른 형식인 경우 true
    */
   public boolean isValidBizRegNo() {
     if (bizRegNo == null) return false;
     return bizRegNo.matches("^\\d{3}-\\d{2}-\\d{5}$");
+  }
+
+  /**
+   * 회원 등급 업그레이드
+   * 
+   * @param newGubun 새로운 회원 등급
+   */
+  public void upgradeMemberGubun(MemberGubun newGubun) {
+    this.memberGubun = newGubun.getCode();
+  }
+
+  /**
+   * 현재 회원 등급 객체 조회
+   * 
+   * @return MemberGubun - 현재 등급 객체
+   */
+  public MemberGubun getCurrentMemberGubun() {
+    return com.kh.project.web.common.MemberGubunUtils.fromCodeOrDefault(this.memberGubun);
+  }
+
+  /**
+   * 회원 등급 설명 조회
+   * 
+   * @return String - 등급 설명 (예: "신규회원", "브론즈회원")
+   */
+  public String getMemberGubunDescription() {
+    return getCurrentMemberGubun().getDescription();
   }
 }

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>판매자 정보 수정</title>
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <style>
@@ -74,15 +74,41 @@
         .error-msg {
             color: red; font-size: 0.85rem; min-height: 1.2em; padding-top: 4px;
         }
-        .address-search-container {
-            display: flex; gap: 10px; align-items: center; margin-bottom: 10px;
+        .postcode-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
         }
-        .address-search-btn {
-            width: 120px; padding: 10px; flex-shrink: 0; font-size: 0.9rem;
-            background-color: white; border: 1px solid #658352; color: #658352;
-            border-radius: 8px; cursor: pointer; transition: all .2s;
+
+        #postcode { 
+            background-color: #f8f9fa; 
         }
-        .address-search-btn:hover { background-color: #f5f4ed; }
+
+        #searchPostcodeBtn {
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-radius: 8px;
+            border: 1px solid #658352;
+            background-color: transparent;
+            color: #658352;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        #searchPostcodeBtn:hover {
+            background-color: #658352;
+            color: #fff;
+        }
+
+        #address, #detailAddress { 
+            margin-bottom: 10px; 
+        }
+
+        #address { 
+            background-color: #f8f9fa; 
+        }
         .form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; }
         .form-actions button {
             width: 120px; padding: 12px 0; font-size: 1rem; font-weight: bold;
@@ -96,8 +122,8 @@
 <!-- Navbar -->
 <header class="navbar8-container1">
     <div class="navbar8-navbar-interactive">
-        <a href="/">
-            <img src="/images/free-icon-sprout-7101338.png" alt="로고" class="navbar8-image1"/>
+        <a th:href="@{/seller/dashboard}">
+            <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="로고" class="navbar8-image1"/>
         </a>
         <div class="navbar8-buttons1">
             <button onclick="location.href='/logout'" class="thq-button-outline">로그아웃</button>
@@ -107,80 +133,76 @@
 </header>
 
 <!-- 판매자 정보 수정 폼 -->
-<form id="seller-edit-form" action="/seller/edit" method="post">
+<form th:action="@{/seller/edit}" method="post" th:object="${sellerEditForm}">
     <h2>판매자 정보 수정</h2>
+
+    <!-- 전역 오류 메시지 표시 -->
+    <div th:if="${#fields.hasGlobalErrors()}">
+        <div class="error-msg" th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>
+    </div>
 
     <div class="form-row">
         <label for="email">이메일</label>
         <div class="input-col">
-            <input type="email" id="email" name="email" value="seller@example.com" readonly>
+            <input type="email" id="email" name="email" th:value="${seller?.email}" readonly>
         </div>
     </div>
 
     <div class="form-row">
         <label for="password">새 비밀번호</label>
         <div class="input-col">
-            <input type="password" id="password" name="password" placeholder="변경 시에만 8~15자, 영문+숫자+특수문자">
-            <div class="error-msg" id="error-password"></div>
+            <input type="password" id="password" th:field="*{password}" placeholder="8~15자, 영문+숫자+특수문자" required>
+            <div class="error-msg" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
         </div>
     </div>
     
     <div class="form-row">
-        <label for="password2">새 비밀번호 확인</label>
+        <label for="passwordConfirm">새 비밀번호 확인</label>
         <div class="input-col">
-            <input type="password" id="password2" name="password2" placeholder="비밀번호 다시 입력">
-            <div class="error-msg" id="error-password2"></div>
+            <input type="password" id="passwordConfirm" th:field="*{passwordConfirm}" placeholder="비밀번호 다시 입력" required>
+            <div class="error-msg" th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}"></div>
+        </div>
+    </div>
+
+        <div class="form-row">
+        <label for="name">대표자 이름</label>
+        <div class="input-col">
+            <input type="text" id="name" name="name" th:value="${seller?.name}" readonly>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <label for="storeName">상호명</label>
+        <div class="input-col">
+            <input type="text" id="storeName" name="storeName" th:value="${seller?.shopName}" readonly>
         </div>
     </div>
 
     <div class="form-row">
         <label for="bizreg">사업자등록번호</label>
         <div class="input-col">
-            <input type="text" id="bizreg" name="bizreg" value="123-45-67890" readonly>
-        </div>
-    </div>
-
-    <div class="form-row">
-        <label for="shopname">상호명</label>
-        <div class="input-col">
-            <input type="text" id="shopname" name="shopname" value="싱싱농장" required>
-            <div class="error-msg" id="error-shopname"></div>
-        </div>
-    </div>
-
-    <div class="form-row">
-        <label for="name">대표자 이름</label>
-        <div class="input-col">
-            <input type="text" id="name" name="name" value="김농부" required>
-            <div class="error-msg" id="error-name"></div>
-        </div>
-    </div>
-
-    <div class="form-row">
-        <label for="postcode">가게 주소</label>
-        <div class="input-col">
-            <div class="address-search-container">
-                <input type="text" id="postcode" name="postcode" placeholder="우편번호" value="12345" readonly required>
-                <button type="button" id="btn-postcode" class="address-search-btn">주소 검색</button>
-            </div>
-            <input type="text" id="address" name="address" placeholder="주소" value="서울시 강남구 테헤란로" readonly required style="margin-bottom: 10px;">
-            <input type="text" id="detailAddress" name="detailAddress" placeholder="상세주소를 입력해주세요." value="OO빌딩 101호" required>
-            <div class="error-msg" id="error-address"></div>
+            <input type="text" id="bizreg" name="bizreg" th:value="${seller?.bizRegNo}" readonly>
         </div>
     </div>
 
     <div class="form-row">
         <label for="tel">전화번호</label>
         <div class="input-col">
-            <input type="text" id="tel" name="tel" maxlength="13" value="010-1234-5678" required>
-            <div class="error-msg" id="error-tel"></div>
+            <input type="text" id="tel" th:field="*{tel}" maxlength="13" required>
+            <div class="error-msg" th:if="${#fields.hasErrors('tel')}" th:errors="*{tel}"></div>
         </div>
     </div>
 
     <div class="form-row">
-        <label for="birth">생년월일</label>
+        <label for="postcode">사업장 주소</label>
         <div class="input-col">
-            <input type="date" id="birth" name="birth" value="1980-01-01" readonly>
+            <div class="postcode-group">
+                <input type="text" id="postcode" th:field="*{postcode}" placeholder="우편번호" readonly>
+                <button type="button" id="searchPostcodeBtn" onclick="openAddressPopup()">주소 검색</button>
+            </div>
+            <input type="text" id="address" th:field="*{address}" placeholder="주소" readonly>
+            <input type="text" id="detailAddress" th:field="*{detailAddress}" placeholder="상세주소를 입력해주세요">
+            <div class="error-msg" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
         </div>
     </div>
 
@@ -190,97 +212,11 @@
     </div>
 </form>
 
-<script src="/js/seller/seller_edit.js"></script>
-<script src="/js/common/logout.js"></script>
+<!-- 주소 검색을 위한 스크립트 -->
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        // Event Listeners
-        document.getElementById("password").addEventListener("input", validatePassword);
-        document.getElementById("password2").addEventListener("input", validatePasswordMatch);
-        document.getElementById("shopname").addEventListener("input", validateShopName);
-        document.getElementById("name").addEventListener("input", validateName);
-        document.getElementById("detailAddress").addEventListener("input", validateAddress);
-        document.getElementById("tel").addEventListener("input", function() {
-            this.value = formatPhoneNumber(this.value);
-            validateTel();
-        });
-        document.getElementById('btn-postcode').addEventListener('click', execDaumPostcode);
-        document.getElementById("seller-edit-form").addEventListener("submit", handleFormSubmit);
-    });
-
-    // Formatting Functions
-    const formatPhoneNumber = (value) => {
-        const numbers = value.replace(/\D/g, '');
-        if (numbers.length < 4) return numbers;
-        if (numbers.startsWith('02') && numbers.length > 2) {
-            if (numbers.length <= 5) return `${numbers.slice(0, 2)}-${numbers.slice(2)}`;
-            if (numbers.length <= 9) return `${numbers.slice(0, 2)}-${numbers.slice(2, 5)}-${numbers.slice(5)}`;
-            return `${numbers.slice(0, 2)}-${numbers.slice(2, 6)}-${numbers.slice(6, 10)}`;
-        }
-        if (numbers.length < 8) return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
-        return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
-    };
-
-    // Validation Functions
-    const getErrorEl = (id) => document.getElementById(`error-${id}`);
-    const validateField = (id, msg, validator) => {
-        const value = document.getElementById(id).value.trim();
-        getErrorEl(id).textContent = validator(value) ? "" : msg;
-    };
-
-    const validatePassword = () => {
-        const pw = document.getElementById("password").value;
-        if (!pw) { // 비밀번호 변경 안 할 경우
-            getErrorEl("password").textContent = "";
-            getErrorEl("password2").textContent = "";
-            return;
-        }
-        validateField("password", "8~15자, 영문+숫자+특수문자를 포함해야 합니다.", val => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,15}$/.test(val));
-        validatePasswordMatch();
-    };
-    const validatePasswordMatch = () => {
-        const pw = document.getElementById("password").value;
-        const pw2 = document.getElementById("password2").value;
-        if (!pw) return; // 비밀번호 변경 안 할 경우
-        getErrorEl("password2").textContent = (pw === pw2) ? "" : "비밀번호가 일치하지 않습니다.";
-    };
-    const validateShopName = () => validateField("shopname", "상호명을 입력해주세요.", val => val.length >= 2 && val.length <= 24);
-    const validateName = () => validateField("name", "이름은 한글 2~8자 또는 영문 2~45자로 입력해주세요.", val => /^[가-힣]{2,8}$/.test(val) || /^[a-zA-Z\s]{2,45}$/.test(val));
-    const validateAddress = () => {
-        const errorEl = getErrorEl("address");
-        if (!document.getElementById("address").value) errorEl.textContent = "주소 검색을 통해 주소를 입력해주세요.";
-        else if (!document.getElementById("detailAddress").value) errorEl.textContent = "상세주소를 입력해주세요.";
-        else errorEl.textContent = "";
-    };
-    const validateTel = () => validateField("tel", "올바른 전화번호를 입력해주세요.", val => /^(01[016789]|02|0[3-9][0-9])-\d{3,4}-\d{4}$/.test(val));
-    
-    // Core Functions
-    function execDaumPostcode() {
-        new daum.Postcode({
-            oncomplete: function(data) {
-                document.getElementById('postcode').value = data.zonecode;
-                document.getElementById('address').value = data.roadAddress;
-                document.getElementById('detailAddress').focus();
-                validateAddress();
-            }
-        }).open();
-    }
-
-    function handleFormSubmit(event) {
-        event.preventDefault();
-        
-        const validations = [validatePassword, validateShopName, validateName, validateAddress, validateTel];
-        validations.forEach(fn => fn());
-
-        const hasError = [...document.querySelectorAll(".error-msg")].some(div => div.textContent !== "");
-        if (hasError) {
-            alert("입력 정보를 다시 확인해주세요.");
-            return;
-        }
-        
-        alert("정보가 성공적으로 수정되었습니다.");
-        window.location.href = 'seller_dashboard.html';
-    }
+function openAddressPopup() {
+    window.open('/common/juso-popup', 'popup', 'width=600,height=700,scrollbars=yes');
+}
 </script>
 
 </body>

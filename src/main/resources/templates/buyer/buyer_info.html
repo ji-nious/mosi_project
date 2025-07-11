@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -305,8 +305,16 @@
                 <img src="/images/free-icon-sprout-7101338.png" alt="로고" class="navbar-logo-img"/>
             </a>
             <div class="navbar-buttons">
-                <a href="/buyer/info" class="btn-outline">내 정보</a>
-                <a href="/logout" class="btn-filled">로그아웃</a>
+                <!-- 로그인 상태에 따른 동적 네비게이션 -->
+                <th:block th:if="${session.loginMember != null}">
+                    <a th:href="@{/buyer/info}" th:if="${session.loginMember.memberType == 'BUYER'}" class="thq-button-filled">내 정보</a>
+                    <a th:href="@{/seller/info}" th:if="${session.loginMember.memberType == 'SELLER'}" class="thq-button-filled">내 정보</a>
+                    <a href="#" onclick="logout()" class="thq-button-outline">로그아웃</a>
+                </th:block>
+                <th:block th:unless="${session.loginMember != null}">
+                    <a th:href="@{/common/login}" class="thq-button-outline">로그인</a>
+                    <a th:href="@{/common/signup}" class="thq-button-filled">회원가입</a>
+                </th:block>
             </div>
         </div>
     </header>
@@ -319,16 +327,16 @@
         </div>
 
         <div class="account-container">
-            <h2>마이페이지 - 계정 정보</h2>
+                         <h2>마이페이지 - 계정 정보</h2>
 
             <div id="account-info" class="account-info">
-                <p><strong>이름</strong><span class="colon">:</span><span id="realName"></span></p>
-                <p><strong>닉네임</strong><span class="colon">:</span><span id="nickname"></span></p>
-                <p><strong>이메일</strong><span class="colon">:</span><span id="email"></span></p>
-                <p><strong>전화번호</strong><span class="colon">:</span><span id="phone"></span></p>
-                <p><strong>주소</strong><span class="colon">:</span><span id="address"></span></p>
-                <p><strong>성별</strong><span class="colon">:</span><span id="gender"></span></p>
-                <p><strong>생일</strong><span class="colon">:</span><span id="birthDate"></span></p>
+                <p><strong>이메일</strong><span class="colon">:</span><span th:text="${buyer?.email ?: '정보 없음'}">정보 없음</span></p>
+                <p><strong>이름</strong><span class="colon">:</span><span th:text="${buyer?.name ?: '정보 없음'}">정보 없음</span></p>
+                <p><strong>닉네임</strong><span class="colon">:</span><span th:text="${buyer?.nickname ?: '정보 없음'}">정보 없음</span></p>
+                <p><strong>전화번호</strong><span class="colon">:</span><span th:text="${buyer?.tel ?: '정보 없음'}">정보 없음</span></p>
+                <p><strong>주소</strong><span class="colon">:</span><span th:text="${buyer?.address ?: '정보 없음'}">정보 없음</span></p>
+                <p><strong>성별</strong><span class="colon">:</span><span th:text="${buyer?.gender ?: '정보 없음'}">정보 없음</span></p>
+                <p><strong>생일</strong><span class="colon">:</span><span th:text="${birthFormatted ?: '정보 없음'}">정보 없음</span></p>
             </div>
 
             <div class="account-actions">
@@ -366,21 +374,8 @@
         </div>
     </div>
 
-    <script src="/js/buyer/buyer_info.js"></script>
-    <script src="/js/common/logout.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // --- 가상 데이터 ---
-        const mockUserData = {
-            email: 'buyer@example.com',
-            phone: '010-1234-5678',
-            realName: '김구매',
-            nickname: '알뜰쇼핑러',
-            gender: '남성',
-            birthDate: '1995-05-15',
-            address: '(12345) 서울특별시 강남구 테헤란로 123, 456호',
-        };
-
         // --- DOM 요소 ---
         const passwordModal = document.getElementById('passwordModal');
         const deleteModal = document.getElementById('deleteModal');
@@ -390,20 +385,11 @@
         let nextAction = null; // 'edit' or 'delete'
 
         // --- 함수 ---
-        function displayUserData(user) {
-            document.getElementById('realName').textContent = user.realName;
-            document.getElementById('nickname').textContent = user.nickname;
-            document.getElementById('email').textContent = user.email;
-            document.getElementById('phone').textContent = user.phone;
-            document.getElementById('address').textContent = user.address;
-            document.getElementById('gender').textContent = user.gender;
-            document.getElementById('birthDate').textContent = user.birthDate;
-        }
-
         function openModal(modal) {
             modal.classList.add('active');
             if(modal === passwordModal) {
                 passwordInput.value = '';
+                document.getElementById('modalErrorMessage').textContent = '';
                 passwordInput.focus();
             }
         }
@@ -412,13 +398,39 @@
             modal.classList.remove('active');
         }
 
-        function proceedWithAction() {
-            // 비밀번호 확인 로직 없이 항상 성공 처리 (프로토타입용)
-            closeModal(passwordModal);
-            if (nextAction === 'edit') {
-                window.location.href = 'buyer_edit.html';
-            } else if (nextAction === 'delete') {
-                openModal(deleteModal);
+        async function proceedWithAction() {
+            const password = passwordInput.value.trim();
+            const errorElement = document.getElementById('modalErrorMessage');
+            
+            if (!password) {
+                errorElement.textContent = '비밀번호를 입력해주세요.';
+                return;
+            }
+            
+            // 서버에서 비밀번호 확인
+            try {
+                const response = await fetch('/buyer/verify-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ password: password })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    closeModal(passwordModal);
+                    if (nextAction === 'edit') {
+                        window.location.href = '/buyer/edit';
+                    } else if (nextAction === 'delete') {
+                        window.location.href = '/buyer/withdraw';
+                    }
+                } else {
+                    errorElement.textContent = '비밀번호가 틀렸습니다.';
+                }
+            } catch (error) {
+                errorElement.textContent = '서버 오류가 발생했습니다.';
             }
         }
         
@@ -446,18 +458,27 @@
         // 회원 탈퇴 확인 모달
         deleteModal.querySelector('#deleteConfirmBtn').addEventListener('click', () => {
             closeModal(deleteModal);
-            alert('회원 탈퇴가 처리되었습니다.');
-            window.location.href = '../home.html';
+            // 탈퇴 페이지로 이동
+            window.location.href = '/buyer/withdraw';
         });
         deleteModal.querySelector('#deleteCancelBtn').addEventListener('click', () => closeModal(deleteModal));
         deleteModal.querySelector('#deleteCloseBtn').addEventListener('click', () => closeModal(deleteModal));
         deleteModal.addEventListener('click', e => {
             if (e.target === deleteModal) closeModal(deleteModal);
         });
-
-        // --- 초기화 ---
-        displayUserData(mockUserData);
     });
+
+    // 로그아웃 기능
+    function logout() {
+        if (confirm('로그아웃 하시겠습니까?')) {
+            // POST 방식으로 로그아웃 요청
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/logout';
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
     </script>
 </body>
 </html>

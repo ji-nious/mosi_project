@@ -8,8 +8,7 @@ body {
     background-color: #FBF9EF;
     color: #1E2203;
     margin: 0;
-    /* 고정된 네비게이션 바 높이만큼 상단에 여백 추가 */
-    padding-top: 70px; 
+    /* 고정된 네비게이션 바는 각 페이지에서 개별적으로 처리 */
 }
 
 a {
@@ -146,15 +145,14 @@ a {
 .form-group {
     margin-bottom: 15px;
 } 
-  .container {
-      width: 80%;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #fff;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  }
-} 
+.container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
 
 /* --- 주소 검색 모달 스타일 --- */
 .modal-background {
@@ -229,4 +227,162 @@ a {
 .result-item p {
   margin: 5px 0;
   font-size: 0.95rem;
+} 
+
+/* =================================================================
+   Message Styles - 에러/성공 메시지 스타일
+================================================================= */
+
+/* 전역 에러/성공 메시지 */
+.error-message, .success-message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef5350;
+}
+
+.success-message {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+    border: 1px solid #4caf50;
+}
+
+/* 필드별 에러 메시지 */
+.error-msg {
+    color: #e74c3c;
+    font-size: 0.8rem;
+    margin-top: 6px;
+    min-height: 1.2em; /* Prevent layout shift */
+}
+
+/* =================================================================
+   Form Styles - 공통 폼 스타일
+================================================================= */
+
+/* 회원가입 폼 컨테이너 */
+.signup-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 40px 50px;
+    border-radius: 20px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.signup-container h2 {
+    font-family: 'Cabin', sans-serif;
+    font-weight: 700;
+    color: #658352;
+    text-align: center;
+    font-size: 2.2rem;
+    margin-top: 0;
+    margin-bottom: 30px;
+}
+
+/* 폼 행 스타일 */
+.form-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.form-row label {
+    width: 120px;
+    text-align: left;
+    font-weight: bold;
+    flex-shrink: 0;
+    padding-top: 10px; /* Align with input box */
+    font-size: 0.95rem;
+}
+
+.input-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 입력 필드 스타일 */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+select {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+input:focus, select:focus {
+    border-color: #658352;
+    outline: none;
+}
+
+/* 주소 검색 관련 스타일 */
+.postcode-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+#postcode { 
+    background-color: #f8f9fa; 
+}
+
+#searchPostcodeBtn {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border-radius: 8px;
+    border: 1px solid #658352;
+    background-color: transparent;
+    color: #658352;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+#searchPostcodeBtn:hover {
+    background-color: #658352;
+    color: #ffffff;
+}
+
+#address, #detailAddress { 
+    margin-bottom: 10px; 
+}
+
+#address { 
+    background-color: #f8f9fa; 
+}
+
+/* 회원가입 버튼 */
+.signup-btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    margin-top: 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 24px;
+    border: none;
+    background-color: #658352;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.signup-btn:hover { 
+    opacity: 0.9; 
 } 

@@ -128,13 +128,19 @@
 <body>
 <header class="navbar-container">
     <div class="navbar">
-        <a href="/">
-            <img src="/images/free-icon-sprout-7101338.png" alt="로고" class="navbar-logo-img"/>
+        <a th:href="@{/seller/dashboard}">
+            <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="로고" class="navbar-logo-img"/>
         </a>
         <div class="navbar-buttons">
-            <a href="/seller/dashboard" class="btn-outline">대시보드</a>
-            <a href="/seller/products" class="btn-outline">판매글 목록</a>
-            <a href="/logout" class="btn-filled">로그아웃</a>
+             <th:block th:if="${session.loginMember != null}">
+                <a th:href="@{/seller/dashboard}" class="btn-filled">대시보드</a>
+                <a th:href="@{/seller/products}" class="btn-filled">판매글 목록</a>
+                <a href="#" onclick="logout()" class="btn-outline">로그아웃</a>
+            </th:block>
+            <th:block th:unless="${session.loginMember != null}">
+                <a th:href="@{/common/login}" class="btn-outline">로그인</a>
+                <a th:href="@{/common/signup}" class="btn-filled">회원가입</a>
+            </th:block>
         </div>
     </div>
 </header>
@@ -143,24 +149,20 @@
 <div class="info-container">
     <h2>판매자 정보</h2>
 
-    <div class="info-row"><span class="info-label">이메일</span><span class="info-value">seller@example.com</span></div>
+    <div class="info-row"><span class="info-label">이메일</span><span class="info-value" th:text="${seller?.email ?: '정보 없음'}">seller@example.com</span></div>
     <div class="info-row"><span class="info-label">비밀번호</span><span class="info-value">****</span></div>
-    <div class="info-row"><span class="info-label">사업자등록번호</span><span class="info-value">123-45-67890</span></div>
-    <div class="info-row"><span class="info-label">상호명</span><span class="info-value">싱싱농장</span></div>
-    <div class="info-row"><span class="info-label">대표자 이름</span><span class="info-value">김농부</span></div>
+    <div class="info-row"><span class="info-label">사업자등록번호</span><span class="info-value" th:text="${seller?.bizRegNo ?: '정보 없음'}">123-45-67890</span></div>
+    <div class="info-row"><span class="info-label">상호명</span><span class="info-value" th:text="${seller?.shopName ?: '정보 없음'}">싱싱농장</span></div>
+    <div class="info-row"><span class="info-label">대표자 이름</span><span class="info-value" th:text="${seller?.name ?: '정보 없음'}">김농부</span></div>
     <div class="info-row">
         <span class="info-label">가게 주소</span>
-        <div class="info-value address">
-            <span>(12345) 서울시 강남구 테헤란로</span>
-            <span>OO빌딩 101호</span>
-        </div>
+        <span class="info-value" th:text="${seller?.shopAddress ?: '정보 없음'}">가게 주소</span>
     </div>
-    <div class="info-row"><span class="info-label">전화번호</span><span class="info-value">010-1234-5678</span></div>
-    <div class="info-row"><span class="info-label">생년월일</span><span class="info-value">1980-01-01</span></div>
+    <div class="info-row"><span class="info-label">전화번호</span><span class="info-value" th:text="${seller?.tel ?: '정보 없음'}">010-1234-5678</span></div>
 
     <div class="info-actions">
         <button type="button" id="back-btn" onclick="location.href='/seller/dashboard'">목록으로</button>
-        <button type="button" id="edit-btn" onclick="location.href='/seller/edit'">수정하기</button>
+        <button type="button" id="edit-btn">수정하기</button>
         <button type="button" id="withdraw-btn">회원탈퇴</button>
     </div>
 </div>
@@ -171,6 +173,7 @@
     <h3>비밀번호 확인</h3>
     <p>정보를 안전하게 보호하기 위해 비밀번호를 다시 입력해주세요.</p>
     <input type="password" id="password-confirm-input" placeholder="비밀번호 입력">
+    <div id="modal-error-message" style="color: red; font-size: 0.9rem; margin: 10px 0; min-height: 1.2em;"></div>
     <div class="modal-actions">
       <button type="button" class="modal-cancel-btn">취소</button>
       <button type="button" class="modal-confirm-btn">확인</button>
@@ -195,7 +198,7 @@
   </div>
 </div>
 
-<script src="/js/seller/seller_info.js"></script>
+
 <script src="/js/common/logout.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -209,66 +212,83 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordConfirmBtn = passwordModal.querySelector('.modal-confirm-btn');
     const withdrawConfirmBtn = document.getElementById('withdraw-confirm-btn');
 
-    // Input
+    // Input & Error
     const passwordInput = document.getElementById('password-confirm-input');
-
-    // --- Event Listeners to OPEN modals & set purpose ---
+    const errorElement = document.getElementById('modal-error-message');
     
-    // For "Edit Info"
-    editBtn.addEventListener('click', () => {
-        passwordModal.dataset.purpose = 'edit'; // Set purpose for editing
+    let nextAction = null; // 'edit' or 'withdraw'
+
+    // --- Functions ---
+    function openModal(action) {
+        nextAction = action;
         passwordModal.style.display = 'flex';
         passwordInput.value = '';
+        errorElement.textContent = '';
         passwordInput.focus();
-    });
+    }
 
-    // For "Withdraw" - Step 1: Password confirmation
-    withdrawBtn.addEventListener('click', () => {
-        passwordModal.dataset.purpose = 'withdraw'; // Set purpose for withdrawal
-        passwordModal.style.display = 'flex';
-        passwordInput.value = '';
-        passwordInput.focus();
-    });
+    function closeModal() {
+        passwordModal.style.display = 'none';
+        withdrawModal.style.display = 'none';
+    }
 
-    // --- Event listener for password confirmation ---
-    passwordConfirmBtn.addEventListener('click', () => {
-        if (!passwordInput.value) {
-            alert('비밀번호를 입력해주세요.');
+    async function proceedWithAction() {
+        const password = passwordInput.value.trim();
+        
+        if (!password) {
+            errorElement.textContent = '비밀번호를 입력해주세요.';
             return;
         }
-
-        const purpose = passwordModal.dataset.purpose;
-        passwordModal.style.display = 'none'; // Hide password modal after check
-
-        if (purpose === 'edit') {
-            // If for editing, proceed to edit page
-            window.location.href = 'seller_edit.html';
-        } else if (purpose === 'withdraw') {
-            // If for withdrawal, show the final warning modal
-            withdrawModal.style.display = 'flex';
+        
+        // 서버에서 비밀번호 확인
+        try {
+            const response = await fetch('/seller/verify-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ password: password })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                passwordModal.style.display = 'none';
+                if (nextAction === 'edit') {
+                    window.location.href = '/seller/edit';
+                } else if (nextAction === 'withdraw') {
+                    withdrawModal.style.display = 'flex';
+                }
+            } else {
+                errorElement.textContent = '비밀번호가 틀렸습니다.';
+            }
+        } catch (error) {
+            errorElement.textContent = '서버 오류가 발생했습니다.';
         }
+    }
+
+    // --- Event Listeners ---
+    editBtn.addEventListener('click', () => openModal('edit'));
+    withdrawBtn.addEventListener('click', () => openModal('withdraw'));
+    
+    passwordConfirmBtn.addEventListener('click', proceedWithAction);
+    passwordInput.addEventListener('keyup', e => {
+        if (e.key === 'Enter') proceedWithAction();
     });
 
     // --- Event listener for the final step of withdrawal ---
     withdrawConfirmBtn.addEventListener('click', () => {
-        // This is the final confirmation. Show alert and redirect.
-        alert('회원 탈퇴가 처리되었습니다.');
-        withdrawModal.style.display = 'none';
-        window.location.href = '../home.html';
+        window.location.href = '/seller/withdraw';
     });
     
     // --- General event listeners to CLOSE modals ---
     document.querySelectorAll('.modal-cancel-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            passwordModal.style.display = 'none';
-            withdrawModal.style.display = 'none';
-        });
+        btn.addEventListener('click', closeModal);
     });
 
     window.addEventListener('click', (event) => {
         if (event.target == passwordModal || event.target == withdrawModal) {
-            passwordModal.style.display = 'none';
-            withdrawModal.style.display = 'none';
+            closeModal();
         }
     });
 });

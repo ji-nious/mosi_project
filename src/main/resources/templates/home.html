@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="utf-8" />
   <title>home</title>
@@ -81,12 +81,18 @@
     .thq-link:hover {
       color: var(--dl-color-theme-accent2);
     }
-    .navbar8-buttons1 {
-      gap: 32px;
-      display: flex;
-      align-items: center;
-      flex-direction: row;
-    }
+            .navbar8-buttons1 {
+            gap: 32px;
+            display: flex;
+            align-items: center;
+            flex-direction: row;
+        }
+        .welcome-message {
+            color: #444;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-right: 16px;
+        }
     .thq-button-filled {
       color: var(--dl-color-theme-secondary1);
       cursor: pointer;
@@ -98,12 +104,14 @@
       border-radius: 24px;
       background: var(--dl-color-theme-primary1);
       font-size: 1rem;
+      text-decoration: none;
       transition: background .2s, color .2s;
     }
     .thq-button-filled:hover {
       color: var(--dl-color-theme-secondary2);
       background: var(--dl-color-theme-primary2);
       border-color: var(--dl-color-theme-primary2);
+      text-decoration: none;
     }
     .thq-button-outline {
       color: var(--dl-color-theme-primary1);
@@ -114,12 +122,14 @@
       padding: 10px 32px;
       cursor: pointer;
       font-size: 1rem;
+      text-decoration: none;
       transition: background .2s, color .2s;
     }
     .thq-button-outline:hover {
       color: var(--dl-color-theme-secondary2);
       background: var(--dl-color-theme-primary2);
       border-color: var(--dl-color-theme-primary2);
+      text-decoration: none;
     }
 
     /* Hero Section */
@@ -262,12 +272,19 @@
   <!-- Navbar -->
   <header class="navbar8-container1">
     <div class="navbar8-navbar-interactive">
-      <a href="/">
-        <img src="/images/free-icon-sprout-7101338.png" alt="로고" class="navbar8-image1"/>
+      <a th:href="@{/}">
+        <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="로고" class="navbar8-image1"/>
       </a>
-      <div class="navbar8-buttons1">
-        <button class="thq-button-outline" onclick="location.href='/login'">로그인</button>
-        <button class="thq-button-filled" onclick="location.href='/signup'">회원가입</button>
+      <!-- 로그인 상태에 따른 네비게이션 버튼 -->
+      <div class="navbar8-buttons1" th:if="${session.loginMember == null}">
+        <a th:href="@{/login}" class="thq-button-outline">로그인</a>
+        <a th:href="@{/signup}" class="thq-button-filled">회원가입</a>
+      </div>
+      <div class="navbar8-buttons1" th:if="${session.loginMember != null}">
+        <span class="welcome-message" th:text="${userNickname} + '님, 환영합니다.'"></span>
+        <a th:href="@{/buyer/info}" th:if="${session.loginMember.memberType == 'BUYER'}" class="thq-button-filled">마이페이지</a>
+        <a th:href="@{/seller/info}" th:if="${session.loginMember.memberType == 'SELLER'}" class="thq-button-filled">마이페이지</a>
+        <a href="#" onclick="logout()" class="thq-button-outline">로그아웃</a>
       </div>
     </div>
   </header>
@@ -324,7 +341,7 @@
 
     function renderPostGrid(posts, gridElem) {
         gridElem.innerHTML = posts.map(post => `
-            <a href="/buyer/buyer_product_detail" class="post-card" title="${post.title}">
+            <a href="/buyer/product/${post.id}" class="post-card" title="${post.title}">
                 <img src="${post.imageUrl}" alt="${post.title}">
                 <div class="post-info">
                     <p class="post-title">${post.title}</p>
@@ -337,6 +354,18 @@
     const postsGrid = document.getElementById('postsGrid');
     if (postsGrid) {
         renderPostGrid(posts, postsGrid);
+    }
+
+    // 로그아웃 기능
+    function logout() {
+        if (confirm('로그아웃 하시겠습니까?')) {
+            // POST 방식으로 로그아웃 요청
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/logout';
+            document.body.appendChild(form);
+            form.submit();
+        }
     }
   </script>
 </body>

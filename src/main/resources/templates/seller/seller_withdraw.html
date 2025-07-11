@@ -16,6 +16,11 @@
 </header>
 <div class="container">
   <h1>판매자 탈퇴</h1>
+  
+  <!-- 에러/성공 메시지 표시 -->
+  <div th:if="${error}" class="error-message" th:text="${error}"></div>
+  <div th:if="${message}" class="success-message" th:text="${message}"></div>
+  
   <div class="withdraw-form">
     <p>회원 탈퇴를 신청하기 전에 아래 내용을 반드시 확인해주세요.</p>
     <ul>
@@ -23,10 +28,9 @@
       <li>탈퇴 후에는 동일한 이메일로 재가입이 불가능할 수 있습니다.</li>
       <li>회원님의 모든 정보는 관련 법령에 따라 일정 기간 보관 후 삭제됩니다.</li>
     </ul>
-    <div id="serviceUsage" class="service-usage">
-      <!-- 서비스 이용 현황 표시 -->
-    </div>
-    <form id="withdrawForm" th:action="@{/api/sellers/{sellerId}/withdraw(sellerId=${sellerId})}" method="post">
+    
+    <form th:action="@{/seller/withdraw}" method="post" 
+          onsubmit="return confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')">
       <div class="form-group">
         <label for="password">비밀번호 확인</label>
         <input type="password" id="password" name="password" required>
@@ -36,90 +40,10 @@
         <textarea id="reason" name="reason" rows="4" required></textarea>
       </div>
       <button type="submit" class="btn btn-danger">탈퇴 신청</button>
-      <a th:href="@{/sellers/info}" class="btn">취소</a>
+      <a th:href="@{/seller/info}" class="btn">취소</a>
     </form>
   </div>
 </div>
-<div th:replace="~{fragment/modal :: modalFragment}"></div>
-<script th:src="@{/js/common/modal.js}"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const sellerId = '[[${sellerId}]]'; // 타임리프로 sellerId 가져오기
 
-    // 서비스 이용 현황 조회
-    fetch(`/api/sellers/${sellerId}/service-usage`)
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            const usage = data.data;
-            const usageDiv = document.getElementById('serviceUsage');
-            let usageHtml = '<h4>서비스 이용 현황</h4>';
-            usageHtml += `<p>진행중인 판매 건: ${usage.ongoingSales}건</p>`;
-            usageHtml += `<p>정산 예정 금액: ${usage.pendingSettlement.toLocaleString()}원</p>`;
-
-            if (!usage.canWithdraw) {
-              usageHtml += '<p class="withdraw-block"><strong>탈퇴 불가 사유:</strong></p>';
-              usageHtml += '<ul>';
-              usage.withdrawBlockReasons.forEach(reason => {
-                usageHtml += `<li class="withdraw-block">${reason}</li>`;
-              });
-              usageHtml += '</ul>';
-              document.querySelector('#withdrawForm button[type="submit"]').disabled = true;
-            }
-            usageDiv.innerHTML = usageHtml;
-          } else {
-            showModal(data.message);
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          showModal('서비스 이용 현황을 불러오는 데 실패했습니다.');
-        });
-
-
-    // 탈퇴 신청 처리
-    document.getElementById('withdrawForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      const password = document.getElementById('password').value;
-      const reason = document.getElementById('reason').value;
-
-      if (!password || !reason) {
-        showModal('비밀번호와 탈퇴 사유를 모두 입력해주세요.');
-        return;
-      }
-
-      if (!confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-        return;
-      }
-
-      fetch(`/api/sellers/${sellerId}/withdraw`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ password, reason })
-      })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              showModal(data.message, () => {
-                window.location.href = '/';
-              });
-            } else {
-              let errorMessage = data.message;
-              if(data.serviceUsage && !data.serviceUsage.canWithdraw) {
-                errorMessage += '\\n' + data.serviceUsage.withdrawBlockReasons.join('\\n');
-              }
-              showModal(errorMessage);
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            showModal('탈퇴 처리 중 오류가 발생했습니다.');
-          });
-    });
-  });
-</script>
 </body>
 </html> 

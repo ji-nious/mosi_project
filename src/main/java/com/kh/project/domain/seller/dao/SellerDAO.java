@@ -26,11 +26,6 @@ public interface SellerDAO {
   int update(Long sellerId, Seller seller);
 
   /**
-   * 판매자 탈퇴 (상태 변경)
-   */
-  int deleteById(Long sellerId);
-
-  /**
    * 이메일로 판매자 조회
    */
   Optional<Seller> findByEmail(String email);
@@ -53,6 +48,16 @@ public interface SellerDAO {
    * 상호명 중복 체크
    */
   boolean existsByShopName(String shopName);
+
+  /**
+   * 대표자명 중복 체크
+   */
+  boolean existsByName(String name);
+
+  /**
+   * 사업장 주소 중복 체크
+   */
+  boolean existsByShopAddress(String shopAddress);
 
   int withdrawWithReason(Long sellerId, String reason);
 } 

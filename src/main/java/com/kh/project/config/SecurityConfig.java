@@ -15,7 +15,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
 /**
- * Spring Security 설정
+ * Spring Security 설정 클래스
+ * 인증, 인가, CORS 설정 등 보안 관련 설정을 담당
  */
 @Configuration
 @EnableWebSecurity
@@ -23,15 +24,22 @@ public class SecurityConfig {
 
   /**
    * 비밀번호 인코더 설정
-   * - !!주의!! 실제 운영 환경에서는 BCryptPasswordEncoder 등 보안 강도가 높은 인코더를 사용해야 합니다.
-   * - 현재는 암호화 없이 비밀번호를 평문으로 비교합니다.
-   * @return PasswordEncoder
+   * 보안 경고: 현재 평문 저장
+   * @return PasswordEncoder - 2차 프로젝트에서 BCryptPasswordEncoder 암호화 예정
    */
   @Bean
+  @SuppressWarnings("deprecation")
   public PasswordEncoder passwordEncoder() {
     return NoOpPasswordEncoder.getInstance();
   }
 
+  /**
+   * Spring Security 필터 체인 설정
+   * 
+   * @param http HttpSecurity 설정 객체
+   * @return SecurityFilterChain - 구성된 보안 필터 체인
+   * @throws Exception 설정 오류시
+   */
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
@@ -40,27 +48,23 @@ public class SecurityConfig {
         // CSRF 비활성화
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
-            // 정적 리소스(CSS, JS, 이미지 등)는 인증 없이 항상 허용
-            .requestMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico").permitAll()
-            
-            // API, 주소검색 등 기능적인 경로는 인증 없이 허용
-            .requestMatchers("/api/**", "/common/**", "/juso_popup").permitAll()
-            
-            // 로그인/회원가입 관련 페이지는 인증 없이 허용
-            .requestMatchers("/login", "/signup", "/buyer/login", "/buyer/signup", "/seller/login", "/seller/signup").permitAll()
-            
-            // 메인 페이지는 인증 없이 허용
-            .requestMatchers("/").permitAll()
-            
-            // 위에서 지정한 경로 외의 모든 요청은 반드시 인증을 거쳐야 함
+            // 정적 리소스는 인증 없이 허용
+            .requestMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico", "/webjars/**").permitAll()
+            // 에러 페이지 허용
+            .requestMatchers("/error").permitAll()
+            // API 및 공통 기능 허용
+            .requestMatchers("/api/**", "/common/**").permitAll()
+            // 로그인/회원가입/로그아웃 페이지 허용
+            .requestMatchers("/login", "/signup", "/logout").permitAll()
+            .requestMatchers("/buyer/login", "/buyer/signup", "/seller/login", "/seller/signup").permitAll()
+            // 구매자/판매자 기능 허용 (자체 세션 인증 사용)
+            .requestMatchers("/buyer/**", "/seller/**").permitAll()
+            // 메인 페이지 허용
+            .requestMatchers("/", "/home").permitAll()
+            // 나머지는 인증 필요
             .anyRequest().authenticated()
         )
-        .formLogin(form -> form
-            // 로그인 페이지는 /login (CommonController가 처리)
-            .loginPage("/login")
-            .defaultSuccessUrl("/", true) // 로그인 성공 시 항상 메인 페이지로 리디렉션
-            .permitAll()
-        )
+        .formLogin(AbstractHttpConfigurer::disable)
         .logout(logout -> logout
             .logoutUrl("/logout")
             .logoutSuccessUrl("/")
@@ -72,19 +76,19 @@ public class SecurityConfig {
   }
 
   /**
-   * CORS(Cross-Origin Resource Sharing) 설정
-   * @return
+   * CORS 설정
+   * @return CorsConfigurationSource - CORS 설정 소스
    */
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOriginPatterns(Arrays.asList("*")); // 모든 Origin 허용
+    configuration.setAllowedOriginPatterns(Arrays.asList("*"));
     configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
     configuration.setAllowedHeaders(Arrays.asList("*"));
     configuration.setAllowCredentials(true);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/api/**", configuration); // /api/ 경로에만 적용
+    source.registerCorsConfiguration("/api/**", configuration);
     return source;
   }
 }

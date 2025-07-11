@@ -31,27 +31,27 @@ public class SellerDAOImpl implements SellerDAO {
         SELECT 
             seller_id as sellerId,
             EMAIL as email,
-            password,
+            PASSWORD as password,
             biz_reg_no as bizRegNo,
             shop_name as shopName,
-            name,
+            NAME as name,
             shop_address as shopAddress,
-            tel,
-            pic,
-            gubun,
-            status,
-            cdate,
-            udate,
+            TEL as tel,
+            MEMBER_GUBUN as memberGubun,
+            PIC as pic,
+            STATUS as status,
+            CDATE as cdate,
+            UDATE as udate,
             withdrawn_at as withdrawnAt,
-            withdraw_reason as withdrawReason
+            withdrawn_reason as withdrawnReason
         FROM seller
         """;
 
     @Override
     public Seller save(Seller seller) {
         String sql = """
-            INSERT INTO seller (EMAIL, password, biz_reg_no, shop_name, name, shop_address, tel, gubun, status) 
-            VALUES (:email, :password, :bizRegNo, :shopName, :name, :shopAddress, :tel, :gubun, :status)
+            INSERT INTO seller (EMAIL, PASSWORD, biz_reg_no, shop_name, NAME, shop_address, TEL, MEMBER_GUBUN, STATUS) 
+            VALUES (:email, :password, :bizRegNo, :shopName, :name, :shopAddress, :tel, :memberGubun, :status)
             """;
 
         SqlParameterSource param = new BeanPropertySqlParameterSource(seller);
@@ -69,7 +69,7 @@ public class SellerDAOImpl implements SellerDAO {
 
     @Override
     public Optional<Seller> findById(Long sellerId) {
-        String sql = BASE_SELECT + " WHERE seller_id = :sellerId AND status != '탈퇴'";
+        String sql = BASE_SELECT + " WHERE seller_id = :sellerId AND STATUS != '탈퇴'";
 
         try {
             MapSqlParameterSource param = new MapSqlParameterSource("sellerId", sellerId);
@@ -84,7 +84,7 @@ public class SellerDAOImpl implements SellerDAO {
 
     @Override
     public Optional<Seller> findByEmail(String email) {
-        String sql = BASE_SELECT + " WHERE EMAIL = :email AND status != '탈퇴'";
+        String sql = BASE_SELECT + " WHERE EMAIL = :email AND STATUS != '탈퇴'";
 
         try {
             MapSqlParameterSource param = new MapSqlParameterSource("email", email);
@@ -99,7 +99,7 @@ public class SellerDAOImpl implements SellerDAO {
 
     @Override
     public Optional<Seller> findByBizRegNo(String bizRegNo) {
-        String sql = BASE_SELECT + " WHERE biz_reg_no = :bizRegNo AND status != '탈퇴'";
+        String sql = BASE_SELECT + " WHERE biz_reg_no = :bizRegNo AND STATUS != '탈퇴'";
 
         try {
             MapSqlParameterSource param = new MapSqlParameterSource("bizRegNo", bizRegNo);
@@ -114,7 +114,7 @@ public class SellerDAOImpl implements SellerDAO {
 
     @Override
     public boolean existsByEmail(String email) {
-        String sql = "SELECT COUNT(*) FROM seller WHERE EMAIL = :email AND status != '탈퇴'";
+        String sql = "SELECT COUNT(*) FROM seller WHERE EMAIL = :email AND STATUS IN ('활성화', '비활성화', '정지')";
 
         MapSqlParameterSource param = new MapSqlParameterSource("email", email);
 
@@ -124,7 +124,7 @@ public class SellerDAOImpl implements SellerDAO {
 
     @Override
     public boolean existsByBizRegNo(String bizRegNo) {
-        String sql = "SELECT COUNT(*) FROM seller WHERE biz_reg_no = :bizRegNo AND status != '탈퇴'";
+        String sql = "SELECT COUNT(*) FROM seller WHERE biz_reg_no = :bizRegNo AND STATUS IN ('활성화', '비활성화', '정지')";
 
         MapSqlParameterSource param = new MapSqlParameterSource("bizRegNo", bizRegNo);
 
@@ -134,9 +134,29 @@ public class SellerDAOImpl implements SellerDAO {
 
     @Override
     public boolean existsByShopName(String shopName) {
-        String sql = "SELECT COUNT(*) FROM seller WHERE shop_name = :shopName AND status != '탈퇴'";
+        String sql = "SELECT COUNT(*) FROM seller WHERE shop_name = :shopName AND STATUS IN ('활성화', '비활성화', '정지')";
 
         MapSqlParameterSource param = new MapSqlParameterSource("shopName", shopName);
+
+        Integer count = template.queryForObject(sql, param, Integer.class);
+        return count != null && count > 0;
+    }
+
+    @Override
+    public boolean existsByName(String name) {
+        String sql = "SELECT COUNT(*) FROM seller WHERE NAME = :name AND STATUS IN ('활성화', '비활성화', '정지')";
+
+        MapSqlParameterSource param = new MapSqlParameterSource("name", name);
+
+        Integer count = template.queryForObject(sql, param, Integer.class);
+        return count != null && count > 0;
+    }
+
+    @Override
+    public boolean existsByShopAddress(String shopAddress) {
+        String sql = "SELECT COUNT(*) FROM seller WHERE shop_address = :shopAddress AND STATUS IN ('활성화', '비활성화', '정지')";
+
+        MapSqlParameterSource param = new MapSqlParameterSource("shopAddress", shopAddress);
 
         Integer count = template.queryForObject(sql, param, Integer.class);
         return count != null && count > 0;
@@ -152,7 +172,7 @@ public class SellerDAOImpl implements SellerDAO {
 
         // 동적 쿼리 생성 (null이 아닌 필드만 업데이트)
         if (seller.getPassword() != null) {
-            setClauses.append("password = :password, ");
+            setClauses.append("PASSWORD = :password, ");
             param.addValue("password", seller.getPassword());
         }
         if (seller.getShopName() != null) {
@@ -160,7 +180,7 @@ public class SellerDAOImpl implements SellerDAO {
             param.addValue("shopName", seller.getShopName());
         }
         if (seller.getName() != null) {
-            setClauses.append("name = :name, ");
+            setClauses.append("NAME = :name, ");
             param.addValue("name", seller.getName());
         }
         if (seller.getShopAddress() != null) {
@@ -168,19 +188,19 @@ public class SellerDAOImpl implements SellerDAO {
             param.addValue("shopAddress", seller.getShopAddress());
         }
         if (seller.getTel() != null) {
-            setClauses.append("tel = :tel, ");
+            setClauses.append("TEL = :tel, ");
             param.addValue("tel", seller.getTel());
         }
-        if (seller.getGubun() != null) {
-            setClauses.append("gubun = :gubun, ");
-            param.addValue("gubun", seller.getGubun());
+        if (seller.getMemberGubun() != null) {
+            setClauses.append("MEMBER_GUBUN = :memberGubun, ");
+            param.addValue("memberGubun", seller.getMemberGubun());
         }
 
         // 항상 업데이트되는 필드
-        setClauses.append("udate = SYSTIMESTAMP ");
+        setClauses.append("UDATE = SYSTIMESTAMP ");
 
         sql.append(setClauses.toString());
-        sql.append("WHERE seller_id = :sellerId AND status != '탈퇴'");
+        sql.append("WHERE seller_id = :sellerId AND STATUS != '탈퇴'");
 
         param.addValue("sellerId", sellerId);
 
@@ -191,11 +211,11 @@ public class SellerDAOImpl implements SellerDAO {
     public int withdrawWithReason(Long sellerId, String reason) {
         String sql = """
             UPDATE seller SET 
-                status = '탈퇴', 
-                withdrawn_at = SYSTIMESTAMP, 
-                withdraw_reason = :reason, 
-                udate = SYSTIMESTAMP 
-            WHERE seller_id = :sellerId AND status = '활성화'
+                STATUS = '탈퇴', 
+                UDATE = SYSTIMESTAMP,
+                withdrawn_at = SYSDATE,
+                withdrawn_reason = :reason
+            WHERE seller_id = :sellerId AND STATUS = '활성화'
             """;
 
         MapSqlParameterSource param = new MapSqlParameterSource();
@@ -207,26 +227,15 @@ public class SellerDAOImpl implements SellerDAO {
 
     @Override
     public List<Seller> findWithdrawnMembers() {
-        String sql = BASE_SELECT + " WHERE status = '탈퇴' ORDER BY withdrawn_at DESC";
+        String sql = BASE_SELECT + " WHERE STATUS = '탈퇴' ORDER BY UDATE DESC";
 
         return template.query(sql, BeanPropertyRowMapper.newInstance(Seller.class));
     }
 
     @Override
     public List<Seller> findAll() {
-        String sql = BASE_SELECT + " WHERE status != '탈퇴' ORDER BY cdate DESC";
+        String sql = BASE_SELECT + " WHERE STATUS != '탈퇴' ORDER BY CDATE DESC";
 
         return template.query(sql, BeanPropertyRowMapper.newInstance(Seller.class));
-    }
-
-
-
-    @Override
-    public int deleteById(Long sellerId) {
-        String sql = "DELETE FROM seller WHERE seller_id = :sellerId";
-
-        MapSqlParameterSource param = new MapSqlParameterSource("sellerId", sellerId);
-
-        return template.update(sql, param);
     }
 }

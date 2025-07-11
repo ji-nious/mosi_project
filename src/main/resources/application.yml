@@ -12,6 +12,11 @@ spring:
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
+  
+  # 세션 타임아웃 설정 (개발용)
+  servlet:
+    session:
+      timeout: 30m  # 30분으로 설정
 
 # 웹서버 포트
 server:
@@ -20,11 +25,17 @@ server:
   #기본은 1800(30분), 최소값 60(1분)
   servlet:
     session:
-      timeout: 60
+      timeout: 1800
       #클라이언트의 세션아이디를 서버가 받는 방식
       #1. 클라이언트의 쿠키정보를 읽어 요청할때마다 요청메세지 헤더에 세션아이디를 취득
       #2. 클라이언트의 쿼리스트링을 읽어 세션아이디를 취득
       tracking-mode: cookie
+  # 에러 처리 설정
+  error:
+    whitelabel:
+      enabled: false    # Spring Boot 기본 에러 페이지 비활성화
+    include-message: always
+    include-binding-errors: always
 
 # 로그레벨
 # trace > debug > info > warn > error > fatal
@@ -33,15 +44,9 @@ logging:
     org:
       springframework:
         jdbc: DEBUG     #JDBCTemplate sql log
+        security: DEBUG  #Spring Security debug log
+        web: DEBUG      #Spring Web debug log
 #    root: info
-
-  # Thymeleaf 템플릿 엔진 설정
-  thymeleaf:
-    prefix: classpath:/templates/
-    suffix: .html
-    cache: false      # 개발 중 캐시 비활성화
-    encoding: UTF-8
-    mode: HTML
 
 # 외부 API 키 설정
 juso:

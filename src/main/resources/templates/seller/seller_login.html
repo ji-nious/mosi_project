@@ -79,29 +79,40 @@
         background: transparent;
     }
     .btn-outline:hover { background: rgba(101, 131, 82, 0.1); }
+    
+    .welcome-message {
+        color: #444;
+        font-weight: 600;
+        font-size: 1rem;
+        margin-right: 16px;
+    }
 
+    /* Login Container */
     .login-container {
         width: 100%;
-        max-width: 450px;
+        max-width: 400px;
+        background: var(--color-white);
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         text-align: center;
     }
 
     .login-container h1 {
-        font-size: 2.5rem;
+        font-family: 'Cabin', sans-serif;
         color: var(--color-primary);
         margin-bottom: 30px;
-        font-family: 'Cabin', sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
     }
 
     .login-form {
-        background-color: var(--color-white);
-        padding: 40px 50px;
-        border-radius: 12px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
     }
 
     .form-group {
-        margin-bottom: 25px;
         text-align: left;
     }
 
@@ -109,41 +120,39 @@
         display: block;
         margin-bottom: 8px;
         font-weight: 600;
-        font-size: 0.9rem;
-        color: #333;
+        color: var(--color-text);
     }
 
-    .form-group input {
+    .form-control {
         width: 100%;
-        padding: 14px;
-        font-size: 1rem;
-        border: 1px solid var(--color-border);
+        padding: 12px 16px;
+        border: 2px solid var(--color-border);
         border-radius: 8px;
-        box-sizing: border-box;
+        font-size: 1rem;
         transition: border-color 0.2s;
+        box-sizing: border-box;
     }
-    
-    .form-group input:focus {
+
+    .form-control:focus {
         outline: none;
         border-color: var(--color-primary);
     }
 
     .login-button {
-        width: 100%;
-        padding: 15px;
-        font-size: 1.1rem;
-        font-weight: 700;
-        border-radius: 24px;
-        border: none;
-        background-color: var(--color-primary);
+        background: var(--color-primary);
         color: var(--color-white);
+        border: none;
+        padding: 14px;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
         cursor: pointer;
-        transition: background-color 0.2s;
+        transition: background 0.2s;
         margin-top: 10px;
     }
 
     .login-button:hover {
-        background-color: var(--color-primary-light);
+        background: var(--color-primary-light);
     }
 
     .error-message {
@@ -155,6 +164,20 @@
         margin-bottom: 20px;
         text-align: center;
     }
+    .success-message {
+        color: #4F8A10;
+        background-color: #DFF2BF;
+        border: 1px solid #4F8A10;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .error-text {
+        color: #D8000C;
+        font-size: 0.9rem;
+        margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -164,30 +187,56 @@
       <a th:href="@{/}">
         <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="로고" class="navbar-logo-img"/>
       </a>
-      <div class="navbar-buttons">
-        <a th:href="@{/common/select_login}" class="btn-outline">로그인</a>
-        <a th:href="@{/common/select_signup}" class="btn-filled">회원가입</a>
+      <!-- 로그인 상태에 따른 네비게이션 버튼 -->
+      <div class="navbar-buttons" th:if="${session.loginMember == null}">
+        <a th:href="@{/login}" class="btn-outline">로그인</a>
+        <a th:href="@{/signup}" class="btn-filled">회원가입</a>
+      </div>
+      <div class="navbar-buttons" th:if="${session.loginMember != null}">
+        <span class="welcome-message" th:text="${userNickname} + '님, 환영합니다.'"></span>
+        <a th:href="@{/buyer/info}" th:if="${session.loginMember.memberType == 'BUYER'}" class="btn-outline">마이페이지</a>
+        <a th:href="@{/seller/info}" th:if="${session.loginMember.memberType == 'SELLER'}" class="btn-outline">마이페이지</a>
+        <a href="#" onclick="logout()" class="btn-filled">로그아웃</a>
       </div>
     </div>
   </header>
 
-<div class="login-container">
+  <div class="login-container">
     <h1>판매자 로그인</h1>
-    <form id="loginForm" class="login-form" th:action="@{/login}" method="post">
-        <div th:if="${param.error}" class="error-message">
-            아이디 또는 비밀번호가 올바르지 않습니다.
-        </div>
-        <div class="form-group">
-            <label for="username">이메일</label>
-            <input type="email" id="username" name="username" placeholder="이메일 주소" required>
-        </div>
-        <div class="form-group">
-            <label for="password">비밀번호</label>
-            <input type="password" id="password" name="password" placeholder="비밀번호" required>
-        </div>
-        <button type="submit" class="login-button">로그인</button>
+    
+    <!-- 에러 메시지 표시 -->
+    <div th:if="${error}" class="error-message" th:text="${error}"></div>
+    <!-- 성공 메시지 표시 -->
+    <div th:if="${message}" class="success-message" th:text="${message}"></div>
+    
+    <form th:action="@{/seller/login}" method="post" th:object="${loginForm}" class="login-form">
+      <div class="form-group">
+        <label for="email">이메일</label>
+        <input type="email" th:field="*{email}" class="form-control" placeholder="이메일 주소" required>
+        <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error-text"></div>
+      </div>
+      <div class="form-group">
+        <label for="password">비밀번호</label>
+        <input type="password" th:field="*{password}" class="form-control" placeholder="비밀번호" required>
+        <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="error-text"></div>
+      </div>
+      <button type="submit" class="login-button">로그인</button>
     </form>
-</div>
+  </div>
+
+  <script>
+    // 로그아웃 기능
+    function logout() {
+        if (confirm('로그아웃 하시겠습니까?')) {
+            // POST 방식으로 로그아웃 요청
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/logout';
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+  </script>
 
 </body>
 </html>

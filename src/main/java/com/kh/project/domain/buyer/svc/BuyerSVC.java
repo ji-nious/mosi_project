@@ -58,9 +58,6 @@ public interface BuyerSVC {
   CodeNameInfo getGubunInfo(Buyer buyer);
   CodeNameInfo getStatusInfo(Buyer buyer);
 
-  // 등급 관리
-  void upgradeGubun(Long buyerId, String newGubun);
-
   // 관리 기능
   List<Buyer> getWithdrawnMembers();
 

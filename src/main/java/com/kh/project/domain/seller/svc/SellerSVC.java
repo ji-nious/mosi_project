@@ -53,6 +53,16 @@ public interface SellerSVC {
   boolean existsByShopName(String shopName);
 
   /**
+   * 대표자명 중복 체크
+   */
+  boolean existsByName(String name);
+
+  /**
+   * 사업장 주소 중복 체크
+   */
+  boolean existsByShopAddress(String shopAddress);
+
+  /**
    * 비밀번호 확인
    */
   boolean checkPassword(Long sellerId, String password);
@@ -63,11 +73,6 @@ public interface SellerSVC {
   CodeNameInfo getStatusInfo(Seller seller);
   CodeNameInfo getShopInfo(Seller seller);
   
-  /**
-   * 회원등급 승급
-   */
-  void upgradeGubun(Long sellerId, String newGubun);
-
   /**
    * 관리 기능
    */

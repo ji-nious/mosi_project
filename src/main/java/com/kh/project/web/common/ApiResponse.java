@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 간단한 API 응답 표준화 (DTO 없이 Entity 직접 사용)
- * 팀 프로젝트에서 모든 도메인이 사용할 수 있는 공통 응답 구조
+ * API 응답 표준화 클래스
+ * 모든 REST API 응답의 일관된 구조를 제공
  */
 @Slf4j
 @Getter
@@ -28,11 +28,23 @@ public class ApiResponse {
         this.timestamp = java.time.LocalDateTime.now().toString();
     }
     
-    // 성공 응답 생성 메서드들
+    /**
+     * 성공 응답 생성 (데이터 없음)
+     * 
+     * @param message 성공 메시지
+     * @return Map<String, Object> - 성공 응답 객체
+     */
     public static Map<String, Object> success(String message) {
         return success(message, null);
     }
     
+    /**
+     * 성공 응답 생성 (데이터 포함)
+     * 
+     * @param message 성공 메시지
+     * @param data 응답 데이터
+     * @return Map<String, Object> - 성공 응답 객체
+     */
     public static Map<String, Object> success(String message, Object data) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
@@ -47,11 +59,23 @@ public class ApiResponse {
         return response;
     }
     
-    // 실패 응답 생성 메서드들
+    /**
+     * 실패 응답 생성 (에러 세부사항 없음)
+     * 
+     * @param message 에러 메시지
+     * @return Map<String, Object> - 실패 응답 객체
+     */
     public static Map<String, Object> error(String message) {
         return error(message, null);
     }
     
+    /**
+     * 실패 응답 생성 (에러 세부사항 포함)
+     * 
+     * @param message 에러 메시지
+     * @param errorDetails 에러 세부사항
+     * @return Map<String, Object> - 실패 응답 객체
+     */
     public static Map<String, Object> error(String message, Object errorDetails) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);
@@ -66,16 +90,21 @@ public class ApiResponse {
         return response;
     }
     
-    // Entity 전용 성공 응답 (구매자/판매자 등)
+    /**
+     * 엔티티 성공 응답 생성 (추가 데이터 포함)
+     * 
+     * @param message 성공 메시지
+     * @param entity 주요 엔티티 객체
+     * @param additionalData 추가 데이터
+     * @return Map<String, Object> - 엔티티 포함 성공 응답 객체
+     */
     public static Map<String, Object> entitySuccess(String message, Object entity, Map<String, Object> additionalData) {
         Map<String, Object> dataMap = new HashMap<>();
         
-        // Entity 직접 포함
         if (entity != null) {
             dataMap.put("entity", entity);
         }
         
-        // 추가 데이터 병합
         if (additionalData != null) {
             dataMap.putAll(additionalData);
         }
@@ -83,7 +112,14 @@ public class ApiResponse {
         return success(message, dataMap);
     }
     
-    // 로그인 전용 응답
+    /**
+     * 로그인 성공 응답 생성
+     * 
+     * @param memberEntity 회원 엔티티 (Buyer 또는 Seller)
+     * @param gubunName 회원 등급명
+     * @param canLogin 로그인 가능 여부
+     * @return Map<String, Object> - 로그인 성공 응답 객체
+     */
     public static Map<String, Object> loginSuccess(Object memberEntity, String gubunName, boolean canLogin) {
         Map<String, Object> additionalData = new HashMap<>();
         additionalData.put("gubunName", gubunName);
@@ -92,7 +128,13 @@ public class ApiResponse {
         return entitySuccess("로그인 성공", memberEntity, additionalData);
     }
     
-    // 회원가입 전용 응답
+    /**
+     * 회원가입 성공 응답 생성
+     * 
+     * @param memberEntity 회원 엔티티 (Buyer 또는 Seller)
+     * @param gubunName 회원 등급명
+     * @return Map<String, Object> - 회원가입 성공 응답 객체
+     */
     public static Map<String, Object> joinSuccess(Object memberEntity, String gubunName) {
         Map<String, Object> additionalData = new HashMap<>();
         additionalData.put("gubunName", gubunName);

@@ -14,7 +14,7 @@
 <a href="../index.html"><img src="../../static/images/free-icon-sprout-7101338.png" alt="홈으로" style="width:48px;height:48px;margin:20px 0 0 20px;position:fixed;left:20px;top:20px;z-index:100;"></a>
 
 <!-- 👤 구매자 탈퇴 폼 -->
-<form id="buyer-withdraw-form" class="buyer-form" th:action="@{/api/buyers/{id}(id=${buyerId})}" method="delete">
+<form th:action="@{/buyer/withdraw}" method="post" class="buyer-form">
   <h2>구매자 회원 탈퇴</h2>
 
   <!-- 탈퇴 안내 -->
@@ -56,47 +56,16 @@
   <button type="submit" style="background-color:#a00;">회원 탈퇴</button>
 </form>
 
+<!-- 에러/성공 메시지 표시 -->
+<div th:if="${error}" style="color: red; text-align: center; margin: 10px;" th:text="${error}"></div>
+<div th:if="${message}" style="color: green; text-align: center; margin: 10px;" th:text="${message}"></div>
+
 <script>
-document.getElementById('buyer-withdraw-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  
-  const password = document.getElementById('password').value;
-  const reason = document.getElementById('reason').value;
-  
-  if (!password) {
-    alert('비밀번호를 입력해주세요.');
-    return;
-  }
-  
-  if (!reason) {
-    alert('탈퇴 사유를 선택해주세요.');
-    return;
-  }
-  
+// Form Submit에 확인창만 추가
+document.querySelector('form').addEventListener('submit', function(e) {
   if (!confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-    return;
+    e.preventDefault();
   }
-  
-  // 세션에서 사용자 ID 가져오기 (임시로 1 사용)
-  const userId = 1; // 실제로는 세션에서 가져와야 함
-  
-  fetch(`/api/buyers/${userId}?password=${encodeURIComponent(password)}`, {
-    method: 'DELETE'
-  })
-  .then(res => res.json())
-  .then(response => {
-    console.log('서버 응답:', response); // 디버깅용
-    if (response.success === true) {
-      alert('회원 탈퇴가 완료되었습니다.');
-      window.location.href = '/';
-    } else {
-      alert('탈퇴 실패: ' + (response.message || '알 수 없는 오류'));
-    }
-  })
-  .catch(err => {
-    console.error('탈퇴 오류:', err); // 디버깅용
-    alert('탈퇴 실패: ' + err.message);
-  });
 });
 </script>
 

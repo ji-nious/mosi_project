@@ -1,4 +1,4 @@
-plugins {
+ plugins {
     id 'org.springframework.boot' version '3.2.0'
     id 'io.spring.dependency-management' version '1.1.4'
     id 'java'
@@ -50,6 +50,15 @@ dependencies {
     //implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
     //implementation 'jakarta.servlet:jakarta.servlet-api'
     testImplementation 'org.springframework.security:spring-security-test'
+}
+
+// Java 컴파일러 설정 - 파라미터 이름 유지
+compileJava {
+    options.compilerArgs += ['-parameters']
+}
+
+compileTestJava {
+    options.compilerArgs += ['-parameters']
 }
 
 test {

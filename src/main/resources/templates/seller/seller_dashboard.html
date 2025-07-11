@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>판매자 센터 - 대시보드</title>
   <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="/js/common/logout.js"></script>
   <style>
     /* CSS 변수 */
     :root {
@@ -82,6 +83,13 @@
       color: var(--dl-color-theme-secondary2);
       background: var(--dl-color-theme-primary2);
       border-color: var(--dl-color-theme-primary2);
+    }
+
+    /* 환영 메시지 스타일 */
+    .welcome-message {
+      color: #444;
+      font-weight: 600;
+      margin-right: 20px;
     }
 
     h2, h3 {
@@ -271,15 +279,21 @@
 <body>
 <!-- Navbar -->
 <header class="navbar8-container1">
-  <div class="navbar8-navbar-interactive">
-    <a href="../home.html">
-      <img src="../../static/images/free-icon-sprout-7101338.png" alt="로고" class="navbar8-image1"/>
+     <div class="navbar8-navbar-interactive">
+     <a th:href="@{/seller/dashboard}">
+       <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="로고" class="navbar8-image1"/>
     </a>
     <div class="navbar8-buttons1">
-      <!-- 이 부분은 로그인 된 상태이므로, '로그아웃' 과 '마이페이지' 등으로 변경될 수 있습니다.
-           현재는 정적 페이지이므로, 다른 페이지로 가는 링크를 유지합니다. -->
-      <button onclick="location.href='../home.html'" class="thq-button-outline">로그아웃</button>
-      <button onclick="location.href='seller_info.html'" class="thq-button-filled">내 정보</button>
+      <!-- 로그인 상태에 따른 동적 네비게이션 -->
+      <th:block th:if="${session.loginMember != null}">
+        <span class="welcome-message" th:text="${userNickname} + '님, 환영합니다.'"></span>
+        <a th:href="@{/seller/info}" class="thq-button-filled">마이페이지</a>
+        <a href="#" onclick="logout()" class="thq-button-outline">로그아웃</a>
+      </th:block>
+      <th:block th:unless="${session.loginMember != null}">
+        <a th:href="@{/common/login}" class="thq-button-outline">로그인</a>
+        <a th:href="@{/common/signup}" class="thq-button-filled">회원가입</a>
+      </th:block>
     </div>
   </div>
 </header>
@@ -287,12 +301,12 @@
   <!-- 대시보드 헤더: 타이틀 + 판매글 버튼 -->
   <div class="dashboard-header">
     <h2>판매자 센터</h2>
-    <div class="actions">
-      <!-- 판매글 목록 버튼 -->
-      <button onclick="location.href='product_list.html'">판매글 목록</button>
-      <!-- 판매글 등록 버튼 (가상 동작) -->
-      <button onclick="location.href='product_form.html'">판매글 등록</button>
-    </div>
+         <div class="actions">
+       <!-- 판매글 목록 버튼 -->
+       <button onclick="location.href='/seller/products'">판매글 목록</button>
+       <!-- 판매글 등록 버튼 -->
+       <button onclick="location.href='/seller/products/new'">판매글 등록</button>
+     </div>
   </div>
 
   <!-- 판매 현황/정산 현황 카드 그리드 -->

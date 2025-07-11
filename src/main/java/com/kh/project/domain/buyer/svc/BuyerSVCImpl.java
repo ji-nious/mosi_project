@@ -5,6 +5,7 @@ import com.kh.project.domain.entity.Buyer;
 import com.kh.project.domain.entity.MemberGubun;
 import com.kh.project.domain.entity.MemberStatus;
 import com.kh.project.web.common.CodeNameInfo;
+import com.kh.project.web.common.MemberGubunUtils;
 import com.kh.project.web.exception.BusinessException;
 import com.kh.project.web.exception.MemberException;
 import lombok.RequiredArgsConstructor;
@@ -36,12 +37,11 @@ public class BuyerSVCImpl implements BuyerSVC {
     if (buyerDAO.existsByEmail(buyer.getEmail())) {
       throw new MemberException.EmailDuplicationException(buyer.getEmail());
     }
-    if (buyerDAO.existsByNickname(buyer.getNickname())) {
+    if (buyer.getNickname() != null && buyerDAO.existsByNickname(buyer.getNickname())) {
       throw new BusinessException("이미 사용중인 닉네임입니다.");
     }
 
     // 기본값 설정
-    buyer.setGubun(MemberGubun.getDefaultGrade().getCode());
     buyer.setStatus("활성화");
 
     Buyer savedBuyer = buyerDAO.save(buyer);
@@ -97,25 +97,25 @@ public class BuyerSVCImpl implements BuyerSVC {
 
   @Override
   public int withdraw(Long buyerId, String reason) {
-    log.info("구매자 탈퇴 처리: buyerId={}, 사유={}", buyerId, reason);
-
-    Optional<Buyer> buyerOpt = buyerDAO.findById(buyerId);
-    if (buyerOpt.isEmpty()) {
-      throw new MemberException.MemberNotFoundException();
+    // 구매자 존재 여부 확인
+    Optional<Buyer> buyer = buyerDAO.findById(buyerId);
+    if (buyer.isEmpty()) {
+      throw new BusinessException("구매자를 찾을 수 없습니다: " + buyerId);
     }
 
-    Buyer buyer = buyerOpt.get();
-    if (buyer.isWithdrawn()) {
-      throw new MemberException.AlreadyWithdrawnException();
+    // 탈퇴 처리
+    int updatedRows = buyerDAO.withdrawWithReason(buyerId, reason);
+    if (updatedRows == 0) {
+      throw new BusinessException("구매자 탈퇴 처리에 실패했습니다: " + buyerId);
     }
 
-    // 탈퇴 사유 설정
-    String withdrawReason = (reason != null && !reason.trim().isEmpty()) ?
-        reason : "사용자 요청";
-
-    return buyerDAO.withdrawWithReason(buyerId, withdrawReason);
+    log.info("구매자 탈퇴 완료: buyerId={}, reason={}", buyerId, reason);
+    return updatedRows;
   }
 
+  /**
+   * 회원 등급 업그레이드
+   */
   @Override
   @Transactional(readOnly = true)
   public boolean existsByEmail(String email) {
@@ -131,34 +131,39 @@ public class BuyerSVCImpl implements BuyerSVC {
   @Override
   @Transactional(readOnly = true)
   public boolean checkPassword(Long buyerId, String password) {
-    if (password == null) return false;
-
-    return buyerDAO.findById(buyerId)
-        .map(buyer -> buyer.getPassword().equals(password.trim()))
-        .orElse(false);
-  }
-
-  @Override
-  public void upgradeGubun(Long buyerId, String newGubun) {
-    log.info("구매자 등급 승급: buyerId={}, newGubun={}", buyerId, newGubun);
-
-    if (!MemberGubun.isValidCode(newGubun)) {
-      throw new BusinessException("올바르지 않은 등급 코드입니다.");
+    if (password == null) {
+      log.warn("비밀번호 확인 실패: 입력된 비밀번호가 null입니다. buyerId={}", buyerId);
+      return false;
     }
 
-    Buyer updateBuyer = new Buyer();
-    updateBuyer.setGubun(newGubun);
-    int result = buyerDAO.update(buyerId, updateBuyer);
-
-    if (result > 0) {
-      log.info("구매자 등급 승급 완료: buyerId={}, newGubun={}", buyerId, newGubun);
+    Optional<Buyer> buyerOpt = buyerDAO.findById(buyerId);
+    if (buyerOpt.isEmpty()) {
+      log.warn("비밀번호 확인 실패: 구매자를 찾을 수 없습니다. buyerId={}", buyerId);
+      return false;
     }
+
+    Buyer buyer = buyerOpt.get();
+    String inputPassword = password.trim();
+    String storedPassword = buyer.getPassword();
+    
+    boolean isValid = storedPassword.equals(inputPassword);
+    
+    log.info("비밀번호 확인: buyerId={}, 입력비밀번호길이={}, 저장비밀번호길이={}, 일치여부={}", 
+             buyerId, inputPassword.length(), 
+             storedPassword != null ? storedPassword.length() : 0, isValid);
+    
+    if (!isValid) {
+      log.warn("비밀번호 불일치: buyerId={}, 입력='{}', 저장='{}'", 
+               buyerId, inputPassword, storedPassword);
+    }
+    
+    return isValid;
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<Buyer> getWithdrawnMembers() {
-    return List.of();
+    return buyerDAO.findWithdrawnMembers();
   }
 
   @Override
@@ -248,12 +253,12 @@ public class BuyerSVCImpl implements BuyerSVC {
 
   @Override
   public CodeNameInfo getGubunInfo(Buyer buyer) {
-    if (buyer == null || buyer.getGubun() == null) {
+    if (buyer == null || buyer.getMemberGubun() == null) {
       return CodeNameInfo.of("UNKNOWN", "알 수 없음");
     }
 
-    String code = buyer.getGubun();
-    String name = MemberGubun.getDescriptionByCode(code);
+    String code = buyer.getMemberGubun();
+    String name = MemberGubunUtils.getDescriptionByCode(code);
 
     return CodeNameInfo.of(code, name);
   }

@@ -27,11 +27,6 @@ public interface BuyerDAO {
   int update(Long buyerId, Buyer buyer);
   
   /**
-   * 구매자 탈퇴 (상태 변경)
-   */
-  int deleteById(Long buyerId);
-
-  /**
    * 이메일로 구매자 조회
    */
   Optional<Buyer> findByEmail(String email);

@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>판매자 회원가입</title>
   <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" th:href="@{/css/common.css}">
   <style>
     /* Updated to match buyer_signup.html */
     :root {
@@ -78,8 +77,15 @@
         background: transparent;
     }
     .btn-outline:hover { background: rgba(101, 131, 82, 0.1); }
+    
+    .welcome-message {
+        color: #444;
+        font-weight: 600;
+        font-size: 1rem;
+        margin-right: 16px;
+    }
 
-    /* --- Form Container --- */
+    /* --- Form Container Override --- */
     .signup-container {
         width: 100%;
         max-width: 600px;
@@ -89,6 +95,7 @@
         border-radius: 20px;
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
     }
+
     .signup-container h2 {
         font-family: 'Cabin', sans-serif;
         font-weight: 700;
@@ -99,13 +106,14 @@
         margin-bottom: 30px;
     }
 
-    /* --- Form Elements --- */
+    /* --- Form Elements Override --- */
     .form-row {
         display: flex;
         align-items: flex-start;
         gap: 16px;
         margin-bottom: 18px;
     }
+
     .form-row label {
         width: 120px;
         text-align: left;
@@ -114,15 +122,18 @@
         padding-top: 10px;
         font-size: 0.95rem;
     }
+
     .input-col {
         flex: 1;
         display: flex;
         flex-direction: column;
     }
+
     input[type="text"],
     input[type="email"],
     input[type="password"],
-    input[type="date"] {
+    input[type="date"],
+    select {
         padding: 10px 12px;
         border-radius: 8px;
         border: 1px solid #ccc;
@@ -131,16 +142,22 @@
         box-sizing: border-box;
         transition: border-color 0.2s;
     }
-    input:focus {
+
+    input:focus, select:focus {
         border-color: var(--color-primary);
         outline: none;
     }
+
     .postcode-group {
         display: flex;
         gap: 10px;
         margin-bottom: 10px;
     }
-    #postcode { background-color: #f8f9fa; }
+
+    #postcode { 
+        background-color: #f8f9fa; 
+    }
+
     #searchPostcodeBtn {
         padding: 10px 16px;
         font-size: 0.9rem;
@@ -153,12 +170,19 @@
         flex-shrink: 0;
         transition: all 0.2s;
     }
+
     #searchPostcodeBtn:hover {
         background-color: var(--color-primary);
         color: var(--color-white);
     }
-    #address, #detailAddress { margin-bottom: 10px; }
-    #address { background-color: #f8f9fa; }
+
+    #address, #detailAddress { 
+        margin-bottom: 10px; 
+    }
+
+    #address { 
+        background-color: #f8f9fa; 
+    }
 
     .signup-btn {
         display: block;
@@ -174,7 +198,10 @@
         cursor: pointer;
         transition: all 0.2s;
     }
-    .signup-btn:hover { opacity: 0.9; }
+
+    .signup-btn:hover { 
+        opacity: 0.9; 
+    }
 
     .error-msg {
         color: var(--color-danger);
@@ -182,108 +209,197 @@
         margin-top: 6px;
         min-height: 1.2em;
     }
+
+    .error-message, .success-message {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .error-message {
+        background-color: #ffebee;
+        color: #c62828;
+        border: 1px solid #ef5350;
+    }
+
+    .success-message {
+        background-color: #e8f5e8;
+        color: #2e7d32;
+        border: 1px solid #4caf50;
+    }
+
+    /* 전화번호 필드부터 추가 간격 (구매자와 동일하게) */
+    .tel-field-spacing {
+        margin-top: 24px;
+    }
+
+     /* 모달 스타일 */
+     .modal {
+         display: none;
+         position: fixed;
+         z-index: 1000;
+         left: 0;
+         top: 0;
+         width: 100%;
+         height: 100%;
+         overflow: auto;
+         background-color: rgba(0,0,0,0.6);
+     }
+
+     .modal-content {
+         background-color: #fefefe;
+         margin: 15% auto;
+         padding: 30px;
+         border: 1px solid #888;
+         width: 90%;
+         max-width: 400px;
+         border-radius: 16px;
+         text-align: center;
+         position: relative;
+         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+     }
+
+     .modal-content h2 {
+         margin-top: 0;
+         color: var(--color-primary);
+         font-family: 'Cabin', sans-serif;
+         font-weight: 700;
+     }
+
+     .modal-content p {
+         margin: 15px 0;
+         line-height: 1.5;
+         color: var(--color-text);
+     }
   </style>
 </head>
 <body>
 
-<header class="navbar-container">
-    <div class="navbar">
-      <a th:href="@{/}">
-        <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="로고" class="navbar-logo-img"/>
-      </a>
-      <div class="navbar-buttons">
-        <a th:href="@{/common/select_login}" class="btn-outline">로그인</a>
-        <a th:href="@{/common/select_signup}" class="btn-filled">회원가입</a>
+  <header class="navbar-container">
+      <div class="navbar">
+       <a th:href="@{/}">
+         <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="로고" class="navbar-logo-img"/>
+        </a>
+        <!-- 로그인 상태에 따른 네비게이션 버튼 -->
+        <div class="navbar-buttons" th:if="${session.loginMember == null}">
+         <a th:href="@{/login}" class="btn-outline">로그인</a>
+         <a th:href="@{/signup}" class="btn-filled">회원가입</a>
+        </div>
+        <div class="navbar-buttons" th:if="${session.loginMember != null}">
+          <span class="welcome-message" th:text="${userNickname} + '님, 환영합니다.'"></span>
+                                     <a th:href="@{/buyer/info}" th:if="${session.loginMember.memberType == 'BUYER'}" class="btn-outline">마이페이지</a>
+         <a th:href="@{/seller/info}" th:if="${session.loginMember.memberType == 'SELLER'}" class="btn-outline">마이페이지</a>
+          <a href="#" onclick="logout()" class="btn-filled">로그아웃</a>
+        </div>
       </div>
-    </div>
-</header>
+  </header>
 
-<div class="signup-container">
-    <h2>판매자 회원가입</h2>
-    <form id="seller-signup-form" novalidate>
-        <div class="form-row">
-            <label for="email">이메일</label>
-            <div class="input-col">
-                <input type="email" id="email" name="email" placeholder="이메일 입력" required />
-                <div class="error-msg" id="error-email"></div>
-            </div>
-        </div>
+  <div class="signup-container">
+     <!-- 에러/성공 메시지 표시 -->
+     <div th:if="${error}" class="error-message" th:text="${error}"></div>
+     <div th:if="${message}" class="success-message" th:text="${message}"></div>
+     
+     <form th:action="@{/seller/signup}" method="post" th:object="${sellerSignupForm}" novalidate>
+          <h2>판매자 회원가입</h2>
+          
+          <!-- 글로벌 에러 메시지 표시 -->
+          <div th:if="${#fields.hasGlobalErrors()}" class="error-message">
+              <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+          </div>
 
-        <div class="form-row">
-            <label for="password">비밀번호</label>
-            <div class="input-col">
-                <input type="password" id="password" name="password" placeholder="8~15자, 영문+숫자+특수문자" required />
-                <div class="error-msg" id="error-password"></div>
-            </div>
-        </div>
+                  <div class="form-row">
+              <label for="email">이메일</label>
+              <div class="input-col">
+                 <input type="email" th:field="*{email}" placeholder="example@email.com" required />
+                 <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error-msg"></div>
+              </div>
+          </div>
 
-        <div class="form-row">
-            <label for="password2">비밀번호 확인</label>
-            <div class="input-col">
-                <input type="password" id="password2" name="password2" placeholder="비밀번호 다시 입력" required />
-                <div class="error-msg" id="error-password2"></div>
-            </div>
-        </div>
+          <div class="form-row">
+              <label for="password">비밀번호</label>
+              <div class="input-col">
+                 <input type="password" th:field="*{password}" placeholder="8~15자, 영문+숫자+특수문자" required />
+                 <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="error-msg"></div>
+              </div>
+          </div>
 
-        <div class="form-row">
-            <label for="bizreg">사업자등록번호</label>
-            <div class="input-col">
-                <input type="text" id="bizreg" name="bizreg" maxlength="12" placeholder="000-00-00000" required />
-                <div class="error-msg" id="error-bizreg"></div>
-            </div>
-        </div>
+          <div class="form-row">
+             <label for="passwordConfirm">비밀번호 확인</label>
+             <div class="input-col">
+                 <input type="password" th:field="*{passwordConfirm}" placeholder="비밀번호 다시 입력" required />
+                 <div th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}" class="error-msg"></div>
+             </div>
+          </div>
 
-        <div class="form-row">
-            <label for="shopname">상호명</label>
-            <div class="input-col">
-                <input type="text" id="shopname" name="shopname" placeholder="상호명 입력" required />
-                <div class="error-msg" id="error-shopname"></div>
-            </div>
-        </div>
+          <div class="form-row tel-field-spacing">
+             <label for="tel">전화번호</label>
+             <div class="input-col">
+                 <input type="text" th:field="*{tel}" maxlength="13" placeholder="02-1234-5678" required />
+                 <div th:if="${#fields.hasErrors('tel')}" th:errors="*{tel}" class="error-msg"></div>
+             </div>
+          </div>
 
-        <div class="form-row">
-            <label for="name">대표자 이름</label>
-            <div class="input-col">
-                <input type="text" id="name" name="name" placeholder="대표자 이름 입력" required />
-                <div class="error-msg" id="error-name"></div>
-            </div>
-        </div>
+          <div class="form-row">
+             <label for="storeName">상호명</label>
+             <div class="input-col">
+                 <input type="text" th:field="*{storeName}" placeholder="상호명 입력" required />
+                 <div th:if="${#fields.hasErrors('storeName')}" th:errors="*{storeName}" class="error-msg"></div>
+             </div>
+          </div>
 
-        <div class="form-row">
-            <label for="postcode">주소</label>
-            <div class="input-col">
-                <div class="postcode-group">
-                    <input type="text" id="postcode" name="postcode" placeholder="우편번호" readonly>
-                    <button type="button" id="searchPostcodeBtn" onclick="openAddressPopup()">주소 검색</button>
-                </div>
-                <input type="text" id="address" name="address" placeholder="주소" readonly>
-                <input type="text" id="detailAddress" name="detailAddress" placeholder="상세주소를 입력해주세요">
-                <div class="error-msg" id="error-address"></div>
-            </div>
-        </div>
+          <div class="form-row">
+             <label for="businessNumber">사업자등록번호</label>
+             <div class="input-col">
+                 <input type="text" th:field="*{businessNumber}" maxlength="12" placeholder="000-00-00000" required />
+                 <div th:if="${#fields.hasErrors('businessNumber')}" th:errors="*{businessNumber}" class="error-msg"></div>
+             </div>
+          </div>
 
-        <div class="form-row">
-            <label for="tel">전화번호</label>
-            <div class="input-col">
-                <input type="text" id="tel" name="tel" maxlength="13" placeholder="010-1234-5678" required />
-                <div class="error-msg" id="error-tel"></div>
-            </div>
-        </div>
+          <div class="form-row">
+              <label for="name">대표자 이름</label>
+              <div class="input-col">
+                 <input type="text" th:field="*{name}" placeholder="대표자 이름 입력" required />
+                 <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="error-msg"></div>
+              </div>
+          </div>
 
-        <div class="form-row">
-            <label for="birth">생년월일</label>
-            <div class="input-col">
-                <input type="date" id="birth" name="birth" required />
-                <div class="error-msg" id="error-birth"></div>
-            </div>
-        </div>
+          <div class="form-row">
+             <label for="postcode">사업장 주소</label>
+             <div class="input-col">
+                 <div class="postcode-group">
+                     <input type="text" id="postcode" th:field="*{postcode}" placeholder="우편번호" readonly>
+                     <button type="button" id="searchPostcodeBtn" onclick="openAddressPopup()">주소 검색</button>
+                 </div>
+                 <input type="text" id="address" th:field="*{address}" placeholder="주소" readonly>
+                 <input type="text" id="detailAddress" th:field="*{detailAddress}" placeholder="상세주소를 입력해주세요">
+                 <div th:if="${#fields.hasErrors('address')}" th:errors="*{address}" class="error-msg"></div>
+             </div>
+         </div>
 
-        <button type="submit" class="signup-btn">회원가입</button>
-    </form>
-</div>
+                 <button type="submit" class="signup-btn">회원가입</button>
+     </form>
+  </div>
 
-<script th:src="@{/js/seller/seller_signup.js}"></script>
-<script th:src="@{/js/common/message.js}"></script>
+ <!-- 주소 검색을 위한 스크립트 -->
+ <script>
+   function openAddressPopup() {
+     window.open('/common/juso-popup', 'popup', 'width=600,height=700,scrollbars=yes');
+   }
+
+   // 로그아웃 기능
+   function logout() {
+       if (confirm('로그아웃 하시겠습니까?')) {
+           // POST 방식으로 로그아웃 요청
+           const form = document.createElement('form');
+           form.method = 'POST';
+           form.action = '/logout';
+           document.body.appendChild(form);
+           form.submit();
+       }
+   }
+ </script>
 
 </body>
 </html>
