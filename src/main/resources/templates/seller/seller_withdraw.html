@@ -2,48 +2,70 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>판매자 탈퇴</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>판매자 회원 탈퇴</title>
   <link rel="stylesheet" th:href="@{/css/style.css}">
-  <link rel="stylesheet" th:href="@{/css/modal.css}">
 </head>
 <body>
-<header>
-  <div class="header_container">
-    <div class="logo_container">
-      <a th:href="@{/}"><img th:src="@{/images/free-icon-sprout-7101338.png}" alt="홈으로" style="width:48px;height:48px;"></a>
+
+<!-- 🏠 대시보드로 이동 버튼 -->
+<a th:href="@{/seller/dashboard}">
+    <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="대시보드" style="width:48px;height:48px;margin:20px 0 0 20px;position:fixed;left:20px;top:20px;z-index:100;">
+</a>
+
+<!-- 👤 판매자 탈퇴 폼 -->
+<form th:action="@{/seller/withdraw}" method="post" class="buyer-form">
+  <h2>판매자 회원 탈퇴</h2>
+
+  <!-- 탈퇴 안내 -->
+  <div style="background:#f8f6e7;padding:20px;border-radius:8px;margin:20px 0;color:#a00;">
+    <h3>⚠️ 탈퇴 전 확인사항</h3>
+    <ul style="text-align:left;margin:10px 0;">
+      <li>탈퇴 시 모든 판매 상품 정보가 삭제되며 복구가 불가능합니다.</li>
+      <li>진행 중인 정산 내역이 있다면 완료 후 탈퇴를 진행해주세요.</li>
+      <li>판매 데이터 및 고객 문의 내역 등 모든 정보가 삭제됩니다.</li>
+      <li>동일한 사업자등록번호로 재가입이 제한될 수 있습니다.</li>
+    </ul>
+  </div>
+
+  <!-- 비밀번호 확인 -->
+  <div class="form-row">
+    <label for="password">비밀번호 확인</label>
+    <div class="input-col">
+      <input type="password" id="password" name="password" placeholder="본인 확인을 위해 비밀번호를 입력하세요" required />
     </div>
   </div>
-</header>
-<div class="container">
-  <h1>판매자 탈퇴</h1>
-  
-  <!-- 에러/성공 메시지 표시 -->
-  <div th:if="${error}" class="error-message" th:text="${error}"></div>
-  <div th:if="${message}" class="success-message" th:text="${message}"></div>
-  
-  <div class="withdraw-form">
-    <p>회원 탈퇴를 신청하기 전에 아래 내용을 반드시 확인해주세요.</p>
-    <ul>
-      <li>진행 중인 거래(판매, 정산 등)가 있는 경우 탈퇴가 불가능합니다.</li>
-      <li>탈퇴 후에는 동일한 이메일로 재가입이 불가능할 수 있습니다.</li>
-      <li>회원님의 모든 정보는 관련 법령에 따라 일정 기간 보관 후 삭제됩니다.</li>
-    </ul>
-    
-    <form th:action="@{/seller/withdraw}" method="post" 
-          onsubmit="return confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')">
-      <div class="form-group">
-        <label for="password">비밀번호 확인</label>
-        <input type="password" id="password" name="password" required>
-      </div>
-      <div class="form-group">
-        <label for="reason">탈퇴 사유</label>
-        <textarea id="reason" name="reason" rows="4" required></textarea>
-      </div>
-      <button type="submit" class="btn btn-danger">탈퇴 신청</button>
-      <a th:href="@{/seller/info}" class="btn">취소</a>
-    </form>
+
+  <!-- 탈퇴 사유 -->
+  <div class="form-row">
+    <label for="reason">탈퇴 사유</label>
+    <div class="input-col">
+      <select id="reason" name="reason">
+        <option value="">선택해주세요</option>
+        <option value="business_closure">사업 종료</option>
+        <option value="platform_transfer">타 플랫폼 이전</option>
+        <option value="low_sales">판매 부진</option>
+        <option value="service_inconvenience">서비스 이용 불편</option>
+        <option value="other">기타</option>
+      </select>
+    </div>
   </div>
-</div>
+
+  <!-- ▶ 탈퇴 버튼 -->
+  <button type="submit" style="background-color:#a00;">회원 탈퇴</button>
+</form>
+
+<!-- 에러/성공 메시지 표시 -->
+<div th:if="${error}" style="color: red; text-align: center; margin: 10px;" th:text="${error}"></div>
+
+<script>
+// Form Submit에 확인창만 추가
+document.querySelector('form').addEventListener('submit', function(e) {
+  if (!confirm('정말로 탈퇴하시겠습니까? 모든 판매 정보가 삭제되며 이 작업은 되돌릴 수 없습니다.')) {
+    e.preventDefault();
+  }
+});
+</script>
 
 </body>
 </html> 

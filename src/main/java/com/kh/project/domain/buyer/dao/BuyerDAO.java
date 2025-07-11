@@ -30,9 +30,6 @@ public interface BuyerDAO {
    * 이메일로 구매자 조회
    */
   Optional<Buyer> findByEmail(String email);
-
-  List<Buyer> findAll();
-  List<Buyer> findWithdrawnMembers();
   
   /**
    * 이메일 중복 체크
@@ -45,4 +42,31 @@ public interface BuyerDAO {
   boolean existsByNickname(String nickname);
 
   int withdrawWithReason(Long buyerId, String reason);
+
+  /**
+   * 모든 탈퇴 회원 조회
+   * @return List<Buyer> - 탈퇴 회원 목록
+   */
+  List<Buyer> findWithdrawnMembers();
+
+  /**
+   * 모든 구매자 회원 조회 (탈퇴 제외)
+   * @return List<Buyer>
+   */
+  List<Buyer> findAll();
+
+  /**
+   * 탈퇴한 회원 재가입
+   * @param buyer 재가입할 회원 정보
+   * @return int - 수정된 행 수
+   */
+  int rejoin(Buyer buyer);
+
+  /**
+   * 탈퇴한 회원 계정 재활성화
+   * @param email 대상 이메일
+   * @param password 새로운 비밀번호
+   * @return 수정된 행 수
+   */
+  int reactivate(String email, String password);
 }

@@ -28,6 +28,7 @@ import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * 판매자 페이지 컨트롤러
@@ -320,51 +321,61 @@ public class SellerPageController {
   @GetMapping("/withdraw")
   public String sellerWithdraw(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
     log.info("판매자 탈퇴 페이지 요청");
-    
-    Seller seller = getAuthenticatedSeller(session);
-    if (seller == null) {
-      redirectAttributes.addFlashAttribute("message", "로그인이 필요합니다.");
+
+    LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
+    if (loginMember == null) {
+      redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
       return "redirect:/seller/login";
     }
     
-    model.addAttribute("sellerId", seller.getSellerId());
-    model.addAttribute("email", seller.getEmail());
-    model.addAttribute("name", seller.getName());
-    
+    // 이 페이지는 단순히 폼을 보여주는 역할만 함
     return "seller/seller_withdraw";
   }
-  
+
   @PostMapping("/withdraw")
-  public String sellerWithdraw(HttpSession session, 
+  public String sellerWithdraw(HttpSession session,
                               RedirectAttributes redirectAttributes,
-                              String password, String reason) {
-    log.info("판매자 탈퇴 처리");
-    
-    Seller seller = getAuthenticatedSeller(session);
-    if (seller == null) {
-      redirectAttributes.addFlashAttribute("message", "로그인이 필요합니다.");
+                              @RequestParam("password") String password,
+                              @RequestParam("reason") String reason) {
+    log.info("판매자 탈퇴 처리 요청");
+
+    LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
+    if (loginMember == null) {
+      redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
       return "redirect:/seller/login";
     }
-    
+
     try {
-      // 비밀번호 확인
-      if (!sellerSVC.checkPassword(seller.getSellerId(), password)) {
+      // 1. 비밀번호 확인
+      if (!sellerSVC.checkPassword(loginMember.getId(), password)) {
         redirectAttributes.addFlashAttribute("error", "비밀번호가 올바르지 않습니다.");
         return "redirect:/seller/withdraw";
       }
-      
-      // 탈퇴 처리
-      sellerSVC.withdraw(seller.getSellerId(), reason);
-      
-      // 세션 무효화
-      session.invalidate();
-      
-      redirectAttributes.addFlashAttribute("message", "회원탈퇴가 완료되었습니다.");
-      return "redirect:/";
-      
+
+      // 2. 탈퇴 가능 여부 확인 (설계서 반영)
+      boolean canWithdraw = sellerSVC.canWithdraw(loginMember.getId());
+
+      if (canWithdraw) {
+        // 3. 탈퇴 처리
+        sellerSVC.withdraw(loginMember.getId(), reason);
+        session.invalidate(); // 세션 무효화
+        redirectAttributes.addFlashAttribute("message", "회원 탈퇴가 정상적으로 처리되었습니다.");
+        log.info("판매자 탈퇴 성공: sellerId={}", loginMember.getId());
+        return "redirect:/";
+      } else {
+        // 4. 탈퇴 불가 처리
+        Map<String, Object> usage = sellerSVC.getServiceUsage(loginMember.getId());
+        @SuppressWarnings("unchecked")
+        String reasons = String.join(", ", (java.util.List<String>) usage.get("withdrawBlockReasons"));
+        
+        redirectAttributes.addFlashAttribute("error", "다음 사유로 탈퇴할 수 없습니다: " + reasons);
+        log.warn("판매자 탈퇴 실패 (탈퇴 불가): sellerId={}, reasons={}", loginMember.getId(), reasons);
+        return "redirect:/seller/withdraw";
+      }
+
     } catch (Exception e) {
-      log.error("판매자 탈퇴 실패: sellerId={}, error={}", seller.getSellerId(), e.getMessage());
-      redirectAttributes.addFlashAttribute("error", "탈퇴 처리 중 오류가 발생했습니다: " + e.getMessage());
+      log.error("판매자 탈퇴 처리 중 오류 발생: sellerId={}, error={}", loginMember.getId(), e.getMessage());
+      redirectAttributes.addFlashAttribute("error", "탈퇴 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
       return "redirect:/seller/withdraw";
     }
   }

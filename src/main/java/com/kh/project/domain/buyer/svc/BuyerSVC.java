@@ -14,6 +14,8 @@ public interface BuyerSVC {
   
   /**
    * 구매자 회원가입
+   * @param buyer 구매자 정보
+   * @return Buyer - 저장된 구매자 정보
    */
   Buyer join(Buyer buyer);
   
@@ -24,8 +26,16 @@ public interface BuyerSVC {
   
   /**
    * 구매자 정보 조회
+   * @return Optional<Buyer> - 조회된 구매자 정보
    */
   Optional<Buyer> findById(Long buyerId);
+
+  /**
+   * 이메일로 구매자 조회
+   * @param email 이메일 주소
+   * @return Optional<Buyer> - 조회된 구매자 정보
+   */
+  Optional<Buyer> findByEmail(String email);
   
   /**
    * 구매자 정보 수정
@@ -57,6 +67,14 @@ public interface BuyerSVC {
   boolean isWithdrawn(Buyer buyer);
   CodeNameInfo getGubunInfo(Buyer buyer);
   CodeNameInfo getStatusInfo(Buyer buyer);
+
+  /**
+   * 탈퇴한 회원 계정 재활성화
+   * @param email 대상 이메일
+   * @param password 새로운 비밀번호
+   * @return 재활성화된 구매자 정보
+   */
+  Optional<Buyer> reactivate(String email, String password);
 
   // 관리 기능
   List<Buyer> getWithdrawnMembers();

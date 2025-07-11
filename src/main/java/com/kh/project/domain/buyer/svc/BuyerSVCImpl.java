@@ -33,10 +33,33 @@ public class BuyerSVCImpl implements BuyerSVC {
   public Buyer join(Buyer buyer) {
     log.info("구매자 회원가입 시도: email={}", buyer.getEmail());
 
-    // 중복 체크
-    if (buyerDAO.existsByEmail(buyer.getEmail())) {
-      throw new MemberException.EmailDuplicationException(buyer.getEmail());
+    // 1. 이메일로 회원 조회
+    Optional<Buyer> existingBuyerOpt = buyerDAO.findByEmail(buyer.getEmail());
+
+    if (existingBuyerOpt.isPresent()) {
+      Buyer existingBuyer = existingBuyerOpt.get();
+      // 2. 이미 존재하는 회원 처리
+      if (existingBuyer.isWithdrawn()) {
+        // 2-1. 탈퇴한 회원이면 재가입 처리
+        log.info("탈퇴한 회원 재가입 시도: email={}", buyer.getEmail());
+        buyer.setStatus("활성화"); // 상태 명시적 설정
+        int updatedRows = buyerDAO.rejoin(buyer);
+        if (updatedRows == 0) {
+          throw new MemberException.MemberNotFoundException(); // 재가입 대상이 사라진 경우
+        }
+        log.info("회원 재가입 성공: email={}", buyer.getEmail());
+        // rejoin은 ID를 반환하지 않으므로, 기존 ID를 설정하여 반환
+        buyer.setBuyerId(existingBuyer.getBuyerId()); 
+        return buyer;
+
+      } else {
+        // 2-2. 활성/정지 등 다른 상태의 회원이면 중복 오류
+        throw new MemberException.EmailDuplicationException(buyer.getEmail());
+      }
     }
+
+    // 3. 신규 회원 가입
+    // 닉네임 중복 체크 (신규 가입 시에만)
     if (buyer.getNickname() != null && buyerDAO.existsByNickname(buyer.getNickname())) {
       throw new BusinessException("이미 사용중인 닉네임입니다.");
     }
@@ -58,11 +81,19 @@ public class BuyerSVCImpl implements BuyerSVC {
     Buyer buyer = buyerDAO.findByEmail(email)
         .orElseThrow(() -> new MemberException.LoginFailedException());
 
+    // 1. 탈퇴한 회원인지 확인
+    if (buyer.isWithdrawn()) {
+      log.warn("탈퇴한 회원의 로그인 시도: email={}", email);
+      throw new MemberException.AlreadyWithdrawnException();
+    }
+
+    // 2. 활성 상태 계정인지 확인
     if (!buyer.canLogin()) {
       log.warn("로그인 불가능한 상태: email={}, status={}", email, buyer.getStatus());
       throw new MemberException.LoginFailedException();
     }
 
+    // 3. 비밀번호 확인
     if (!buyer.getPassword().equals(password)) {
       log.warn("비밀번호 불일치: email={}", email);
       throw new MemberException.LoginFailedException();
@@ -76,6 +107,12 @@ public class BuyerSVCImpl implements BuyerSVC {
   @Transactional(readOnly = true)
   public Optional<Buyer> findById(Long buyerId) {
     return buyerDAO.findById(buyerId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<Buyer> findByEmail(String email) {
+    return buyerDAO.findByEmail(email);
   }
 
   @Override
@@ -97,13 +134,21 @@ public class BuyerSVCImpl implements BuyerSVC {
 
   @Override
   public int withdraw(Long buyerId, String reason) {
-    // 구매자 존재 여부 확인
+    // 1. 탈퇴 가능 여부 확인
+    if (!canWithdraw(buyerId)) {
+      Map<String, Object> usage = getServiceUsage(buyerId);
+      List<String> blockReasons = (List<String>) usage.get("withdrawBlockReasons");
+      String reasonText = String.join(", ", blockReasons);
+      throw new BusinessException("탈퇴할 수 없습니다. 사유: " + reasonText);
+    }
+    
+    // 2. 구매자 존재 여부 확인 (canWithdraw에서 이미 확인하지만, 안전을 위해 유지)
     Optional<Buyer> buyer = buyerDAO.findById(buyerId);
     if (buyer.isEmpty()) {
       throw new BusinessException("구매자를 찾을 수 없습니다: " + buyerId);
     }
 
-    // 탈퇴 처리
+    // 3. 탈퇴 처리
     int updatedRows = buyerDAO.withdrawWithReason(buyerId, reason);
     if (updatedRows == 0) {
       throw new BusinessException("구매자 탈퇴 처리에 실패했습니다: " + buyerId);
@@ -239,6 +284,20 @@ public class BuyerSVCImpl implements BuyerSVC {
   public boolean canWithdraw(Long buyerId) {
     Map<String, Object> usage = getServiceUsage(buyerId);
     return (Boolean) usage.get("canWithdraw");
+  }
+
+  @Override
+  public Optional<Buyer> reactivate(String email, String password) {
+    log.info("구매자 계정 재활성화 시도: email={}", email);
+    
+    int updatedRows = buyerDAO.reactivate(email, password);
+    if (updatedRows == 0) {
+      log.warn("일치하는 탈퇴 계정이 없어 재활성화에 실패했습니다: email={}", email);
+      return Optional.empty();
+    }
+    
+    log.info("구매자 계정 재활성화 성공: email={}", email);
+    return buyerDAO.findByEmail(email);
   }
 
   @Override

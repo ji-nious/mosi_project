@@ -51,8 +51,8 @@ public class BuyerDAOImpl implements BuyerDAO {
     @Override
     public Buyer save(Buyer buyer) {
         String sql = """
-            INSERT INTO buyer (EMAIL, PASSWORD, NAME, NICKNAME, TEL, GENDER, BIRTH, ADDRESS, MEMBER_GUBUN, STATUS) 
-            VALUES (:email, :password, :name, :nickname, :tel, :gender, :birth, :address, :memberGubun, :status)
+            INSERT INTO buyer (EMAIL, PASSWORD, NAME, NICKNAME, TEL, GENDER, BIRTH, ADDRESS, STATUS) 
+            VALUES (:email, :password, :name, :nickname, :tel, :gender, :birth, :address, :status)
             """;
 
         SqlParameterSource param = new BeanPropertySqlParameterSource(buyer);
@@ -69,7 +69,7 @@ public class BuyerDAOImpl implements BuyerDAO {
 
     @Override
     public Optional<Buyer> findById(Long buyerId) {
-        String sql = BASE_SELECT + " WHERE Buyer_id = :buyerId AND STATUS != '탈퇴'";
+        String sql = BASE_SELECT + " WHERE Buyer_id = :buyerId";
 
         try {
             MapSqlParameterSource param = new MapSqlParameterSource("buyerId", buyerId);
@@ -85,7 +85,7 @@ public class BuyerDAOImpl implements BuyerDAO {
 
     @Override
     public Optional<Buyer> findByEmail(String email) {
-        String sql = BASE_SELECT + " WHERE EMAIL = :email AND STATUS != '탈퇴'";
+        String sql = BASE_SELECT + " WHERE EMAIL = :email";
 
         try {
             MapSqlParameterSource param = new MapSqlParameterSource("email", email);
@@ -100,7 +100,7 @@ public class BuyerDAOImpl implements BuyerDAO {
 
     @Override
     public boolean existsByEmail(String email) {
-        String sql = "SELECT COUNT(*) FROM buyer WHERE EMAIL = :email AND STATUS IN ('활성화', '비활성화', '정지')";
+        String sql = "SELECT COUNT(*) FROM buyer WHERE EMAIL = :email";
 
         MapSqlParameterSource param = new MapSqlParameterSource("email", email);
 
@@ -202,5 +202,46 @@ public class BuyerDAOImpl implements BuyerDAO {
         String sql = BASE_SELECT + " WHERE STATUS != '탈퇴' ORDER BY CDATE DESC";
 
         return template.query(sql, BeanPropertyRowMapper.newInstance(Buyer.class));
+    }
+
+    @Override
+    public int rejoin(Buyer buyer) {
+        String sql = """
+            UPDATE buyer SET
+                PASSWORD = :password,
+                NAME = :name,
+                NICKNAME = :nickname,
+                TEL = :tel,
+                GENDER = :gender,
+                BIRTH = :birth,
+                ADDRESS = :address,
+                STATUS = '활성화',
+                UDATE = SYSTIMESTAMP,
+                withdrawn_at = null,
+                withdrawn_reason = null
+            WHERE email = :email AND STATUS = '탈퇴'
+            """;
+        
+        SqlParameterSource param = new BeanPropertySqlParameterSource(buyer);
+        return template.update(sql, param);
+    }
+
+    @Override
+    public int reactivate(String email, String password) {
+        String sql = """
+            UPDATE buyer SET
+                PASSWORD = :password,
+                STATUS = '활성화',
+                UDATE = SYSTIMESTAMP,
+                withdrawn_at = null,
+                withdrawn_reason = null
+            WHERE email = :email AND STATUS = '탈퇴'
+            """;
+        
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("email", email);
+        param.addValue("password", password);
+        
+        return template.update(sql, param);
     }
 }

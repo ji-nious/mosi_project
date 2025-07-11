@@ -1,5 +1,6 @@
 package com.kh.project.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,6 +14,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /**
  * Spring Security 설정 클래스
@@ -20,6 +22,7 @@ import java.util.Arrays;
  */
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
   /**
@@ -41,37 +44,27 @@ public class SecurityConfig {
    * @throws Exception 설정 오류시
    */
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
-        // CORS 설정 적용
-        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-        // CSRF 비활성화
-        .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
-            // 정적 리소스는 인증 없이 허용
-            .requestMatchers("/css/**", "/js/**", "/images/**", "/static/**", "/favicon.ico", "/webjars/**").permitAll()
-            // 에러 페이지 허용
-            .requestMatchers("/error").permitAll()
-            // API 및 공통 기능 허용
-            .requestMatchers("/api/**", "/common/**").permitAll()
-            // 로그인/회원가입/로그아웃 페이지 허용
-            .requestMatchers("/login", "/signup", "/logout").permitAll()
-            .requestMatchers("/buyer/login", "/buyer/signup", "/seller/login", "/seller/signup").permitAll()
-            // 구매자/판매자 기능 허용 (자체 세션 인증 사용)
-            .requestMatchers("/buyer/**", "/seller/**").permitAll()
-            // 메인 페이지 허용
-            .requestMatchers("/", "/home").permitAll()
-            // 나머지는 인증 필요
-            .anyRequest().authenticated()
+            .requestMatchers("/", "/home", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll()
+            .requestMatchers("/common/**", "/error/**").permitAll()
+            .requestMatchers("/buyer/login", "/buyer/signup").permitAll()
+            .requestMatchers("/seller/login", "/seller/signup").permitAll()
+            .anyRequest().authenticated() 
         )
-        .formLogin(AbstractHttpConfigurer::disable)
+        .formLogin(form -> form
+            .loginPage("/common/select_login") 
+            .permitAll()
+        )
         .logout(logout -> logout
             .logoutUrl("/logout")
             .logoutSuccessUrl("/")
             .invalidateHttpSession(true)
             .deleteCookies("JSESSIONID")
-            .permitAll());
-
+        )
+        .csrf(csrf -> csrf.disable()); 
+            
     return http.build();
   }
 

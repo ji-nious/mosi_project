@@ -9,6 +9,8 @@ import com.kh.project.web.common.LoginMember;
 import com.kh.project.web.common.dto.BuyerSignupForm;
 import com.kh.project.web.common.dto.BuyerEditForm;
 import com.kh.project.web.common.dto.LoginForm;
+import com.kh.project.web.exception.BusinessException;
+import com.kh.project.web.exception.MemberException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * 구매자 페이지 컨트롤러
@@ -74,6 +77,10 @@ public class BuyerPageController {
       log.info("구매자 로그인 성공: buyerId={}", buyer.getBuyerId());
       return "redirect:/";
       
+    } catch (MemberException.AlreadyWithdrawnException e) {
+      log.warn("탈퇴한 회원의 로그인 시도: email={}", loginForm.getEmail());
+      redirectAttributes.addFlashAttribute("error", "탈퇴한 회원입니다. 재가입을 원하시면 동일한 정보로 회원가입을 진행해주세요.");
+      return "redirect:/buyer/login";
     } catch (Exception e) {
       // 5. 로그인 실패
       log.error("구매자 로그인 실패: email={}, error={}", loginForm.getEmail(), e.getMessage());
@@ -121,7 +128,30 @@ public class BuyerPageController {
                            RedirectAttributes redirectAttributes,
                            Model model) {
     log.info("구매자 회원가입 처리: email={}", signupForm.getEmail());
-    
+
+    // 1. 탈퇴 회원 재활성화 시도
+    Optional<Buyer> withdrawnBuyer = buyerSVC.findByEmail(signupForm.getEmail())
+        .filter(Buyer::isWithdrawn);
+
+    if (withdrawnBuyer.isPresent()) {
+      Optional<Buyer> reactivatedBuyer = buyerSVC.reactivate(signupForm.getEmail(), signupForm.getPassword());
+      if (reactivatedBuyer.isPresent()) {
+        // 재활성화 성공 시 바로 로그인
+        Buyer buyer = reactivatedBuyer.get();
+        LoginMember loginMember = LoginMember.buyer(buyer.getBuyerId(), buyer.getEmail());
+        session.setAttribute("loginMember", loginMember);
+        session.setMaxInactiveInterval(1800);
+        
+        redirectAttributes.addFlashAttribute("message", "계정이 다시 활성화되었습니다. 환영합니다!");
+        return "redirect:/";
+      } else {
+        // 재활성화 실패 (드문 경우)
+        bindingResult.reject("reactivate.fail", "계정 재활성화에 실패했습니다. 관리자에게 문의하세요.");
+        return "buyer/buyer_signup";
+      }
+    }
+
+    // 2. 신규 회원 가입 유효성 검사
     if (bindingResult.hasErrors()) {
       return "buyer/buyer_signup";
     }
@@ -160,7 +190,8 @@ public class BuyerPageController {
       } else if (e.getMessage().contains("닉네임")) {
         bindingResult.rejectValue("nickname", "error.nickname", e.getMessage());
       } else {
-        model.addAttribute("error", e.getMessage());
+        log.error("Unhandled signup error: {}", e.getMessage(), e); // 스택 트레이스 로깅
+        bindingResult.reject("signup.fail", "회원가입 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
       }
       
       return "buyer/buyer_signup";
@@ -313,17 +344,18 @@ public class BuyerPageController {
   }
   
   @PostMapping("/withdraw")
-  public String buyerWithdraw(HttpSession session, 
+  public String buyerWithdraw(HttpSession session,
                              RedirectAttributes redirectAttributes,
-                             String password, String reason) {
+                             @RequestParam("password") String password,
+                             @RequestParam("reason") String reason) {
     log.info("구매자 탈퇴 처리");
-    
+
     Buyer buyer = getAuthenticatedBuyer(session);
     if (buyer == null) {
       redirectAttributes.addFlashAttribute("message", "로그인이 필요합니다.");
       return "redirect:/buyer/login";
     }
-    
+
     try {
       // 비밀번호 확인
       if (!buyerSVC.checkPassword(buyer.getBuyerId(), password)) {
@@ -339,10 +371,14 @@ public class BuyerPageController {
       
       redirectAttributes.addFlashAttribute("message", "회원탈퇴가 완료되었습니다.");
       return "redirect:/";
-      
+
+    } catch (BusinessException e) {
+      log.warn("구매자 탈퇴 비즈니스 로직 실패: buyerId={}, error={}", buyer.getBuyerId(), e.getMessage());
+      redirectAttributes.addFlashAttribute("error", e.getMessage());
+      return "redirect:/buyer/withdraw";
     } catch (Exception e) {
       log.error("구매자 탈퇴 실패: buyerId={}, error={}", buyer.getBuyerId(), e.getMessage());
-      redirectAttributes.addFlashAttribute("error", "탈퇴 처리 중 오류가 발생했습니다: " + e.getMessage());
+      redirectAttributes.addFlashAttribute("error", "탈퇴 처리 중 오류가 발생했습니다.");
       return "redirect:/buyer/withdraw";
     }
   }
