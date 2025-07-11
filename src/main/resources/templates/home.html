@@ -259,103 +259,85 @@
   </style>
 </head>
 <body>
-<div class="navbar8-container">
-  <header data-thq="thq-navbar" class="navbar8-container1">
-    <header class="navbar8-navbar-interactive">
-      <a th:href="@{/}">
-        <img
-          alt="로고"
-          th:src="@{/images/free-icon-sprout-7101338.png}"
-          class="navbar8-image1"
-        />
+  <!-- Navbar -->
+  <header class="navbar8-container1">
+    <div class="navbar8-navbar-interactive">
+      <a href="/">
+        <img src="/images/free-icon-sprout-7101338.png" alt="로고" class="navbar8-image1"/>
       </a>
-      <div class="navbar8-links1">
-        <a th:href="@{/}" class="thq-link">
-          <span>홈</span>
-        </a>
-        <a href="#" class="thq-link">
-          <span>소개</span>
-        </a>
-        <a href="#" class="thq-link">
-          <span>게시물</span>
-        </a>
-        <a href="#" class="thq-link">
-          <span>연락처</span>
-        </a>
+      <div class="navbar8-buttons1">
+        <button class="thq-button-outline" onclick="location.href='/login'">로그인</button>
+        <button class="thq-button-filled" onclick="location.href='/signup'">회원가입</button>
       </div>
-      <div data-thq="thq-navbar-btn-group" class="navbar8-buttons1">
-        <a
-          th:href="@{/login}"
-          class="thq-button-outline thq-button-outline"
-        >
-          <span>로그인</span>
-        </a>
-        <a
-          th:href="@{/signup}"
-          class="thq-button-filled thq-button-filled"
-        >
-          <span>회원가입</span>
-        </a>
-      </div>
-    </header>
+    </div>
   </header>
-  <div class="hero17-header78">
+  <!-- Hero -->
+  <section class="hero17-header78">
     <div class="hero17-column">
       <div class="hero17-content1">
-        <h1 class="thq-heading-1">신선한 세상을 만나다</h1>
-        <p class="thq-body-large">
-          가장 신선한 농산물을 집 앞까지, 생산자의 정성을 그대로 전해드립니다.
-        </p>
+        <h1 class="thq-heading-1">소비자에게 신뢰할 수 있는 고품질 농산물을 제공하는 직거래 온라인 플랫폼</h1>
+        <p class="thq-body-large">농사를 즐겁게, 소비를 이롭게</p>
       </div>
-      <div class="hero17-actions">
-        <a th:href="@{/signup}" class="thq-button-filled hero17-button">
-          <span>지금 시작하기</span>
-        </a>
-        <a href="#" class="thq-button-outline hero17-button1">
-          <span>더 알아보기</span>
-        </a>
-      </div>
+      <!-- <div class="hero17-actions">
+        <button class="thq-button-filled">회원 가입</button>
+        <button class="thq-button-outline">자세히 보기</button>
+      </div> -->
     </div>
-  </div>
-  <div class="posts-section">
+  </section>
+  <!-- Posts Grid -->
+  <section class="posts-section">
     <div class="posts-container">
-      <h2>추천 상품</h2>
-      <div class="posts-grid">
-        <!-- Post Card 1 -->
-        <a href="#" class="post-card">
-          <img src="https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?ixid=M3w5MTMyMXwwfDF8c2VhcmNofDEyfHxmcmVzaCUyMHN0cmF3YmVycmllc3xlbnwwfHx8fDE3MTk0NjA5MDh8MA&ixlib=rb-4.0.3&w=1500" alt="신선한 딸기" />
-          <div class="post-info">
-            <p class="post-title"> GAP 인증 논산 설향 딸기 500g</p>
-            <span class="post-price">12,900원</span>
-          </div>
-        </a>
-        <!-- Post Card 2 -->
-        <a href="#" class="post-card">
-          <img src="https://images.unsplash.com/photo-1590004953392-5aba7e72269a?ixid=M3w5MTMyMXwwfDF8c2VhcmNofDJ8fGZyZXNoJTIwdG9tYXRvZXN8ZW58MHx8fHwxNzE5NDYwOTQxfDA&ixlib=rb-4.0.3&w=1500" alt="대추방울토마토" />
-          <div class="post-info">
-            <p class="post-title">달콤한 대추방울토마토 1kg</p>
-            <span class="post-price">9,800원</span>
-          </div>
-        </a>
-        <!-- Post Card 3 -->
-        <a href="#" class="post-card">
-          <img src="https://images.unsplash.com/photo-1587496679742-902f4ab9f3b8?ixid=M3w5MTMyMXwwfDF8c2VhcmNofDR8fGZyZXNoJTIwYXZvY2Fkb3xlbnwwfHx8fDE3MTk0NjA5NjV8MA&ixlib=rb-4.0.3&w=1500" alt="아보카도" />
-          <div class="post-info">
-            <p class="post-title">프리미엄 항공직송 아보카도 2개</p>
-            <span class="post-price">7,500원</span>
-          </div>
-        </a>
-        <!-- Post Card 4 -->
-        <a href="#" class="post-card">
-          <img src="https://images.unsplash.com/photo-1528825871115-3581a5387919?ixid=M3w5MTMyMXwwfDF8c2VhcmNofDN8fGZyZXNoJTIwYmFuYW5hc3xlbnwwfHx8fDE3MTk0NjEwMDV8MA&ixlib=rb-4.0.3&w=1500" alt="바나나" />
-          <div class="post-info">
-            <p class="post-title">고산지 스위트 바나나 한 송이</p>
-            <span class="post-price">3,200원</span>
-          </div>
-        </a>
-      </div>
+        <div class="posts-grid" id="postsGrid">
+            <!-- JS Renders Posts Here -->
+        </div>
     </div>
-  </div>
-</div>
+  </section>
+  <script>
+    // posts 데이터는 실제 API에서 받아오도록 교체 가능
+    // {id, title, imageUrl, price}
+    const posts = [
+      {id: 1, title: "청정 고랭지 양배추 1통", imageUrl: "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?auto=format&fit=crop&w=400&q=80", price: "5,500원"},
+      {id: 2, title: "아삭하고 달콤한 가을 무 1개", imageUrl: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80", price: "3,000원"},
+      {id: 3, title: "유기농 시금치 1단", imageUrl: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80", price: "4,000원"},
+      {id: 4, title: "신선한 로메인 상추 200g", imageUrl: "https://cdn.pixabay.com/photo/2014/07/23/11/51/kiwifruit-400143_1280.jpg", price: "3,500원"},
+      {id: 5, title: "색깔별 파프리카 3종 세트", imageUrl: "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?auto=format&fit=crop&w=400&q=80", price: "6,000원"},
+      {id: 6, title: "싱싱한 다다기 오이 3개입", imageUrl: "https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=400&q=80", price: "4,200원"},
+      {id: 7, title: "통통한 애호박 1개", imageUrl: "https://images.unsplash.com/photo-1506084868230-bb9d95c24759?auto=format&fit=crop&w=400&q=80", price: "2,800원"},
+      {id: 8, title: "햇 양파 1.5kg 한 망", imageUrl: "https://cdn.pixabay.com/photo/2017/08/13/00/58/raspberry-2635886_640.jpg", price: "5,900원"},
+      {id: 9, title: "국산 6쪽마늘 500g", imageUrl: "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?auto=format&fit=crop&w=400&q=80", price: "8,800원"},
+      {id: 10, title: "포슬포슬 햇 감자 1kg", imageUrl: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80", price: "6,500원"},
+      {id: 11, title: "꿀처럼 달콤한 호박고구마 1kg", imageUrl: "https://cdn.pixabay.com/photo/2021/10/31/14/43/avocados-6757663_640.jpg", price: "9,900원"},
+      {id: 12, title: "신선 브로콜리 1송이", imageUrl: "https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=400&q=80", price: "3,700원"},
+      {id: 13, title: "산지직송 무농약 당근 1kg", imageUrl: "https://images.unsplash.com/photo-1506084868230-bb9d95c24759?auto=format&fit=crop&w=400&q=80", price: "7,000원"},
+      {id: 14, title: "GAP 인증 부사 사과 2kg (5-6과)", imageUrl: "https://cdn.pixabay.com/photo/2013/10/17/10/59/pomegranate-196800_640.jpg", price: "15,000원"},
+      {id: 15, title: "고당도 샤인머스캣 1kg", imageUrl: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80", price: "25,000원"},
+      {id: 16, title: "논산 설향 딸기 500g", imageUrl: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80", price: "18,000원"},
+      {id: 17, title: "제주산 하우스 감귤 2.5kg", imageUrl: "https://cdn.pixabay.com/photo/2020/09/02/10/20/hass-avocados-5537945_640.jpg", price: "16,000원"},
+      {id: 18, title: "아보카도 3개입", imageUrl: "https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=400&q=80", price: "7,500원"},
+      {id: 19, title: "국내산 블루베리 200g", imageUrl: "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?auto=format&fit=crop&w=400&q=80", price: "9,000원"},
+      {id: 20, title: "새송이 버섯 1봉", imageUrl: "https://cdn.pixabay.com/photo/2020/09/04/11/28/apples-5543778_640.jpg", price: "2,500원"},
+      {id: 21, title: "무농약 대추방울토마토 500g", imageUrl: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80", price: "8,500원"},
+      {id: 22, title: "강원도 찰옥수수 5개입", imageUrl: "https://images.unsplash.com/photo-1506084868230-bb9d95c24759?auto=format&fit=crop&w=400&q=80", price: "9,900원"},
+      {id: 23, title: "해남 포기김치 3kg", imageUrl: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80", price: "29,000원"},
+      {id: 24, title: "완숙 토마토 1kg", imageUrl: "https://cdn.pixabay.com/photo/2015/02/14/18/10/pineapple-636562_640.jpg", price: "11,000원"}
+    ];
+
+    function renderPostGrid(posts, gridElem) {
+        gridElem.innerHTML = posts.map(post => `
+            <a href="/buyer/buyer_product_detail" class="post-card" title="${post.title}">
+                <img src="${post.imageUrl}" alt="${post.title}">
+                <div class="post-info">
+                    <p class="post-title">${post.title}</p>
+                    <p class="post-price">${post.price}</p>
+                </div>
+            </a>
+        `).join('');
+    }
+
+    const postsGrid = document.getElementById('postsGrid');
+    if (postsGrid) {
+        renderPostGrid(posts, postsGrid);
+    }
+  </script>
 </body>
 </html>
