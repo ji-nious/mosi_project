@@ -8,6 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+/**
+ * 로그인 체크 인터셉터
+ */
 @Slf4j
 @Component
 public class LoginCheckInterceptor implements HandlerInterceptor {

@@ -12,7 +12,6 @@ import java.util.Date;
 
 /**
  * 구매자 엔티티
- * 구매자의 기본 정보, 등급, 상태 관리
  */
 @Data
 @NoArgsConstructor
@@ -52,9 +51,7 @@ public class Buyer {
   @Size(max = 200, message = "주소는 200자 이내여야 합니다.")
   private String address;
 
-  /** 회원 등급 코드 (NEW, BRONZE, SILVER, GOLD) */
   private String memberGubun = "NEW";
-
   private byte[] pic;
   private String status = "활성화";
   private Date cdate;
@@ -64,8 +61,6 @@ public class Buyer {
 
   /**
    * 로그인 가능 여부 확인
-   * 
-   * @return boolean - 활성화 상태이고 탈퇴하지 않은 경우 true
    */
   public boolean canLogin() {
     return "활성화".equals(this.status) && this.withdrawnAt == null;
@@ -73,37 +68,8 @@ public class Buyer {
 
   /**
    * 탈퇴 여부 확인
-   * 
-   * @return boolean - 탈퇴 상태인 경우 true
    */
   public boolean isWithdrawn() {
     return "탈퇴".equals(this.status);
-  }
-
-  /**
-   * 회원 등급 업그레이드
-   * 
-   * @param newGubun 새로운 회원 등급
-   */
-  public void upgradeMemberGubun(MemberGubun newGubun) {
-    this.memberGubun = newGubun.getCode();
-  }
-
-  /**
-   * 현재 회원 등급 객체 조회
-   * 
-   * @return MemberGubun - 현재 등급 객체
-   */
-  public MemberGubun getCurrentMemberGubun() {
-    return com.kh.project.web.common.MemberGubunUtils.fromCodeOrDefault(this.memberGubun);
-  }
-
-  /**
-   * 회원 등급 설명 조회
-   * 
-   * @return String - 등급 설명 (예: "신규회원", "브론즈회원")
-   */
-  public String getMemberGubunDescription() {
-    return getCurrentMemberGubun().getDescription();
   }
 }

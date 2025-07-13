@@ -5,7 +5,9 @@ import com.kh.project.domain.seller.svc.SellerSVC;
 import com.kh.project.domain.entity.Buyer;
 import com.kh.project.domain.entity.Seller;
 import com.kh.project.web.common.CodeNameInfo;
+import com.kh.project.web.common.CommonConstants;
 import com.kh.project.web.common.LoginMember;
+import com.kh.project.web.common.SessionService;
 import com.kh.project.web.common.dto.BuyerSignupForm;
 import com.kh.project.web.common.dto.BuyerEditForm;
 import com.kh.project.web.common.dto.LoginForm;
@@ -45,6 +47,7 @@ public class BuyerPageController {
   private final BuyerSVC buyerSVC;
   private final SellerSVC sellerSVC;
   private final Validator validator;
+  private final SessionService sessionService;
 
   @GetMapping("/login")
   public String buyerLogin(Model model) {
@@ -71,8 +74,8 @@ public class BuyerPageController {
       
       // 3. 세션 생성
                   LoginMember loginMember = LoginMember.buyer(buyer.getBuyerId(), buyer.getEmail());
-      session.setAttribute("loginMember", loginMember);
-      session.setMaxInactiveInterval(1800);
+      session.setAttribute(CommonConstants.LOGIN_MEMBER_KEY, loginMember);
+      session.setMaxInactiveInterval(CommonConstants.SESSION_TIMEOUT);
       
       // 4. 성공 메시지와 리디렉션
       redirectAttributes.addFlashAttribute("message", "로그인에 성공했습니다.");
@@ -96,17 +99,17 @@ public class BuyerPageController {
     log.info("구매자 회원가입 페이지 요청");
     
     // 로그인 사용자 정보 조회 (홈페이지와 동일한 로직)
-    LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
+    LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
     if (loginMember != null) {
       try {
-        if ("BUYER".equals(loginMember.getMemberType())) {
+        if (CommonConstants.MEMBER_TYPE_BUYER.equals(loginMember.getMemberType())) {
           Optional<Buyer> buyerOpt = buyerSVC.findById(loginMember.getId());
           if (buyerOpt.isPresent()) {
             Buyer buyer = buyerOpt.get();
             model.addAttribute("userNickname", buyer.getNickname());
             model.addAttribute("userName", buyer.getName());
           }
-        } else if ("SELLER".equals(loginMember.getMemberType())) {
+        } else if (CommonConstants.MEMBER_TYPE_SELLER.equals(loginMember.getMemberType())) {
           Optional<Seller> sellerOpt = sellerSVC.findById(loginMember.getId());
           if (sellerOpt.isPresent()) {
             Seller seller = sellerOpt.get();
@@ -168,13 +171,9 @@ public class BuyerPageController {
       
       Buyer processedBuyer = buyerSVC.join(buyer);
       
-      // 3. 성공 처리 (자동 로그인 및 리디렉션)
-      LoginMember loginMember = LoginMember.buyer(processedBuyer.getBuyerId(), processedBuyer.getEmail());
-      session.setAttribute("loginMember", loginMember);
-      session.setMaxInactiveInterval(1800);
-      
-      redirectAttributes.addFlashAttribute("message", "회원가입(또는 계정 활성화)이 완료되었습니다. 환영합니다!");
-      log.info("구매자 회원가입/재활성화 성공: buyerId={}", processedBuyer.getBuyerId());
+      // 회원가입 완료 처리 (자동 로그인 제거)
+      redirectAttributes.addFlashAttribute("message", "회원가입이 완료되었습니다. 로그인해 주세요.");
+      log.info("구매자 회원가입 성공: buyerId={}", processedBuyer.getBuyerId());
       return "redirect:/";
       
     } catch (BusinessException e) {
@@ -343,37 +342,45 @@ public class BuyerPageController {
                              RedirectAttributes redirectAttributes,
                              @RequestParam("password") String password,
                              @RequestParam("reason") String reason) {
-    log.info("구매자 탈퇴 처리");
+    log.info("구매자 탈퇴 처리 요청");
 
     Buyer buyer = getAuthenticatedBuyer(session);
     if (buyer == null) {
-      redirectAttributes.addFlashAttribute("message", "로그인이 필요합니다.");
+      redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
       return "redirect:/buyer/login";
     }
 
     try {
-      // 비밀번호 확인
+      // 1. 비밀번호 확인
       if (!buyerSVC.checkPassword(buyer.getBuyerId(), password)) {
         redirectAttributes.addFlashAttribute("error", "비밀번호가 올바르지 않습니다.");
         return "redirect:/buyer/withdraw";
       }
       
-      // 탈퇴 처리
-      buyerSVC.withdraw(buyer.getBuyerId(), reason);
+      // 2. 탈퇴 가능 여부 확인
+      boolean canWithdraw = buyerSVC.canWithdraw(buyer.getBuyerId());
       
-      // 세션 무효화
-      session.invalidate();
-      
-      redirectAttributes.addFlashAttribute("message", "회원탈퇴가 완료되었습니다.");
-      return "redirect:/";
+      if (canWithdraw) {
+        // 3. 탈퇴 처리
+        buyerSVC.withdraw(buyer.getBuyerId(), reason);
+        session.invalidate(); // 세션 무효화
+        redirectAttributes.addFlashAttribute("message", "회원 탈퇴가 정상적으로 처리되었습니다.");
+        log.info("구매자 탈퇴 성공: buyerId={}", buyer.getBuyerId());
+        return "redirect:/";
+      } else {
+        // 4. 탈퇴 불가 처리
+        Map<String, Object> usage = buyerSVC.getServiceUsage(buyer.getBuyerId());
+        @SuppressWarnings("unchecked")
+        String reasons = String.join(", ", (java.util.List<String>) usage.get("withdrawBlockReasons"));
+        
+        redirectAttributes.addFlashAttribute("error", "다음 사유로 탈퇴할 수 없습니다: " + reasons);
+        log.warn("구매자 탈퇴 실패 (탈퇴 불가): buyerId={}, reasons={}", buyer.getBuyerId(), reasons);
+        return "redirect:/buyer/withdraw";
+      }
 
-    } catch (BusinessException e) {
-      log.warn("구매자 탈퇴 비즈니스 로직 실패: buyerId={}, error={}", buyer.getBuyerId(), e.getMessage());
-      redirectAttributes.addFlashAttribute("error", e.getMessage());
-      return "redirect:/buyer/withdraw";
     } catch (Exception e) {
-      log.error("구매자 탈퇴 실패: buyerId={}, error={}", buyer.getBuyerId(), e.getMessage());
-      redirectAttributes.addFlashAttribute("error", "탈퇴 처리 중 오류가 발생했습니다.");
+      log.error("구매자 탈퇴 처리 중 오류 발생: buyerId={}, error={}", buyer.getBuyerId(), e.getMessage());
+      redirectAttributes.addFlashAttribute("error", "탈퇴 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
       return "redirect:/buyer/withdraw";
     }
   }
@@ -385,7 +392,7 @@ public class BuyerPageController {
     Buyer buyer = getAuthenticatedBuyer(session);
     if (buyer == null) {
       redirectAttributes.addFlashAttribute("message", "로그인이 필요합니다.");
-      return "redirect:/common/select_login";
+      return "redirect:/buyer/login";
     }
     
     addBuyerInfoToModel(model, buyer);
@@ -395,38 +402,8 @@ public class BuyerPageController {
   @PostMapping("/verify-password")
   @ResponseBody
   public Map<String, Object> verifyPassword(@RequestBody Map<String, String> request, HttpSession session) {
-    Map<String, Object> response = new HashMap<>();
-    
-    try {
-      Buyer buyer = getAuthenticatedBuyer(session);
-      if (buyer == null) {
-        response.put("success", false);
-        response.put("message", "로그인이 필요합니다.");
-        return response;
-      }
-      
-      String inputPassword = request.get("password");
-      if (inputPassword == null || inputPassword.trim().isEmpty()) {
-        response.put("success", false);
-        response.put("message", "비밀번호를 입력해주세요.");
-        return response;
-      }
-      
-      boolean isValid = buyerSVC.checkPassword(buyer.getBuyerId(), inputPassword);
-      response.put("success", isValid);
-      
-      if (!isValid) {
-        response.put("message", "비밀번호가 틀렸습니다.");
-      }
-      
-      return response;
-      
-    } catch (Exception e) {
-      log.error("비밀번호 확인 중 오류 발생", e);
-      response.put("success", false);
-      response.put("message", "서버 오류가 발생했습니다.");
-      return response;
-    }
+    String password = request.get("password");
+    return sessionService.verifyPassword(session, password);
   }
   
   // ============ 호환성 유지 메서드들 ============
@@ -535,13 +512,13 @@ public class BuyerPageController {
 
   private Buyer getAuthenticatedBuyer(HttpSession session) {
     try {
-      LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
+      LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
       if (loginMember == null) {
         log.warn("세션에 로그인 정보가 없습니다.");
         return null;
       }
       
-      if (!"BUYER".equals(loginMember.getMemberType())) {
+      if (!CommonConstants.MEMBER_TYPE_BUYER.equals(loginMember.getMemberType())) {
         log.warn("구매자 세션이 아닙니다: {}", loginMember.getMemberType());
         return null;
       }

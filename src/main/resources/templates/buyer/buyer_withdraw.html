@@ -25,7 +25,7 @@
       <li>탈퇴 시 모든 개인정보가 삭제되며 복구가 불가능합니다.</li>
       <li>진행 중인 주문이 있다면 완료 후 탈퇴를 진행해주세요.</li>
       <li>적립금, 쿠폰 등 모든 혜택이 사라집니다.</li>
-      <li>동일한 이메일로 재가입이 제한될 수 있습니다.</li>
+      <li>동일한 이메일로 언제든 재가입이 가능합니다.</li>
     </ul>
   </div>
 
@@ -45,8 +45,8 @@
       <select id="reason" name="reason">
         <option value="">선택해주세요</option>
         <option value="no_use">더 이상 이용하지 않음</option>
-        <option value="inconvenience">서비스 불편함</option>
         <option value="privacy">개인정보 우려</option>
+        <option value="service_inconvenience">서비스 이용 불편</option>
         <option value="other">기타</option>
       </select>
       <div class="error-msg" id="error-reason"></div>
@@ -64,7 +64,7 @@
 <script>
 // Form Submit에 확인창만 추가
 document.querySelector('form').addEventListener('submit', function(e) {
-  if (!confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+  if (!confirm('정말로 탈퇴하시겠습니까? 모든 개인정보가 삭제되며 진행 중인 주문, 적립금, 쿠폰 등이 사라집니다. 이 작업은 되돌릴 수 없습니다.')) {
     e.preventDefault();
   }
 });

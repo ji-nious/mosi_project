@@ -93,4 +93,12 @@ public interface SellerSVC {
    * 탈퇴 가능 여부 판단
    */
   boolean canWithdraw(Long sellerId);
+
+  /**
+   * 탈퇴한 판매자 계정 재활성화
+   * @param email 대상 이메일
+   * @param password 새로운 비밀번호
+   * @return 재활성화된 판매자 정보
+   */
+  Optional<Seller> reactivate(String email, String password);
 }

@@ -2,11 +2,9 @@ package com.kh.project.web.api;
 
 import com.kh.project.domain.buyer.svc.BuyerSVC;
 import com.kh.project.domain.entity.Buyer;
-import com.kh.project.web.common.ApiResponse;
-import com.kh.project.web.common.AuthUtils;
-import com.kh.project.web.common.LoginMember;
-import com.kh.project.web.common.MemberGubunUtils;
+import com.kh.project.web.common.*;
 import com.kh.project.web.common.dto.BuyerSignupForm;
+import com.kh.project.web.exception.BusinessException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -58,11 +57,6 @@ public class BuyerApiController {
     Buyer savedBuyer = buyerSVC.join(buyer);
     log.info("구매자 회원가입 성공: buyerId={}", savedBuyer.getBuyerId());
 
-    // 자동 로그인
-                LoginMember loginMember = LoginMember.buyer(savedBuyer.getBuyerId(), savedBuyer.getEmail());
-    session.setAttribute("loginMember", loginMember);
-    session.setMaxInactiveInterval(1800);
-
     Map<String, Object> response = ApiResponse.joinSuccess(savedBuyer, 
         MemberGubunUtils.getDescriptionByCode(savedBuyer.getMemberGubun()));
     
@@ -87,8 +81,8 @@ public class BuyerApiController {
       
       Buyer buyer = buyerSVC.login(email, password);
                   LoginMember loginMember = LoginMember.buyer(buyer.getBuyerId(), buyer.getEmail());
-      session.setAttribute("loginMember", loginMember);
-      session.setMaxInactiveInterval(1800);
+      session.setAttribute(CommonConstants.LOGIN_MEMBER_KEY, loginMember);
+      session.setMaxInactiveInterval(CommonConstants.SESSION_TIMEOUT);
       
       String gubunName = MemberGubunUtils.getDescriptionByCode(buyer.getMemberGubun());
       boolean canLogin = buyerSVC.canLogin(buyer);
@@ -96,10 +90,14 @@ public class BuyerApiController {
       
       log.info("구매자 로그인 성공: buyerId={}", buyer.getBuyerId());
       return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error("구매자 로그인 실패: email={}, error={}", loginRequest.get("email"), e.getMessage());
+    } catch (BusinessException e) {
+      log.warn("구매자 로그인 실패 (비즈니스 로직): email={}", loginRequest.get("email"), e);
       Map<String, Object> response = ApiResponse.error("이메일 또는 비밀번호가 올바르지 않습니다.");
       return ResponseEntity.badRequest().body(response);
+    } catch (Exception e) {
+      log.error("구매자 로그인 실패 (시스템 오류): email={}", loginRequest.get("email"), e);
+      Map<String, Object> response = ApiResponse.error("로그인 처리 중 오류가 발생했습니다.");
+      return ResponseEntity.internalServerError().body(response);
     }
   }
 
@@ -113,8 +111,8 @@ public class BuyerApiController {
   public ResponseEntity<Map<String, Object>> getBuyerInfo(HttpSession session) {
     try {
       log.info("구매자 정보 조회 요청");
-      LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
-      if (loginMember == null || !"BUYER".equals(loginMember.getMemberType())) {
+      LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
+      if (loginMember == null || !CommonConstants.MEMBER_TYPE_BUYER.equals(loginMember.getMemberType())) {
         return ResponseEntity.status(401).body(ApiResponse.error("로그인이 필요합니다."));
       }
       
@@ -133,9 +131,12 @@ public class BuyerApiController {
       Map<String, Object> response = ApiResponse.entitySuccess("회원 정보 조회 성공", buyer, additionalData);
       log.info("구매자 정보 조회 성공: buyerId={}", buyer.getBuyerId());
       return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error("구매자 정보 조회 실패: error={}", e.getMessage());
+    } catch (BusinessException e) {
+      log.warn("구매자 정보 조회 실패 (비즈니스 로직)", e);
       return ResponseEntity.badRequest().body(ApiResponse.error("회원 정보 조회에 실패했습니다."));
+    } catch (Exception e) {
+      log.error("구매자 정보 조회 실패 (시스템 오류)", e);
+      return ResponseEntity.internalServerError().body(ApiResponse.error("시스템 오류가 발생했습니다."));
     }
   }
 
@@ -218,11 +219,14 @@ public class BuyerApiController {
       }
     } catch (SecurityException e) {
       log.warn("권한 없는 정보 수정 시도: buyerId={}", buyerId);
-      return ResponseEntity.status(403).body(ApiResponse.error(e.getMessage()));
-    } catch (Exception e) {
-      log.error("정보 수정 실패: buyerId={}, error={}", buyerId, e.getMessage());
-      return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-    }
+              return ResponseEntity.status(403).body(ApiResponse.error("권한이 없습니다."));
+      } catch (BusinessException e) {
+        log.warn("정보 수정 실패 (비즈니스 로직): buyerId={}", buyerId, e);
+        return ResponseEntity.badRequest().body(ApiResponse.error("정보 수정에 실패했습니다."));
+      } catch (Exception e) {
+        log.error("정보 수정 실패 (시스템 오류): buyerId={}", buyerId, e);
+        return ResponseEntity.internalServerError().body(ApiResponse.error("시스템 오류가 발생했습니다."));
+      }
   }
 
   /**
@@ -252,6 +256,15 @@ public class BuyerApiController {
       
       if (!buyerSVC.checkPassword(buyerId, password)) {
         return ResponseEntity.badRequest().body(ApiResponse.error("비밀번호가 일치하지 않습니다."));
+      }
+      
+      // 탈퇴 가능 여부 확인
+      if (!buyerSVC.canWithdraw(buyerId)) {
+        Map<String, Object> usage = buyerSVC.getServiceUsage(buyerId);
+        @SuppressWarnings("unchecked")
+        List<String> blockReasons = (List<String>) usage.get("withdrawBlockReasons");
+        String reasonText = String.join(", ", blockReasons);
+        return ResponseEntity.badRequest().body(ApiResponse.error("탈퇴할 수 없습니다. 사유: " + reasonText));
       }
       
       int withdrawnRows = buyerSVC.withdraw(buyerId, reason);

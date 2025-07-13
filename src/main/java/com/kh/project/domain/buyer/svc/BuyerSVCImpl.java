@@ -42,13 +42,22 @@ public class BuyerSVCImpl implements BuyerSVC {
       
       // 2. 이미 존재하는 회원 상태에 따라 분기
       if (existingBuyer.isWithdrawn()) {
-        // 2-1. 탈퇴한 회원이면, 재활성화 시도
+        // 2-1. 탈퇴한 회원이면, 전체 정보로 재활성화 시도
         log.info("탈퇴한 계정 재활성화 시도: email={}", buyer.getEmail());
-        Optional<Buyer> reactivatedBuyer = reactivate(buyer.getEmail(), buyer.getPassword());
         
-        return reactivatedBuyer.orElseThrow(() -> 
-          new BusinessException("계정 재활성화에 실패했습니다. 비밀번호를 확인해주세요.")
-        );
+        // 닉네임 중복 체크 (기존 닉네임과 다른 경우에만)
+        if (!buyer.getNickname().equals(existingBuyer.getNickname()) && 
+            buyerDAO.existsByNickname(buyer.getNickname())) {
+          throw new BusinessException("이미 사용중인 닉네임입니다: " + buyer.getNickname());
+        }
+        
+        int updatedRows = buyerDAO.rejoin(buyer);
+        if (updatedRows == 0) {
+          throw new BusinessException("계정 재활성화에 실패했습니다.");
+        }
+        
+        return buyerDAO.findByEmail(buyer.getEmail())
+          .orElseThrow(() -> new BusinessException("재활성화된 계정을 찾을 수 없습니다."));
 
       } else {
         // 2-2. 활성/정지 등 다른 상태의 회원이면 중복 오류
@@ -129,6 +138,7 @@ public class BuyerSVCImpl implements BuyerSVC {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public int withdraw(Long buyerId, String reason) {
     // 1. 탈퇴 가능 여부 확인
     if (!canWithdraw(buyerId)) {
@@ -246,13 +256,7 @@ public class BuyerSVCImpl implements BuyerSVC {
       withdrawBlockReasons.add("환불 대기 금액이 " + pendingRefundAmount + "원 있습니다.");
     }
 
-    // 가입 기간 검사
-    if (buyer.getCdate() != null) {
-      long daysSinceJoin = (System.currentTimeMillis() - buyer.getCdate().getTime()) / (1000 * 60 * 60 * 24);
-      if (daysSinceJoin < 1) {
-        withdrawBlockReasons.add("가입 후 1일이 지나지 않아 탈퇴할 수 없습니다.");
-      }
-    }
+    // 가입 기간 검사 - 제거됨 (즉시 탈퇴 가능)
 
     boolean canWithdraw = withdrawBlockReasons.isEmpty();
 
@@ -277,6 +281,7 @@ public class BuyerSVCImpl implements BuyerSVC {
 
   @Override
   @Transactional(readOnly = true)
+  @SuppressWarnings("unchecked")
   public boolean canWithdraw(Long buyerId) {
     Map<String, Object> usage = getServiceUsage(buyerId);
     return (Boolean) usage.get("canWithdraw");

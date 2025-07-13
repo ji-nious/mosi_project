@@ -60,4 +60,19 @@ public interface SellerDAO {
   boolean existsByShopAddress(String shopAddress);
 
   int withdrawWithReason(Long sellerId, String reason);
+
+  /**
+   * 탈퇴한 판매자 계정 재활성화
+   * @param email 대상 이메일
+   * @param password 새로운 비밀번호
+   * @return 수정된 행 수
+   */
+  int reactivate(String email, String password);
+
+  /**
+   * 탈퇴한 판매자 재가입 (전체 정보 업데이트)
+   * @param seller 재가입할 판매자 정보
+   * @return 수정된 행 수
+   */
+  int rejoin(Seller seller);
 } 

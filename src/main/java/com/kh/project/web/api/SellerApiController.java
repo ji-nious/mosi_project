@@ -5,9 +5,11 @@ import com.kh.project.domain.entity.Seller;
 import com.kh.project.domain.seller.svc.SellerSVC;
 import com.kh.project.web.common.ApiResponse;
 import com.kh.project.web.common.AuthUtils;
+import com.kh.project.web.common.CommonConstants;
 import com.kh.project.web.common.LoginMember;
 import com.kh.project.web.common.MemberGubunUtils;
 import com.kh.project.web.common.dto.SellerSignupForm;
+import com.kh.project.web.exception.BusinessException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -59,11 +62,6 @@ public class SellerApiController {
     Seller savedSeller = sellerSVC.join(seller);
     log.info("판매자 회원가입 성공: sellerId={}", savedSeller.getSellerId());
 
-    // 자동 로그인
-    LoginMember loginMember = LoginMember.seller(savedSeller.getSellerId(), savedSeller.getEmail());
-    session.setAttribute("loginMember", loginMember);
-    session.setMaxInactiveInterval(1800);
-
     Map<String, Object> response = ApiResponse.joinSuccess(savedSeller, 
         MemberGubunUtils.getDescriptionByCode(savedSeller.getMemberGubun()));
     
@@ -88,8 +86,8 @@ public class SellerApiController {
       
       Seller seller = sellerSVC.login(email, password);
       LoginMember loginMember = LoginMember.seller(seller.getSellerId(), seller.getEmail());
-      session.setAttribute("loginMember", loginMember);
-      session.setMaxInactiveInterval(1800);
+      session.setAttribute(CommonConstants.LOGIN_MEMBER_KEY, loginMember);
+      session.setMaxInactiveInterval(CommonConstants.SESSION_TIMEOUT);
       
       String gubunName = MemberGubunUtils.getDescriptionByCode(seller.getMemberGubun());
       boolean canLogin = sellerSVC.canLogin(seller);
@@ -97,10 +95,14 @@ public class SellerApiController {
       
       log.info("판매자 로그인 성공: sellerId={}", seller.getSellerId());
       return ResponseEntity.ok(response);
-    } catch (Exception e) {
-      log.error("판매자 로그인 실패: email={}, error={}", loginRequest.get("email"), e.getMessage());
+    } catch (BusinessException e) {
+      log.warn("판매자 로그인 실패 (비즈니스 로직): email={}", loginRequest.get("email"), e);
       Map<String, Object> response = ApiResponse.error("이메일 또는 비밀번호가 올바르지 않습니다.");
       return ResponseEntity.badRequest().body(response);
+    } catch (Exception e) {
+      log.error("판매자 로그인 실패 (시스템 오류): email={}", loginRequest.get("email"), e);
+      Map<String, Object> response = ApiResponse.error("로그인 처리 중 오류가 발생했습니다.");
+      return ResponseEntity.internalServerError().body(response);
     }
   }
 
@@ -114,8 +116,8 @@ public class SellerApiController {
   public ResponseEntity<Map<String, Object>> getSellerInfo(HttpSession session) {
     try {
       log.info("판매자 정보 조회 요청");
-      LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
-      if (loginMember == null || !"SELLER".equals(loginMember.getMemberType())) {
+      LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
+      if (loginMember == null || !CommonConstants.MEMBER_TYPE_SELLER.equals(loginMember.getMemberType())) {
         return ResponseEntity.status(401).body(ApiResponse.error("로그인이 필요합니다."));
       }
       
@@ -252,6 +254,15 @@ public class SellerApiController {
       }
       if (!sellerSVC.checkPassword(sellerId, password)) {
         return ResponseEntity.badRequest().body(ApiResponse.error("비밀번호가 일치하지 않습니다."));
+      }
+      
+      // 탈퇴 가능 여부 확인
+      if (!sellerSVC.canWithdraw(sellerId)) {
+        Map<String, Object> usage = sellerSVC.getServiceUsage(sellerId);
+        @SuppressWarnings("unchecked")
+        List<String> blockReasons = (List<String>) usage.get("withdrawBlockReasons");
+        String reasonText = String.join(", ", blockReasons);
+        return ResponseEntity.badRequest().body(ApiResponse.error("탈퇴할 수 없습니다. 사유: " + reasonText));
       }
       
       int withdrawnRows = sellerSVC.withdraw(sellerId, reason);

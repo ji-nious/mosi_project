@@ -84,7 +84,7 @@ public class SellerDAOImpl implements SellerDAO {
 
     @Override
     public Optional<Seller> findByEmail(String email) {
-        String sql = BASE_SELECT + " WHERE EMAIL = :email AND STATUS != '탈퇴'";
+        String sql = BASE_SELECT + " WHERE EMAIL = :email";
 
         try {
             MapSqlParameterSource param = new MapSqlParameterSource("email", email);
@@ -114,7 +114,7 @@ public class SellerDAOImpl implements SellerDAO {
 
     @Override
     public boolean existsByEmail(String email) {
-        String sql = "SELECT COUNT(*) FROM seller WHERE EMAIL = :email AND STATUS IN ('활성화', '비활성화', '정지')";
+        String sql = "SELECT COUNT(*) FROM seller WHERE EMAIL = :email";
 
         MapSqlParameterSource param = new MapSqlParameterSource("email", email);
 
@@ -237,5 +237,45 @@ public class SellerDAOImpl implements SellerDAO {
         String sql = BASE_SELECT + " WHERE STATUS != '탈퇴' ORDER BY CDATE DESC";
 
         return template.query(sql, BeanPropertyRowMapper.newInstance(Seller.class));
+    }
+
+    @Override
+    public int reactivate(String email, String password) {
+        String sql = """
+            UPDATE seller SET
+                PASSWORD = :password,
+                STATUS = '활성화',
+                UDATE = SYSTIMESTAMP,
+                withdrawn_at = null,
+                withdrawn_reason = null
+            WHERE email = :email AND STATUS = '탈퇴'
+            """;
+        
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("email", email);
+        param.addValue("password", password);
+        
+        return template.update(sql, param);
+    }
+
+    @Override
+    public int rejoin(Seller seller) {
+        String sql = """
+            UPDATE seller SET
+                PASSWORD = :password,
+                biz_reg_no = :bizRegNo,
+                shop_name = :shopName,
+                NAME = :name,
+                shop_address = :shopAddress,
+                TEL = :tel,
+                STATUS = '활성화',
+                UDATE = SYSTIMESTAMP,
+                withdrawn_at = null,
+                withdrawn_reason = null
+            WHERE email = :email AND STATUS = '탈퇴'
+            """;
+        
+        SqlParameterSource param = new BeanPropertySqlParameterSource(seller);
+        return template.update(sql, param);
     }
 }

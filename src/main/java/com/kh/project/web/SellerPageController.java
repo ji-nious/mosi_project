@@ -5,10 +5,13 @@ import com.kh.project.domain.entity.Buyer;
 import com.kh.project.domain.seller.svc.SellerSVC;
 import com.kh.project.domain.buyer.svc.BuyerSVC;
 import com.kh.project.web.common.CodeNameInfo;
+import com.kh.project.web.common.CommonConstants;
 import com.kh.project.web.common.LoginMember;
+import com.kh.project.web.common.SessionService;
 import com.kh.project.web.common.dto.LoginForm;
 import com.kh.project.web.common.dto.SellerSignupForm;
 import com.kh.project.web.common.dto.SellerEditForm;
+import com.kh.project.web.exception.MemberException;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +44,7 @@ public class SellerPageController {
 
   private final SellerSVC sellerSVC;
   private final BuyerSVC buyerSVC;
+  private final SessionService sessionService;
 
   @GetMapping("/login")
   public String sellerLogin(HttpSession session, Model model) {
@@ -100,6 +104,10 @@ public class SellerPageController {
       log.info("판매자 로그인 성공: sellerId={}", seller.getSellerId());
       return "redirect:/seller/dashboard";
       
+    } catch (MemberException.AlreadyWithdrawnException e) {
+      log.warn("탈퇴한 판매자의 로그인 시도: email={}", loginForm.getEmail());
+      redirectAttributes.addFlashAttribute("error", "탈퇴한 회원입니다. 재가입을 원하시면 동일한 정보로 회원가입을 진행해주세요.");
+      return "redirect:/seller/login";
     } catch (Exception e) {
       // 5. 로그인 실패
       log.error("판매자 로그인 실패: email={}, error={}", loginForm.getEmail(), e.getMessage());
@@ -322,7 +330,7 @@ public class SellerPageController {
   public String sellerWithdraw(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
     log.info("판매자 탈퇴 페이지 요청");
 
-    LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
+    LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
     if (loginMember == null) {
       redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
       return "redirect:/seller/login";
@@ -339,7 +347,7 @@ public class SellerPageController {
                               @RequestParam("reason") String reason) {
     log.info("판매자 탈퇴 처리 요청");
 
-    LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
+    LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
     if (loginMember == null) {
       redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
       return "redirect:/seller/login";
@@ -397,38 +405,8 @@ public class SellerPageController {
   @PostMapping("/verify-password")
   @ResponseBody
   public Map<String, Object> verifyPassword(@RequestBody Map<String, String> request, HttpSession session) {
-    Map<String, Object> response = new HashMap<>();
-    
-    try {
-      Seller seller = getAuthenticatedSeller(session);
-      if (seller == null) {
-        response.put("success", false);
-        response.put("message", "로그인이 필요합니다.");
-        return response;
-      }
-      
-      String inputPassword = request.get("password");
-      if (inputPassword == null || inputPassword.trim().isEmpty()) {
-        response.put("success", false);
-        response.put("message", "비밀번호를 입력해주세요.");
-        return response;
-      }
-      
-      boolean isValid = sellerSVC.checkPassword(seller.getSellerId(), inputPassword);
-      response.put("success", isValid);
-      
-      if (!isValid) {
-        response.put("message", "비밀번호가 틀렸습니다.");
-      }
-      
-      return response;
-      
-    } catch (Exception e) {
-      log.error("비밀번호 확인 중 오류 발생", e);
-      response.put("success", false);
-      response.put("message", "서버 오류가 발생했습니다.");
-      return response;
-    }
+    String password = request.get("password");
+    return sessionService.verifyPassword(session, password);
   }
   
   // ============ 호환성 유지 메서드들 ============

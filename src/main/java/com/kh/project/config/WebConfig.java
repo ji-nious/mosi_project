@@ -8,8 +8,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * 웹 MVC 설정 클래스
- * 인터셉터, 정적 리소스 등 웹 관련 설정을 담당
+ * Web MVC 설정
  */
 @Configuration
 @RequiredArgsConstructor
@@ -33,14 +32,13 @@ public class WebConfig implements WebMvcConfigurer {
   }
 
   /**
-   * 인터셉터 등록
-   * 로그인 체크 인터셉터를 특정 패턴에 적용
+   * 로그인 체크 인터셉터 등록
    */
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(loginCheckInterceptor)
-            .addPathPatterns("/**") // 모든 경로에 적용
+            .addPathPatterns("/**")
             .excludePathPatterns("/", "/api/**", "/login", "/signup", "/buyer/**", "/seller/**", 
-                               "/css/**", "/js/**", "/images/**", "/common/**", "/favicon.ico", "/error"); // 제외 경로
+                               "/css/**", "/js/**", "/images/**", "/common/**", "/favicon.ico", "/error");
   }
 } 

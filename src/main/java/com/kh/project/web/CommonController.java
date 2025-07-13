@@ -4,6 +4,7 @@ import com.kh.project.domain.buyer.svc.BuyerSVC;
 import com.kh.project.domain.seller.svc.SellerSVC;
 import com.kh.project.domain.entity.Buyer;
 import com.kh.project.domain.entity.Seller;
+import com.kh.project.web.common.CommonConstants;
 import com.kh.project.web.common.LoginMember;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -37,17 +38,17 @@ public class CommonController {
     log.info("메인 페이지 요청");
     
     // 로그인 사용자 정보 조회
-    LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
+    LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
     if (loginMember != null) {
       try {
-        if ("BUYER".equals(loginMember.getMemberType())) {
+        if (CommonConstants.MEMBER_TYPE_BUYER.equals(loginMember.getMemberType())) {
           Optional<Buyer> buyerOpt = buyerSVC.findById(loginMember.getId());
           if (buyerOpt.isPresent()) {
             Buyer buyer = buyerOpt.get();
             model.addAttribute("userNickname", buyer.getNickname());
             model.addAttribute("userName", buyer.getName());
           }
-        } else if ("SELLER".equals(loginMember.getMemberType())) {
+        } else if (CommonConstants.MEMBER_TYPE_SELLER.equals(loginMember.getMemberType())) {
           Optional<Seller> sellerOpt = sellerSVC.findById(loginMember.getId());
           if (sellerOpt.isPresent()) {
             Seller seller = sellerOpt.get();
@@ -88,7 +89,7 @@ public class CommonController {
   public String logout(HttpSession session, RedirectAttributes redirectAttributes) {
     try {
       if (session != null) {
-        Object loginMember = session.getAttribute("loginMember");
+        Object loginMember = session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
         session.invalidate();
 
         if (loginMember != null) {

@@ -33,10 +33,54 @@ public class SellerSVCImpl implements SellerSVC {
   public Seller join(Seller seller) {
     log.info("판매자 회원가입 시도: email={}, bizRegNo={}", seller.getEmail(), seller.getBizRegNo());
 
-    // 중복 체크
-    if (sellerDAO.existsByEmail(seller.getEmail())) {
-      throw new MemberException.EmailDuplicationException(seller.getEmail());
+    // 1. 이메일로 기존 회원 정보 조회 (탈퇴 회원 포함)
+    Optional<Seller> existingSellerOpt = sellerDAO.findByEmail(seller.getEmail());
+
+    if (existingSellerOpt.isPresent()) {
+      Seller existingSeller = existingSellerOpt.get();
+      
+      // 2. 이미 존재하는 회원 상태에 따라 분기
+      if (existingSeller.isWithdrawn()) {
+        // 2-1. 탈퇴한 회원이면, 전체 정보로 재활성화 시도
+        log.info("탈퇴한 판매자 계정 재활성화 시도: email={}", seller.getEmail());
+        
+        // 중복 체크 (기존 정보와 다른 경우에만)
+        if (!seller.getBizRegNo().equals(existingSeller.getBizRegNo()) && 
+            sellerDAO.existsByBizRegNo(seller.getBizRegNo())) {
+          throw new BusinessException("이미 등록된 사업자등록번호입니다.");
+        }
+        
+        if (!seller.getShopName().equals(existingSeller.getShopName()) && 
+            sellerDAO.existsByShopName(seller.getShopName())) {
+          throw new BusinessException("이미 사용중인 상점명입니다.");
+        }
+        
+        if (!seller.getName().equals(existingSeller.getName()) && 
+            sellerDAO.existsByName(seller.getName())) {
+          throw new BusinessException("이미 등록된 대표자명입니다.");
+        }
+        
+        if (!seller.getShopAddress().equals(existingSeller.getShopAddress()) && 
+            sellerDAO.existsByShopAddress(seller.getShopAddress())) {
+          throw new BusinessException("이미 등록된 사업장 주소입니다.");
+        }
+        
+        int updatedRows = sellerDAO.rejoin(seller);
+        if (updatedRows == 0) {
+          throw new BusinessException("계정 재활성화에 실패했습니다.");
+        }
+        
+        return sellerDAO.findByEmail(seller.getEmail())
+          .orElseThrow(() -> new BusinessException("재활성화된 계정을 찾을 수 없습니다."));
+
+      } else {
+        // 2-2. 활성/정지 등 다른 상태의 회원이면 중복 오류
+        log.warn("이미 존재하는 활성 계정으로 가입 시도: email={}", seller.getEmail());
+        throw new MemberException.EmailDuplicationException(seller.getEmail());
+      }
     }
+
+    // 3. 신규 회원 가입 - 중복 체크 (이메일은 이미 1단계에서 체크됨)
     if (sellerDAO.existsByBizRegNo(seller.getBizRegNo())) {
       throw new BusinessException("이미 등록된 사업자등록번호입니다.");
     }
@@ -72,6 +116,13 @@ public class SellerSVCImpl implements SellerSVC {
     Seller seller = sellerDAO.findByEmail(email)
         .orElseThrow(() -> new MemberException.LoginFailedException());
 
+    // 1. 탈퇴한 회원인지 확인
+    if (seller.isWithdrawn()) {
+      log.warn("탈퇴한 판매자의 로그인 시도: email={}", email);
+      throw new MemberException.AlreadyWithdrawnException();
+    }
+
+    // 2. 활성 상태 계정인지 확인
     if (!seller.canLogin()) {
       log.warn("로그인 불가능한 상태: email={}, status={}", email, seller.getStatus());
       throw new MemberException.LoginFailedException();
@@ -113,6 +164,16 @@ public class SellerSVCImpl implements SellerSVC {
   public int withdraw(Long sellerId, String reason) {
     log.info("판매자 탈퇴 처리: sellerId={}, 사유={}", sellerId, reason);
 
+    // 1. 탈퇴 가능 여부 확인
+    if (!canWithdraw(sellerId)) {
+      Map<String, Object> usage = getServiceUsage(sellerId);
+      @SuppressWarnings("unchecked")
+      List<String> blockReasons = (List<String>) usage.get("withdrawBlockReasons");
+      String reasonText = String.join(", ", blockReasons);
+      throw new BusinessException("탈퇴할 수 없습니다. 사유: " + reasonText);
+    }
+
+    // 2. 판매자 존재 여부 확인
     Optional<Seller> sellerOpt = sellerDAO.findById(sellerId);
     if (sellerOpt.isEmpty()) {
       throw new MemberException.MemberNotFoundException();
@@ -123,11 +184,18 @@ public class SellerSVCImpl implements SellerSVC {
       throw new MemberException.AlreadyWithdrawnException();
     }
 
-    // 탈퇴 사유 설정
+    // 3. 탈퇴 사유 설정
     String withdrawReason = (reason != null && !reason.trim().isEmpty()) ?
         reason : "사업 종료";
 
-    return sellerDAO.withdrawWithReason(sellerId, withdrawReason);
+    // 4. 탈퇴 처리
+    int updatedRows = sellerDAO.withdrawWithReason(sellerId, withdrawReason);
+    if (updatedRows == 0) {
+      throw new BusinessException("판매자 탈퇴 처리에 실패했습니다: " + sellerId);
+    }
+
+    log.info("판매자 탈퇴 완료: sellerId={}, reason={}", sellerId, withdrawReason);
+    return updatedRows;
   }
 
   @Override
@@ -224,13 +292,7 @@ public class SellerSVCImpl implements SellerSVC {
       withdrawBlockReasons.add("환불 대기 금액이 " + pendingRefundAmount + "원 있습니다.");
     }
 
-    // 가입 기간 검사
-    if (seller.getCdate() != null) {
-      long daysSinceJoin = (System.currentTimeMillis() - seller.getCdate().getTime()) / (1000 * 60 * 60 * 24);
-      if (daysSinceJoin < 3) {
-        withdrawBlockReasons.add("사업자 가입 후 3일이 지나지 않아 탈퇴할 수 없습니다.");
-      }
-    }
+    // 가입 기간 검사 - 제거됨 (즉시 탈퇴 가능)
 
     boolean canWithdraw = withdrawBlockReasons.isEmpty();
 
@@ -312,5 +374,19 @@ public class SellerSVCImpl implements SellerSVC {
     }
 
     return CodeNameInfo.of(seller.getSellerId().toString(), seller.getShopName());
+  }
+
+  @Override
+  public Optional<Seller> reactivate(String email, String password) {
+    log.info("판매자 계정 재활성화 시도: email={}", email);
+    
+    int updatedRows = sellerDAO.reactivate(email, password);
+    if (updatedRows == 0) {
+      log.warn("일치하는 탈퇴 계정이 없어 재활성화에 실패했습니다: email={}", email);
+      return Optional.empty();
+    }
+    
+    log.info("판매자 계정 재활성화 성공: email={}", email);
+    return sellerDAO.findByEmail(email);
   }
 }
