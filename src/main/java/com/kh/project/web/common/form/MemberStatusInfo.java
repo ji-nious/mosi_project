@@ -1,4 +1,4 @@
-package com.kh.project.web.common.dto;
+package com.kh.project.web.common.form;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

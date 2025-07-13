@@ -17,21 +17,25 @@ import java.util.Arrays;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /**
- * Spring Security 설정
+ * 보안 설정
  */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  // 비밀번호 인코더 설정
+  /**
+   * 비밀번호 인코더 설정
+   */
   @Bean
   @SuppressWarnings("deprecation")
   public PasswordEncoder passwordEncoder() {
     return NoOpPasswordEncoder.getInstance();
   }
 
-  // Security 필터 체인 설정
+  /**
+   * Security 필터 체인 설정
+   */
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
@@ -68,7 +72,9 @@ public class SecurityConfig {
     return http.build();
   }
 
-  // CORS 설정
+  /**
+   * CORS 설정
+   */
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();

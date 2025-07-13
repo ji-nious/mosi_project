@@ -1,4 +1,4 @@
-package com.kh.project.web.common;
+package com.kh.project.web.common.response;
 
 import lombok.Getter;
 import lombok.ToString;
@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * API 응답 표준화 클래스
+ * API 응답 표준화
  */
 @Slf4j
 @Getter

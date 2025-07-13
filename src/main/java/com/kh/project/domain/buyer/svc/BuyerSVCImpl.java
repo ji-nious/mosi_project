@@ -4,9 +4,8 @@ import com.kh.project.domain.buyer.dao.BuyerDAO;
 import com.kh.project.domain.entity.Buyer;
 import com.kh.project.domain.entity.MemberGubun;
 import com.kh.project.domain.entity.MemberStatus;
-import com.kh.project.web.common.CodeNameInfo;
-import com.kh.project.web.common.MemberGubunUtils;
-import com.kh.project.web.common.dto.MemberStatusInfo;
+
+import com.kh.project.web.common.form.MemberStatusInfo;
 import com.kh.project.web.exception.BusinessException;
 import com.kh.project.web.exception.MemberException;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * 구매자 서비스 구현체
+ * 구매자 서비스 구현
  */
 @Slf4j
 @Service
@@ -286,26 +285,27 @@ public class BuyerSVCImpl implements BuyerSVC {
   }
 
   @Override
-  public CodeNameInfo getGubunInfo(Buyer buyer) {
+  public Map<String, String> getGubunInfo(Buyer buyer) {
     if (buyer == null || buyer.getMemberGubun() == null) {
-      return CodeNameInfo.of("UNKNOWN", "알 수 없음");
+      return Map.of("code", "UNKNOWN", "name", "알 수 없음");
     }
-
-    String code = buyer.getMemberGubun();
-    String name = MemberGubunUtils.getDescriptionByCode(code);
-
-    return CodeNameInfo.of(code, name);
+    
+    MemberGubun gubun = MemberGubun.fromCodeOrDefault(buyer.getMemberGubun());
+    String code = gubun.getCode();
+    String name = gubun.getDescription();
+    
+    return Map.of("code", code, "name", name);
   }
 
   @Override
-  public CodeNameInfo getStatusInfo(Buyer buyer) {
+  public Map<String, String> getStatusInfo(Buyer buyer) {
     if (buyer == null || buyer.getStatus() == null) {
-      return CodeNameInfo.of("UNKNOWN", "알 수 없음");
+      return Map.of("code", "UNKNOWN", "name", "알 수 없음");
     }
-
+    
     String code = buyer.getStatus();
-    String name = MemberStatus.getDescriptionByCode(code);
-
-    return CodeNameInfo.of(code, name);
+    String name = MemberStatus.getDescriptionByCode(buyer.getStatus());
+    
+    return Map.of("code", code, "name", name);
   }
 }

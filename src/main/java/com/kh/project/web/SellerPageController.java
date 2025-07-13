@@ -4,14 +4,14 @@ import com.kh.project.domain.entity.Seller;
 import com.kh.project.domain.entity.Buyer;
 import com.kh.project.domain.seller.svc.SellerSVC;
 import com.kh.project.domain.buyer.svc.BuyerSVC;
-import com.kh.project.web.common.CodeNameInfo;
-import com.kh.project.web.common.CommonConstants;
-import com.kh.project.web.common.LoginMember;
-import com.kh.project.web.common.SessionService;
-import com.kh.project.web.common.dto.LoginForm;
-import com.kh.project.web.common.dto.SellerSignupForm;
-import com.kh.project.web.common.dto.SellerEditForm;
-import com.kh.project.web.common.dto.MemberStatusInfo;
+import com.kh.project.util.AuthUtils;
+import com.kh.project.util.CommonConstants;
+import com.kh.project.domain.entity.LoginMember;
+import com.kh.project.domain.SessionService;
+import com.kh.project.web.common.form.LoginForm;
+import com.kh.project.web.common.form.SellerSignupForm;
+import com.kh.project.web.common.form.SellerEditForm;
+import com.kh.project.web.common.form.MemberStatusInfo;
 import com.kh.project.web.exception.BusinessException;
 import com.kh.project.web.exception.MemberException;
 import jakarta.servlet.http.HttpSession;
@@ -30,7 +30,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.validation.BindingResult;
 import jakarta.validation.Valid;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -532,19 +531,19 @@ public class SellerPageController {
     model.addAttribute("userName", seller.getName());
 
     // 등급 정보 (코드 + 한글명)
-    CodeNameInfo gubunInfo = sellerSVC.getGubunInfo(seller);
-    model.addAttribute("gubun", gubunInfo);
+    Map<String, String> gubunInfo = sellerSVC.getGubunInfo(seller);
+    model.addAttribute("gubunInfo", gubunInfo);
 
     // 상태 정보 (코드 + 한글명)
-    CodeNameInfo statusInfo = sellerSVC.getStatusInfo(seller);
-    model.addAttribute("status", statusInfo);
+    Map<String, String> statusInfo = sellerSVC.getStatusInfo(seller);
+    model.addAttribute("statusInfo", statusInfo);
 
     // 부가 정보
     model.addAttribute("canLogin", sellerSVC.canLogin(seller));
     model.addAttribute("isWithdrawn", sellerSVC.isWithdrawn(seller));
 
     log.debug("모델에 판매자 정보 추가 완료: ID={}, 등급={}, 상태={}", 
-             seller.getSellerId(), gubunInfo.getName(), statusInfo.getName());
+             seller.getSellerId(), gubunInfo.get("name"), statusInfo.get("name"));
   }
 
   private Seller getAuthenticatedSeller(HttpSession session) {

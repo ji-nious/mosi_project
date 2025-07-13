@@ -2,13 +2,13 @@ package com.kh.project.web.api;
 
 import com.kh.project.domain.buyer.svc.BuyerSVC;
 import com.kh.project.domain.entity.Buyer;
-import com.kh.project.web.common.ApiResponse;
-import com.kh.project.web.common.AuthUtils;
-import com.kh.project.web.common.CommonConstants;
-import com.kh.project.web.common.LoginMember;
-import com.kh.project.web.common.MemberGubunUtils;
-import com.kh.project.web.common.dto.BuyerSignupForm;
-import com.kh.project.web.common.dto.MemberStatusInfo;
+import com.kh.project.web.common.response.ApiResponse;
+import com.kh.project.util.AuthUtils;
+import com.kh.project.util.CommonConstants;
+import com.kh.project.domain.entity.LoginMember;
+import com.kh.project.domain.entity.MemberGubun;
+import com.kh.project.web.common.form.BuyerSignupForm;
+import com.kh.project.web.common.form.MemberStatusInfo;
 import com.kh.project.web.exception.BusinessException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -57,7 +57,7 @@ public class BuyerApiController {
     log.info("구매자 회원가입 성공: buyerId={}", savedBuyer.getBuyerId());
 
     Map<String, Object> response = ApiResponse.joinSuccess(savedBuyer, 
-        MemberGubunUtils.getDescriptionByCode(savedBuyer.getMemberGubun()));
+        MemberGubun.getDescriptionByCode(savedBuyer.getMemberGubun()));
     
     return ResponseEntity.ok(response);
   }
@@ -77,7 +77,7 @@ public class BuyerApiController {
       session.setAttribute(CommonConstants.LOGIN_MEMBER_KEY, loginMember);
       session.setMaxInactiveInterval(CommonConstants.SESSION_TIMEOUT);
       
-      String gubunName = MemberGubunUtils.getDescriptionByCode(buyer.getMemberGubun());
+      String gubunName = MemberGubun.getDescriptionByCode(buyer.getMemberGubun());
       boolean canLogin = buyerSVC.canLogin(buyer);
       Map<String, Object> response = ApiResponse.loginSuccess(buyer, gubunName, canLogin);
       
@@ -111,7 +111,7 @@ public class BuyerApiController {
       
       Buyer buyer = buyerOpt.get();
       Map<String, Object> additionalData = Map.of(
-              "gubunName", MemberGubunUtils.getDescriptionByCode(buyer.getMemberGubun()),
+              "gubunName", MemberGubun.getDescriptionByCode(buyer.getMemberGubun()),
               "canLogin", buyerSVC.canLogin(buyer),
               "isWithdrawn", buyerSVC.isWithdrawn(buyer)
       );
@@ -142,7 +142,7 @@ public class BuyerApiController {
       
       Buyer buyer = buyerOpt.get();
       Map<String, Object> additionalData = Map.of(
-          "gubunName", MemberGubunUtils.getDescriptionByCode(buyer.getMemberGubun()),
+          "gubunName", MemberGubun.getDescriptionByCode(buyer.getMemberGubun()),
           "canLogin", buyerSVC.canLogin(buyer),
           "isWithdrawn", buyerSVC.isWithdrawn(buyer)
       );
@@ -309,7 +309,7 @@ public class BuyerApiController {
 
   // 이메일 중복 확인 API
   @GetMapping("/check-email")
-  public ResponseEntity<Map<String, Object>> checkEmailDuplication(@RequestParam String email) {
+  public ResponseEntity<Map<String, Object>> checkEmailDuplication(@RequestParam("email") String email) {
     try {
       boolean exists = buyerSVC.existsByEmail(email);
       
@@ -326,7 +326,7 @@ public class BuyerApiController {
 
   // 닉네임 중복 확인 API
   @GetMapping("/check-nickname")
-  public ResponseEntity<Map<String, Object>> checkNickname(@RequestParam String nickname) {
+  public ResponseEntity<Map<String, Object>> checkNickname(@RequestParam("nickname") String nickname) {
     try {
       boolean exists = buyerSVC.existsByNickname(nickname);
       Map<String, Object> data = Map.of(

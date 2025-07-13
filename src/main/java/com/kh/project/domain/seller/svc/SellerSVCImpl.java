@@ -1,12 +1,11 @@
 package com.kh.project.domain.seller.svc;
 
-import com.kh.project.domain.entity.Seller;
 import com.kh.project.domain.entity.MemberGubun;
 import com.kh.project.domain.entity.MemberStatus;
+import com.kh.project.domain.entity.Seller;
 import com.kh.project.domain.seller.dao.SellerDAO;
-import com.kh.project.web.common.CodeNameInfo;
-import com.kh.project.web.common.MemberGubunUtils;
-import com.kh.project.web.common.dto.MemberStatusInfo;
+
+import com.kh.project.web.common.form.MemberStatusInfo;
 import com.kh.project.web.exception.BusinessException;
 import com.kh.project.web.exception.MemberException;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * 판매자 서비스 구현체
+ * 판매자 서비스 구현
  */
 @Slf4j
 @Service
@@ -325,36 +324,37 @@ public class SellerSVCImpl implements SellerSVC {
   }
 
   @Override
-  public CodeNameInfo getGubunInfo(Seller seller) {
+  public Map<String, String> getGubunInfo(Seller seller) {
     if (seller == null || seller.getMemberGubun() == null) {
-      return CodeNameInfo.of("UNKNOWN", "알 수 없음");
+      return Map.of("code", "UNKNOWN", "name", "알 수 없음");
     }
-
-    String code = seller.getMemberGubun();
-    String name = MemberGubunUtils.getDescriptionByCode(code);
-
-    return CodeNameInfo.of(code, name);
+    
+    MemberGubun gubun = MemberGubun.fromCodeOrDefault(seller.getMemberGubun());
+    String code = gubun.getCode();
+    String name = gubun.getDescription();
+    
+    return Map.of("code", code, "name", name);
   }
 
   @Override
-  public CodeNameInfo getStatusInfo(Seller seller) {
+  public Map<String, String> getStatusInfo(Seller seller) {
     if (seller == null || seller.getStatus() == null) {
-      return CodeNameInfo.of("UNKNOWN", "알 수 없음");
+      return Map.of("code", "UNKNOWN", "name", "알 수 없음");
     }
-
+    
     String code = seller.getStatus();
-    String name = MemberStatus.getDescriptionByCode(code);
-
-    return CodeNameInfo.of(code, name);
+    String name = MemberStatus.getDescriptionByCode(seller.getStatus());
+    
+    return Map.of("code", code, "name", name);
   }
 
   @Override
-  public CodeNameInfo getShopInfo(Seller seller) {
+  public Map<String, String> getShopInfo(Seller seller) {
     if (seller == null) {
-      return null;
+      return Map.of("code", "UNKNOWN", "name", "알 수 없음");
     }
-
-    return CodeNameInfo.of(seller.getSellerId().toString(), seller.getShopName());
+    
+    return Map.of("code", seller.getSellerId().toString(), "name", seller.getShopName());
   }
 
   public Optional<Seller> reactivate(String email, String password) {

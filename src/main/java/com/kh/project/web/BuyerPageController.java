@@ -2,12 +2,13 @@ package com.kh.project.web;
 
 import com.kh.project.domain.buyer.svc.BuyerSVC;
 import com.kh.project.domain.entity.Buyer;
-import com.kh.project.web.common.CommonConstants;
-import com.kh.project.web.common.LoginMember;
-import com.kh.project.web.common.dto.BuyerEditForm;
-import com.kh.project.web.common.dto.BuyerSignupForm;
-import com.kh.project.web.common.dto.LoginForm;
-import com.kh.project.web.common.dto.MemberStatusInfo;
+import com.kh.project.util.CommonConstants;
+import com.kh.project.domain.entity.LoginMember;
+import com.kh.project.domain.SessionService;
+import com.kh.project.web.common.form.BuyerEditForm;
+import com.kh.project.web.common.form.BuyerSignupForm;
+import com.kh.project.web.common.form.LoginForm;
+import com.kh.project.web.common.form.MemberStatusInfo;
 import com.kh.project.web.exception.MemberException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -21,6 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -33,8 +35,11 @@ import java.util.Optional;
 public class BuyerPageController {
 
   private final BuyerSVC buyerSVC;
+  private final SessionService sessionService;
 
-  // 로그인 페이지
+  /**
+   * 로그인 페이지
+   */
   @GetMapping("/login")
   public String loginPage(Model model) {
     log.info("구매자 로그인 페이지 호출");
@@ -42,7 +47,9 @@ public class BuyerPageController {
     return "buyer/buyer_login";
   }
 
-  // 로그인 처리
+  /**
+   * 로그인 처리
+   */
   @PostMapping("/login")
   public String login(@Valid @ModelAttribute LoginForm loginForm, 
                       BindingResult bindingResult, 
@@ -71,7 +78,9 @@ public class BuyerPageController {
     }
   }
 
-  // 회원가입 페이지
+  /**
+   * 회원가입 페이지
+   */
   @GetMapping("/signup")
   public String signupPage(Model model) {
     log.info("구매자 회원가입 페이지 호출");
@@ -177,6 +186,7 @@ public class BuyerPageController {
     }
     
     model.addAttribute("buyerEditForm", editForm);
+    model.addAttribute("buyerEmail", buyer.getEmail());
     log.info("구매자 정보 수정 페이지 로드 완료: buyerId={}", buyer.getBuyerId());
     return "buyer/buyer_edit";
   }
@@ -201,12 +211,6 @@ public class BuyerPageController {
     }
     
     try {
-      if (!buyerSVC.checkPassword(loginMember.getId(), editForm.getCurrentPassword())) {
-        log.warn("현재 비밀번호가 일치하지 않음: buyerId={}", loginMember.getId());
-        redirectAttributes.addFlashAttribute("error", "현재 비밀번호가 일치하지 않습니다.");
-        return "redirect:/buyer/edit";
-      }
-      
       Buyer updateBuyer = new Buyer();
       updateBuyer.setName(editForm.getName());
       updateBuyer.setNickname(editForm.getNickname());
@@ -219,7 +223,7 @@ public class BuyerPageController {
       }
       
       // 새 비밀번호는 필수이므로 항상 설정
-      updateBuyer.setPassword(editForm.getNewPassword());
+      updateBuyer.setPassword(editForm.getPassword());
       
       int updatedRows = buyerSVC.update(loginMember.getId(), updateBuyer);
       
@@ -248,7 +252,7 @@ public class BuyerPageController {
 
   // 탈퇴 현황 조회 페이지
   @PostMapping("/withdraw-status")
-  public String withdrawStatusPage(@RequestParam String reason, 
+  public String withdrawStatusPage(@RequestParam("reason") String reason, 
                                    HttpSession session, 
                                    Model model) {
     log.info("구매자 탈퇴 2단계 페이지 호출: reason={}", reason);
@@ -261,6 +265,11 @@ public class BuyerPageController {
     
     try {
       MemberStatusInfo statusInfo = buyerSVC.getServiceUsage(loginMember.getId());
+      if (statusInfo == null) {
+        log.warn("구매자 서비스 이용현황 조회 실패: buyerId={}", loginMember.getId());
+        statusInfo = MemberStatusInfo.forBuyer(0, 0); // 기본값으로 생성
+      }
+      
       model.addAttribute("reason", reason);
       model.addAttribute("memberStatus", statusInfo);
       
@@ -268,13 +277,15 @@ public class BuyerPageController {
       return "buyer/buyer_withdraw_status";
     } catch (Exception e) {
       log.error("구매자 탈퇴 2단계 페이지 로드 실패: {}", e.getMessage());
-      return "redirect:/buyer/withdraw";
+      model.addAttribute("reason", reason);
+      model.addAttribute("memberStatus", MemberStatusInfo.forBuyer(0, 0)); // 기본값으로 생성
+      return "buyer/buyer_withdraw_status";
     }
   }
 
   // 탈퇴 처리
   @PostMapping("/withdraw-final")
-  public String withdrawFinal(@RequestParam String reason, 
+  public String withdrawFinal(@RequestParam("reason") String reason, 
                               HttpSession session,
                               RedirectAttributes redirectAttributes) {
     log.info("구매자 탈퇴 처리: reason={}", reason);
@@ -297,7 +308,8 @@ public class BuyerPageController {
       if (withdrawnRows > 0) {
         log.info("구매자 탈퇴 성공: buyerId={}", loginMember.getId());
         session.invalidate();
-        return "buyer/buyer_withdraw_status";
+        redirectAttributes.addFlashAttribute("message", "회원 탈퇴가 완료되었습니다.");
+        return "redirect:/";
       } else {
         log.warn("구매자 탈퇴 실패: buyerId={}", loginMember.getId());
         redirectAttributes.addFlashAttribute("error", "탈퇴 처리에 실패했습니다.");
@@ -308,5 +320,12 @@ public class BuyerPageController {
       redirectAttributes.addFlashAttribute("error", e.getMessage());
       return "redirect:/buyer/withdraw";
     }
+  }
+
+  @PostMapping("/verify-password")
+  @ResponseBody
+  public Map<String, Object> verifyPassword(@RequestBody Map<String, String> request, HttpSession session) {
+    String password = request.get("password");
+    return sessionService.verifyPassword(session, password);
   }
 }

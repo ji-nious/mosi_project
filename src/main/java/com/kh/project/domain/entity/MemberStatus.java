@@ -3,7 +3,7 @@ package com.kh.project.domain.entity;
 import lombok.Getter;
 
 /**
- * 회원 상태 Enum
+ * 회원 상태
  */
 @Getter
 public enum MemberStatus {

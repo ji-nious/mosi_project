@@ -241,7 +241,7 @@
                 <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
             </div>
             <div class="form-row">
-                <label for="passwordConfirm">새 비밀번호 확인</label>
+                <label for="passwordConfirm">비밀번호 확인</label>
                 <input type="password" id="passwordConfirm" th:field="*{passwordConfirm}" placeholder="비밀번호를 다시 입력하세요" required>
                 <div th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
             </div>

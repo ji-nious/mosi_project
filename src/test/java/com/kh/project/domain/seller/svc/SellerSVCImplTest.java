@@ -3,7 +3,7 @@ package com.kh.project.domain.seller.svc;
 import com.kh.project.domain.seller.dao.SellerDAO;
 import com.kh.project.domain.entity.Seller;
 import com.kh.project.domain.entity.MemberGubun;
-import com.kh.project.web.common.CodeNameInfo;
+import com.kh.project.domain.entity.MemberStatus;
 import com.kh.project.web.exception.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,10 +18,12 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
@@ -52,7 +54,7 @@ class SellerSVCImplTest {
         seller.setShopAddress("부산시 부산진구 서면로");
         seller.setTel("010-1234-5678");
         seller.setGubun(MemberGubun.NEW.getCode());
-        seller.setStatus("ACTIVE");
+        seller.setStatus(MemberStatus.ACTIVE);
         seller.setCdate(new Date());
         return seller;
     }
@@ -184,7 +186,7 @@ class SellerSVCImplTest {
     @DisplayName("판매자 로그인 - 실패 (탈퇴한 회원)")
     void login_fail_withdrawn_user() {
         // given
-        testSeller.setStatus("WITHDRAWN");
+        testSeller.setStatus(MemberStatus.WITHDRAWN);
         testSeller.setWithdrawnAt(new Date());
         when(sellerDAO.findByEmail(testSeller.getEmail())).thenReturn(Optional.of(testSeller));
 
@@ -389,7 +391,7 @@ class SellerSVCImplTest {
     @DisplayName("로그인 가능 여부 체크 - 가능")
     void canLogin_true() {
         // given
-        testSeller.setStatus("ACTIVE");
+        testSeller.setStatus(MemberStatus.ACTIVE);
         testSeller.setWithdrawnAt(null);
 
         // when
@@ -403,7 +405,7 @@ class SellerSVCImplTest {
     @DisplayName("로그인 가능 여부 체크 - 불가능 (탈퇴)")
     void canLogin_false_withdrawn() {
         // given
-        testSeller.setStatus("WITHDRAWN");
+        testSeller.setStatus(MemberStatus.WITHDRAWN);
         testSeller.setWithdrawnAt(new Date());
 
         // when
@@ -417,7 +419,7 @@ class SellerSVCImplTest {
     @DisplayName("탈퇴 여부 체크 - 탈퇴함")
     void isWithdrawn_true() {
         // given
-        testSeller.setStatus("WITHDRAWN");
+        testSeller.setStatus(MemberStatus.WITHDRAWN);
         testSeller.setWithdrawnAt(new Date());
 
         // when
@@ -431,7 +433,7 @@ class SellerSVCImplTest {
     @DisplayName("탈퇴 여부 체크 - 탈퇴 안함")
     void isWithdrawn_false() {
         // given
-        testSeller.setStatus("ACTIVE");
+        testSeller.setStatus(MemberStatus.ACTIVE);
         testSeller.setWithdrawnAt(null);
 
         // when
@@ -442,44 +444,87 @@ class SellerSVCImplTest {
     }
 
     @Test
-    @DisplayName("등급 정보 조회")
-    void getGubunInfo() {
+    @DisplayName("회원 등급 정보 조회 - 정상")
+    void getGubunInfo_Success() {
         // given
-        testSeller.setGubun(MemberGubun.SILVER.getCode());
+        testSeller.setGubun(MemberGubun.GOLD);
 
         // when
-        CodeNameInfo gubunInfo = sellerSVC.getGubunInfo(testSeller);
+        Map<String, String> gubunInfo = sellerSVC.getGubunInfo(testSeller);
 
         // then
-        assertNotNull(gubunInfo);
-        assertEquals(MemberGubun.SILVER.getCode(), gubunInfo.getCode());
-        assertEquals(MemberGubun.SILVER.getDescription(), gubunInfo.getName());
+        assertThat(gubunInfo).isNotNull();
+        assertThat(gubunInfo.get("code")).isEqualTo("GOLD");
+        assertThat(gubunInfo.get("name")).isEqualTo("골드");
     }
 
     @Test
-    @DisplayName("상태 정보 조회")
-    void getStatusInfo() {
+    @DisplayName("회원 상태 정보 조회 - 정상")
+    void getStatusInfo_Success() {
         // given
-        testSeller.setStatus("ACTIVE");
+        testSeller.setStatus(MemberStatus.ACTIVE);
 
         // when
-        CodeNameInfo statusInfo = sellerSVC.getStatusInfo(testSeller);
+        Map<String, String> statusInfo = sellerSVC.getStatusInfo(testSeller);
 
         // then
-        assertNotNull(statusInfo);
-        assertEquals("ACTIVE", statusInfo.getCode());
+        assertThat(statusInfo).isNotNull();
+        assertThat(statusInfo.get("code")).isEqualTo("활성화");
+        assertThat(statusInfo.get("name")).isEqualTo("활성화");
     }
 
     @Test
-    @DisplayName("상점 정보 조회")
-    void getShopInfo() {
+    @DisplayName("상점 정보 조회 - 정상")
+    void getShopInfo_Success() {
         // when
-        CodeNameInfo shopInfo = sellerSVC.getShopInfo(testSeller);
+        Map<String, String> shopInfo = sellerSVC.getShopInfo(testSeller);
 
         // then
-        assertNotNull(shopInfo);
-        assertEquals(testSeller.getBizRegNo(), shopInfo.getCode());
-        assertEquals(testSeller.getShopName(), shopInfo.getName());
+        assertThat(shopInfo).isNotNull();
+        assertThat(shopInfo.get("code")).isEqualTo(testSeller.getSellerId().toString());
+        assertThat(shopInfo.get("name")).isEqualTo(testSeller.getShopName());
+    }
+
+    @Test
+    @DisplayName("회원 정보 조회 - null인 경우")
+    void getInfo_Null() {
+        // when
+        Map<String, String> gubunInfo = sellerSVC.getGubunInfo(null);
+        Map<String, String> statusInfo = sellerSVC.getStatusInfo(null);
+        Map<String, String> shopInfo = sellerSVC.getShopInfo(null);
+
+        // then
+        assertThat(gubunInfo.get("code")).isEqualTo("UNKNOWN");
+        assertThat(statusInfo.get("code")).isEqualTo("UNKNOWN");
+        assertThat(shopInfo.get("code")).isEqualTo("UNKNOWN");
+    }
+
+    @Test
+    @DisplayName("회원 등급 정보 조회 - 등급이 null인 경우")
+    void getGubunInfo_NullGubun() {
+        // given
+        testSeller.setGubun(null);
+
+        // when
+        Map<String, String> gubunInfo = sellerSVC.getGubunInfo(testSeller);
+
+        // then
+        assertThat(gubunInfo.get("code")).isEqualTo("UNKNOWN");
+        assertThat(gubunInfo.get("name")).isEqualTo("알 수 없음");
+    }
+
+    @Test
+    @DisplayName("상점 정보 조회 - 상점명이 null인 경우")
+    void getShopInfo_NullShopName() {
+        // given
+        testSeller.setShopName(null);
+
+        // when
+        Map<String, String> shopInfo = sellerSVC.getShopInfo(testSeller);
+
+        // then
+        assertThat(shopInfo.get("code")).isEqualTo(testSeller.getSellerId().toString());
+        assertThat(shopInfo.get("name")).isNull();
     }
 
     // ==================== 등급 승급 테스트 ====================
@@ -544,12 +589,12 @@ class SellerSVCImplTest {
         // given
         Seller withdrawnSeller1 = createSampleSeller();
         withdrawnSeller1.setSellerId(2L);
-        withdrawnSeller1.setStatus("WITHDRAWN");
+        withdrawnSeller1.setStatus(MemberStatus.WITHDRAWN);
         withdrawnSeller1.setShopName("Withdrawn Shop 1");
         
         Seller withdrawnSeller2 = createSampleSeller();
         withdrawnSeller2.setSellerId(3L);
-        withdrawnSeller2.setStatus("WITHDRAWN");
+        withdrawnSeller2.setStatus(MemberStatus.WITHDRAWN);
         withdrawnSeller2.setShopName("Withdrawn Shop 2");
 
         List<Seller> withdrawnList = Arrays.asList(withdrawnSeller1, withdrawnSeller2);
@@ -561,7 +606,7 @@ class SellerSVCImplTest {
         // then
         assertNotNull(result);
         assertEquals(2, result.size());
-        assertTrue(result.stream().allMatch(seller -> "WITHDRAWN".equals(seller.getStatus())));
+        assertTrue(result.stream().allMatch(seller -> MemberStatus.WITHDRAWN.equals(seller.getStatus())));
         verify(sellerDAO).findWithdrawnMembers();
     }
 
@@ -574,17 +619,17 @@ class SellerSVCImplTest {
         assertFalse(sellerSVC.canLogin(null));
         assertFalse(sellerSVC.isWithdrawn(null));
         
-        CodeNameInfo gubunInfo = sellerSVC.getGubunInfo(null);
-        assertEquals("UNKNOWN", gubunInfo.getCode());
-        assertEquals("알 수 없음", gubunInfo.getName());
+        Map<String, String> gubunInfo = sellerSVC.getGubunInfo(null);
+        assertThat(gubunInfo.get("code")).isEqualTo("UNKNOWN");
+        assertThat(gubunInfo.get("name")).isEqualTo("알 수 없음");
         
-        CodeNameInfo statusInfo = sellerSVC.getStatusInfo(null);
-        assertEquals("UNKNOWN", statusInfo.getCode());
-        assertEquals("알 수 없음", statusInfo.getName());
+        Map<String, String> statusInfo = sellerSVC.getStatusInfo(null);
+        assertThat(statusInfo.get("code")).isEqualTo("UNKNOWN");
+        assertThat(statusInfo.get("name")).isEqualTo("알 수 없음");
 
-        CodeNameInfo shopInfo = sellerSVC.getShopInfo(null);
-        assertEquals("UNKNOWN", shopInfo.getCode());
-        assertEquals("알 수 없음", shopInfo.getName());
+        Map<String, String> shopInfo = sellerSVC.getShopInfo(null);
+        assertThat(shopInfo.get("code")).isEqualTo("UNKNOWN");
+        assertThat(shopInfo.get("name")).isEqualTo("알 수 없음");
     }
 
     @Test
@@ -594,12 +639,11 @@ class SellerSVCImplTest {
         testSeller.setGubun("INVALID_CODE");
 
         // when
-        CodeNameInfo gubunInfo = sellerSVC.getGubunInfo(testSeller);
+        Map<String, String> gubunInfo = sellerSVC.getGubunInfo(testSeller);
 
         // then
-        assertNotNull(gubunInfo);
-        assertEquals(MemberGubun.NEW.getCode(), gubunInfo.getCode());
-        assertEquals(MemberGubun.NEW.getDescription(), gubunInfo.getName());
+        assertThat(gubunInfo.get("code")).isEqualTo(MemberGubun.NEW.getCode());
+        assertThat(gubunInfo.get("name")).isEqualTo(MemberGubun.NEW.getDescription());
     }
 
     @Test
@@ -610,11 +654,10 @@ class SellerSVCImplTest {
         testSeller.setBizRegNo("");
 
         // when
-        CodeNameInfo shopInfo = sellerSVC.getShopInfo(testSeller);
+        Map<String, String> shopInfo = sellerSVC.getShopInfo(testSeller);
 
         // then
-        assertNotNull(shopInfo);
-        assertEquals("", shopInfo.getCode());
-        assertEquals("", shopInfo.getName());
+        assertThat(shopInfo.get("code")).isEqualTo(testSeller.getSellerId().toString());
+        assertThat(shopInfo.get("name")).isEqualTo("");
     }
 }

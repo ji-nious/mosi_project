@@ -3,7 +3,7 @@ package com.kh.project.web.exception;
 import lombok.Getter;
 
 /**
- * 비즈니스 예외 기본 클래스
+ * 비즈니스 예외
  */
 @Getter
 public class BusinessException extends RuntimeException {

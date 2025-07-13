@@ -1,9 +1,9 @@
-package com.kh.project.web.common;
+package com.kh.project.web.common.response;
 
 import java.util.Arrays;
 
 /**
- * REST API 응답 코드
+ * API 응답 코드
  */
 public enum ApiResponseCode {
   // 성공 응답

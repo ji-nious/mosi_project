@@ -1,4 +1,4 @@
-package com.kh.project.web.common.dto;
+package com.kh.project.web.common.form;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Web MVC 설정
+ * 웹 설정
  */
 @Configuration
 @RequiredArgsConstructor
@@ -16,7 +16,9 @@ public class WebConfig implements WebMvcConfigurer {
 
   private final LoginCheckInterceptor loginCheckInterceptor;
 
-  // 정적 리소스 핸들러 설정
+  /**
+   * 정적 리소스 핸들러 설정
+   */
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     registry.addResourceHandler("/css/**")
@@ -29,7 +31,9 @@ public class WebConfig implements WebMvcConfigurer {
             .addResourceLocations("classpath:/static/images/");
   }
 
-  // 로그인 체크 인터셉터 등록
+  /**
+   * 로그인 체크 인터셉터 등록
+   */
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(loginCheckInterceptor)

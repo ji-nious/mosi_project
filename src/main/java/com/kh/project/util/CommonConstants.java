@@ -1,7 +1,7 @@
-package com.kh.project.web.common;
+package com.kh.project.util;
 
 /**
- * 공통 상수 클래스
+ * 공통 상수
  */
 public final class CommonConstants {
     

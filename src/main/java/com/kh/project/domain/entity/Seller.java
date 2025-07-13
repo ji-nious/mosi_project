@@ -1,5 +1,6 @@
 package com.kh.project.domain.entity;
 
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 
 /**
- * 판매자 정보 엔티티
+ * 판매자 정보
  */
 @Data
 @NoArgsConstructor
@@ -59,17 +60,23 @@ public class Seller {
   private Date withdrawnAt;
   private String withdrawnReason;
 
-  // 로그인 가능 여부 확인
+  /**
+   * 로그인 가능 여부 확인
+   */
   public boolean canLogin() {
     return "활성화".equals(this.status) && this.withdrawnAt == null;
   }
 
-  // 탈퇴 여부 확인
+  /**
+   * 탈퇴 여부 확인
+   */
   public boolean isWithdrawn() {
     return "탈퇴".equals(this.status);
   }
 
-  // 사업자등록번호 유효성 검증
+  /**
+   * 사업자등록번호 유효성 검증
+   */
   public boolean isValidBizRegNo() {
     if (this.bizRegNo == null || this.bizRegNo.trim().isEmpty()) {
       return false;
@@ -77,17 +84,23 @@ public class Seller {
     return this.bizRegNo.matches("^\\d{3}-\\d{2}-\\d{5}$");
   }
 
-  // 회원 등급 업그레이드
+  /**
+   * 회원 등급 업그레이드
+   */
   public void upgradeMemberGubun(MemberGubun newGubun) {
     this.memberGubun = newGubun.getCode();
   }
 
-  // 현재 회원 등급 조회
+  /**
+   * 현재 회원 등급 조회
+   */
   public MemberGubun getCurrentMemberGubun() {
-    return com.kh.project.web.common.MemberGubunUtils.fromCodeOrDefault(this.memberGubun);
+    return MemberGubun.fromCodeOrDefault(this.memberGubun);
   }
 
-  // 회원 등급 설명 조회
+  /**
+   * 회원 등급 설명 조회
+   */
   public String getMemberGubunDescription() {
     return getCurrentMemberGubun().getDescription();
   }

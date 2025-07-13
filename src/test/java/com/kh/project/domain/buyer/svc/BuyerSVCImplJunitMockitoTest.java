@@ -2,7 +2,7 @@ package com.kh.project.domain.buyer.svc;
 
 import com.kh.project.domain.buyer.dao.BuyerDAO;
 import com.kh.project.domain.entity.Buyer;
-import com.kh.project.web.common.dto.MemberStatusInfo;
+import com.kh.project.web.common.form.MemberStatusInfo;
 import com.kh.project.web.exception.BusinessException;
 import com.kh.project.web.exception.MemberException;
 import org.junit.jupiter.api.BeforeEach;

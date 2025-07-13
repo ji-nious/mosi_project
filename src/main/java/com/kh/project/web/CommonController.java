@@ -4,15 +4,14 @@ import com.kh.project.domain.buyer.svc.BuyerSVC;
 import com.kh.project.domain.seller.svc.SellerSVC;
 import com.kh.project.domain.entity.Buyer;
 import com.kh.project.domain.entity.Seller;
-import com.kh.project.web.common.CommonConstants;
-import com.kh.project.web.common.LoginMember;
+import com.kh.project.util.CommonConstants;
+import com.kh.project.domain.entity.LoginMember;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -20,7 +19,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.Optional;
 
 /**
- * 공통 컨트롤러 (로그인/로그아웃/홈)
+ * 공통 컨트롤러
  */
 @Slf4j
 @Controller

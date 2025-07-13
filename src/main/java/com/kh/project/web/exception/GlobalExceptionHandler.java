@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 전역 예외 처리 핸들러
+ * 전역 예외 처리
  */
 @Slf4j
 @RestControllerAdvice

@@ -545,8 +545,6 @@
                     closeModal(passwordModal);
                     if (nextAction === 'edit') {
                         window.location.href = '/buyer/edit';
-                    } else if (nextAction === 'delete') {
-                        window.location.href = '/buyer/withdraw';
                     }
                 } else {
                     errorElement.textContent = '비밀번호가 틀렸습니다.';
@@ -563,11 +561,11 @@
         });
 
         deleteBtn.addEventListener('click', () => {
-            nextAction = 'delete';
-            openModal(passwordModal);
+            // 비밀번호 검증 모달 없이 바로 탈퇴 페이지로 이동
+            window.location.href = '/buyer/withdraw';
         });
 
-        // 비밀번호 확인 모달
+        // 비밀번호 확인 모달 (정보 수정용)
         passwordModal.querySelector('.close-button').addEventListener('click', () => closeModal(passwordModal));
         passwordModal.querySelector('#confirmPasswordBtn').addEventListener('click', proceedWithAction);
         passwordInput.addEventListener('keyup', e => {
@@ -576,8 +574,6 @@
         passwordModal.addEventListener('click', e => {
             if (e.target === passwordModal) closeModal(passwordModal);
         });
-
-
     });
 
     // 로그아웃 기능

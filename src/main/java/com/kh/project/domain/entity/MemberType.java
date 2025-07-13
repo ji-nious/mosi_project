@@ -1,10 +1,10 @@
-package com.kh.project.web.common;
+package com.kh.project.domain.entity;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 회원 타입 열거형
+ * 회원 타입
  */
 @Getter
 @RequiredArgsConstructor

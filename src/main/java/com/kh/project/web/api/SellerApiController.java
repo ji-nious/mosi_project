@@ -1,14 +1,13 @@
 package com.kh.project.web.api;
 
-import com.kh.project.domain.entity.MemberGubun;
 import com.kh.project.domain.entity.Seller;
 import com.kh.project.domain.seller.svc.SellerSVC;
-import com.kh.project.web.common.ApiResponse;
-import com.kh.project.web.common.AuthUtils;
-import com.kh.project.web.common.CommonConstants;
-import com.kh.project.web.common.LoginMember;
-import com.kh.project.web.common.MemberGubunUtils;
-import com.kh.project.web.common.dto.SellerSignupForm;
+import com.kh.project.web.common.response.ApiResponse;
+import com.kh.project.util.AuthUtils;
+import com.kh.project.util.CommonConstants;
+import com.kh.project.domain.entity.LoginMember;
+import com.kh.project.domain.entity.MemberGubun;
+import com.kh.project.web.common.form.SellerSignupForm;
 import com.kh.project.web.exception.BusinessException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -18,15 +17,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import com.kh.project.web.common.dto.MemberStatusInfo;
+import com.kh.project.web.common.form.MemberStatusInfo;
 
 /**
  * 판매자 API 컨트롤러
- * 판매자 회원가입, 로그인, 정보조회/수정, 탈퇴, 등급관리 등 REST API 제공
  */
 @Slf4j
 @RestController
@@ -64,7 +61,7 @@ public class SellerApiController {
     log.info("판매자 회원가입 성공: sellerId={}", savedSeller.getSellerId());
 
     Map<String, Object> response = ApiResponse.joinSuccess(savedSeller, 
-        MemberGubunUtils.getDescriptionByCode(savedSeller.getMemberGubun()));
+        MemberGubun.getDescriptionByCode(savedSeller.getMemberGubun()));
     
     return ResponseEntity.ok(response);
   }
@@ -90,7 +87,7 @@ public class SellerApiController {
       session.setAttribute(CommonConstants.LOGIN_MEMBER_KEY, loginMember);
       session.setMaxInactiveInterval(CommonConstants.SESSION_TIMEOUT);
       
-      String gubunName = MemberGubunUtils.getDescriptionByCode(seller.getMemberGubun());
+      String gubunName = MemberGubun.getDescriptionByCode(seller.getMemberGubun());
       boolean canLogin = sellerSVC.canLogin(seller);
       Map<String, Object> response = ApiResponse.loginSuccess(seller, gubunName, canLogin);
       
@@ -129,7 +126,7 @@ public class SellerApiController {
       
       Seller seller = sellerOpt.get();
       Map<String, Object> additionalData = Map.of(
-              "gubunName", MemberGubunUtils.getDescriptionByCode(seller.getMemberGubun()),
+              "gubunName", MemberGubun.getDescriptionByCode(seller.getMemberGubun()),
               "canLogin", sellerSVC.canLogin(seller),
               "isWithdrawn", sellerSVC.isWithdrawn(seller)
       );
@@ -163,7 +160,7 @@ public class SellerApiController {
       
       Seller seller = sellerOpt.get();
       Map<String, Object> additionalData = Map.of(
-          "gubunName", MemberGubunUtils.getDescriptionByCode(seller.getMemberGubun()),
+          "gubunName", MemberGubun.getDescriptionByCode(seller.getMemberGubun()),
           "canLogin", sellerSVC.canLogin(seller),
           "isWithdrawn", sellerSVC.isWithdrawn(seller)
       );

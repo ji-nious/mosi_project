@@ -1,6 +1,6 @@
 package com.kh.project.web.interceptor;
 
-import com.kh.project.web.common.LoginMember;
+import com.kh.project.domain.entity.LoginMember;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;

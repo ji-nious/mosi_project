@@ -1,9 +1,12 @@
-package com.kh.project.web.common;
+package com.kh.project.domain;
 
 import com.kh.project.domain.buyer.svc.BuyerSVC;
-import com.kh.project.domain.seller.svc.SellerSVC;
 import com.kh.project.domain.entity.Buyer;
 import com.kh.project.domain.entity.Seller;
+import com.kh.project.domain.seller.svc.SellerSVC;
+import com.kh.project.util.CommonConstants;
+import com.kh.project.domain.entity.LoginMember;
+import com.kh.project.domain.entity.MemberType;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * 세션 관리 서비스
+ * 세션 관리
  */
 @Slf4j
 @Service
@@ -28,7 +31,7 @@ public class SessionService {
     /**
      * 현재 로그인된 사용자 정보 조회
      */
-    public UserInfo getCurrentUserInfo(HttpSession session) {
+    public LoginMember getCurrentUserInfo(HttpSession session) {
         if (session == null) {
             return null;
         }
@@ -56,7 +59,7 @@ public class SessionService {
      * 모델에 사용자 정보 추가
      */
     public void addUserInfoToModel(HttpSession session, Model model) {
-        UserInfo userInfo = getCurrentUserInfo(session);
+        LoginMember userInfo = getCurrentUserInfo(session);
         if (userInfo != null) {
             model.addAttribute("userNickname", userInfo.getNickname());
             model.addAttribute("userName", userInfo.getName());
@@ -93,11 +96,11 @@ public class SessionService {
     /**
      * 구매자 정보 조회
      */
-    private UserInfo getBuyerInfo(Long buyerId) {
+    private LoginMember getBuyerInfo(Long buyerId) {
         Optional<Buyer> buyerOpt = buyerSVC.findById(buyerId);
         if (buyerOpt.isPresent()) {
             Buyer buyer = buyerOpt.get();
-            return UserInfo.builder()
+            return LoginMember.builder()
                     .id(buyer.getBuyerId())
                     .email(buyer.getEmail())
                     .name(buyer.getName())
@@ -111,11 +114,11 @@ public class SessionService {
     /**
      * 판매자 정보 조회
      */
-    private UserInfo getSellerInfo(Long sellerId) {
+    private LoginMember getSellerInfo(Long sellerId) {
         Optional<Seller> sellerOpt = sellerSVC.findById(sellerId);
         if (sellerOpt.isPresent()) {
             Seller seller = sellerOpt.get();
-            return UserInfo.builder()
+            return LoginMember.builder()
                     .id(seller.getSellerId())
                     .email(seller.getEmail())
                     .name(seller.getName())

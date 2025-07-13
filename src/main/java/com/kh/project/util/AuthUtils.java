@@ -1,5 +1,6 @@
-package com.kh.project.web.common;
+package com.kh.project.util;
 
+import com.kh.project.domain.entity.LoginMember;
 import com.kh.project.web.exception.MemberException;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;

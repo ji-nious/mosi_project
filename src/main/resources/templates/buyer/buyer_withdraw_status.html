@@ -367,7 +367,7 @@
           <h4>적립금 현황</h4>
           <div class="status-row">
             <span class="status-label">보유 적립금</span>
-            <span class="status-value" th:text="${memberStatus.points} + '원'">0원</span>
+            <span class="status-value" th:text="${memberStatus != null and memberStatus.points != null ? memberStatus.points : 0} + '원'">0원</span>
           </div>
           <div class="status-notice">
             회원 탈퇴 시 보유 적립금이 즉시 소멸되며 복구가 불가능합니다.
@@ -379,7 +379,7 @@
           <h4>쿠폰 현황</h4>
           <div class="status-row">
             <span class="status-label">사용 가능한 쿠폰</span>
-            <span class="status-value" th:text="${memberStatus.coupons} + '개'">0개</span>
+            <span class="status-value" th:text="${memberStatus != null and memberStatus.coupons != null ? memberStatus.coupons : 0} + '개'">0개</span>
           </div>
           <div class="status-notice">
             회원 탈퇴 시 보유 쿠폰이 즉시 소멸되며 복구가 불가능합니다.
@@ -391,11 +391,11 @@
           <h4>주문 현황</h4>
           <div class="status-row">
             <span class="status-label">진행 중인 주문</span>
-            <span class="status-value" th:text="${memberStatus.activeOrders} + '건'">0건</span>
+            <span class="status-value" th:text="${memberStatus != null and memberStatus.activeOrders != null ? memberStatus.activeOrders : 0} + '건'">0건</span>
           </div>
           <div class="status-row">
             <span class="status-label">배송 중인 주문</span>
-            <span class="status-value" th:text="${memberStatus.shippingOrders} + '건'">0건</span>
+            <span class="status-value" th:text="${memberStatus != null and memberStatus.shippingOrders != null ? memberStatus.shippingOrders : 0} + '건'">0건</span>
           </div>
           <div class="status-notice">
             미완료 주문이 있는 경우 회원 탈퇴가 제한됩니다. 모든 주문 처리 완료 후 탈퇴를 진행해주시기 바랍니다.

@@ -3,7 +3,7 @@ package com.kh.project.domain.buyer.svc;
 import com.kh.project.domain.buyer.dao.BuyerDAO;
 import com.kh.project.domain.entity.Buyer;
 import com.kh.project.domain.entity.MemberGubun;
-import com.kh.project.web.common.CodeNameInfo;
+import com.kh.project.domain.entity.MemberStatus;
 import com.kh.project.web.exception.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,11 +16,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * BuyerSVC 포괄적 단위 테스트
@@ -54,7 +56,7 @@ class BuyerSVCImplTest {
         buyer.setBirth(new Date());
         buyer.setAddress("부산시 해운대구");
         buyer.setGubun(MemberGubun.NEW.getCode());
-        buyer.setStatus("활성화");
+        buyer.setStatus(MemberStatus.ACTIVE);
         buyer.setCdate(new Date());
         return buyer;
     }
@@ -162,7 +164,7 @@ class BuyerSVCImplTest {
     @DisplayName("로그인 - 실패 (탈퇴한 회원)")
     void login_fail_withdrawn_user() {
         // given
-        testBuyer.setStatus("탈퇴");
+        testBuyer.setStatus(MemberStatus.WITHDRAWN);
         testBuyer.setWithdrawnAt(new Date());
         when(buyerDAO.findByEmail(testBuyer.getEmail())).thenReturn(Optional.of(testBuyer));
 
@@ -338,7 +340,7 @@ class BuyerSVCImplTest {
     @DisplayName("로그인 가능 여부 체크 - 가능")
     void canLogin_true() {
         // given
-        testBuyer.setStatus("활성화");
+        testBuyer.setStatus(MemberStatus.ACTIVE);
         testBuyer.setWithdrawnAt(null);
 
         // when
@@ -352,7 +354,7 @@ class BuyerSVCImplTest {
     @DisplayName("로그인 가능 여부 체크 - 불가능 (탈퇴)")
     void canLogin_false_withdrawn() {
         // given
-        testBuyer.setStatus("탈퇴");
+        testBuyer.setStatus(MemberStatus.WITHDRAWN);
         testBuyer.setWithdrawnAt(new Date());
 
         // when
@@ -366,7 +368,7 @@ class BuyerSVCImplTest {
     @DisplayName("탈퇴 여부 체크 - 탈퇴함")
     void isWithdrawn_true() {
         // given
-        testBuyer.setStatus("탈퇴");
+        testBuyer.setStatus(MemberStatus.WITHDRAWN);
         testBuyer.setWithdrawnAt(new Date());
 
         // when
@@ -380,7 +382,7 @@ class BuyerSVCImplTest {
     @DisplayName("탈퇴 여부 체크 - 탈퇴 안함")
     void isWithdrawn_false() {
         // given
-        testBuyer.setStatus("활성화");
+        testBuyer.setStatus(MemberStatus.ACTIVE);
         testBuyer.setWithdrawnAt(null);
 
         // when
@@ -391,32 +393,59 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("등급 정보 조회")
-    void getGubunInfo() {
+    @DisplayName("회원 등급 정보 조회 - 정상")
+    void getGubunInfo_Success() {
         // given
-        testBuyer.setGubun(MemberGubun.BRONZE.getCode());
+        testBuyer.setGubun(MemberGubun.GOLD);
 
         // when
-        CodeNameInfo gubunInfo = buyerSVC.getGubunInfo(testBuyer);
+        Map<String, String> gubunInfo = buyerSVC.getGubunInfo(testBuyer);
 
         // then
-        assertNotNull(gubunInfo);
-        assertEquals(MemberGubun.BRONZE.getCode(), gubunInfo.getCode());
-        assertEquals(MemberGubun.BRONZE.getDescription(), gubunInfo.getName());
+        assertThat(gubunInfo).isNotNull();
+        assertThat(gubunInfo.get("code")).isEqualTo("GOLD");
+        assertThat(gubunInfo.get("name")).isEqualTo("골드");
     }
 
     @Test
-    @DisplayName("상태 정보 조회")
-    void getStatusInfo() {
+    @DisplayName("회원 상태 정보 조회 - 정상")
+    void getStatusInfo_Success() {
         // given
-        testBuyer.setStatus("활성화");
+        testBuyer.setStatus(MemberStatus.ACTIVE);
 
         // when
-        CodeNameInfo statusInfo = buyerSVC.getStatusInfo(testBuyer);
+        Map<String, String> statusInfo = buyerSVC.getStatusInfo(testBuyer);
 
         // then
-        assertNotNull(statusInfo);
-        assertEquals("활성화", statusInfo.getCode());
+        assertThat(statusInfo).isNotNull();
+        assertThat(statusInfo.get("code")).isEqualTo("활성화");
+        assertThat(statusInfo.get("name")).isEqualTo("활성화");
+    }
+
+    @Test
+    @DisplayName("회원 정보 조회 - null인 경우")
+    void getInfo_Null() {
+        // when
+        Map<String, String> gubunInfo = buyerSVC.getGubunInfo(null);
+        Map<String, String> statusInfo = buyerSVC.getStatusInfo(null);
+
+        // then
+        assertThat(gubunInfo.get("code")).isEqualTo("UNKNOWN");
+        assertThat(statusInfo.get("code")).isEqualTo("UNKNOWN");
+    }
+
+    @Test
+    @DisplayName("회원 등급 정보 조회 - 등급이 null인 경우")
+    void getGubunInfo_NullGubun() {
+        // given
+        testBuyer.setGubun(null);
+
+        // when
+        Map<String, String> gubunInfo = buyerSVC.getGubunInfo(testBuyer);
+
+        // then
+        assertThat(gubunInfo.get("code")).isEqualTo("UNKNOWN");
+        assertThat(gubunInfo.get("name")).isEqualTo("알 수 없음");
     }
 
     // ==================== 등급 승급 테스트 ====================
@@ -443,11 +472,11 @@ class BuyerSVCImplTest {
         // given
         Buyer withdrawnBuyer1 = createSampleBuyer();
         withdrawnBuyer1.setBuyerId(2L);
-        withdrawnBuyer1.setStatus("탈퇴");
+        withdrawnBuyer1.setStatus(MemberStatus.WITHDRAWN);
         
         Buyer withdrawnBuyer2 = createSampleBuyer();
         withdrawnBuyer2.setBuyerId(3L);
-        withdrawnBuyer2.setStatus("탈퇴");
+        withdrawnBuyer2.setStatus(MemberStatus.WITHDRAWN);
 
         List<Buyer> withdrawnList = Arrays.asList(withdrawnBuyer1, withdrawnBuyer2);
         when(buyerDAO.findWithdrawnMembers()).thenReturn(withdrawnList);
@@ -458,7 +487,7 @@ class BuyerSVCImplTest {
         // then
         assertNotNull(result);
         assertEquals(2, result.size());
-        assertTrue(result.stream().allMatch(buyer -> "탈퇴".equals(buyer.getStatus())));
+        assertTrue(result.stream().allMatch(buyer -> MemberStatus.WITHDRAWN.equals(buyer.getStatus())));
         verify(buyerDAO).findWithdrawnMembers();
     }
 
@@ -471,13 +500,13 @@ class BuyerSVCImplTest {
         assertFalse(buyerSVC.canLogin(null));
         assertFalse(buyerSVC.isWithdrawn(null));
         
-        CodeNameInfo gubunInfo = buyerSVC.getGubunInfo(null);
-        assertEquals("UNKNOWN", gubunInfo.getCode());
-        assertEquals("알 수 없음", gubunInfo.getName());
+        Map<String, String> gubunInfo = buyerSVC.getGubunInfo(null);
+        assertThat(gubunInfo.get("code")).isEqualTo("UNKNOWN");
+        assertThat(gubunInfo.get("name")).isEqualTo("알 수 없음");
         
-        CodeNameInfo statusInfo = buyerSVC.getStatusInfo(null);
-        assertEquals("UNKNOWN", statusInfo.getCode());
-        assertEquals("알 수 없음", statusInfo.getName());
+        Map<String, String> statusInfo = buyerSVC.getStatusInfo(null);
+        assertThat(statusInfo.get("code")).isEqualTo("UNKNOWN");
+        assertThat(statusInfo.get("name")).isEqualTo("알 수 없음");
     }
 
     @Test
@@ -487,11 +516,10 @@ class BuyerSVCImplTest {
         testBuyer.setGubun("INVALID_CODE");
 
         // when
-        CodeNameInfo gubunInfo = buyerSVC.getGubunInfo(testBuyer);
+        Map<String, String> gubunInfo = buyerSVC.getGubunInfo(testBuyer);
 
         // then
-        assertNotNull(gubunInfo);
-        assertEquals(MemberGubun.NEW.getCode(), gubunInfo.getCode());
-        assertEquals(MemberGubun.NEW.getDescription(), gubunInfo.getName());
+        assertThat(gubunInfo.get("code")).isEqualTo(MemberGubun.NEW.getCode());
+        assertThat(gubunInfo.get("name")).isEqualTo(MemberGubun.NEW.getDescription());
     }
 }

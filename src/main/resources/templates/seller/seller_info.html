@@ -411,12 +411,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         passwordModal.style.display = 'none';
                         window.location.href = '/seller/edit';
                     }, 200);
-                } else if (nextAction === 'withdraw') {
-                    passwordModal.style.animation = 'fadeIn 0.2s ease-out reverse';
-                    setTimeout(() => {
-                        passwordModal.style.display = 'none';
-                        window.location.href = '/seller/withdraw';
-                    }, 200);
                 }
             } else {
                 errorElement.textContent = '비밀번호가 일치하지 않습니다.';
@@ -436,7 +430,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Listeners ---
     editBtn.addEventListener('click', () => openModal('edit'));
-    withdrawBtn.addEventListener('click', () => openModal('withdraw'));
+    withdrawBtn.addEventListener('click', () => {
+        // 비밀번호 검증 모달 없이 바로 탈퇴 페이지로 이동
+        window.location.href = '/seller/withdraw';
+    });
     
     passwordConfirmBtn.addEventListener('click', proceedWithAction);
     passwordInput.addEventListener('keyup', e => {
