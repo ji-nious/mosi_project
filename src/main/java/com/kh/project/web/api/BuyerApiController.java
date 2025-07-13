@@ -34,13 +34,7 @@ public class BuyerApiController {
 
   private final BuyerSVC buyerSVC;
 
-  /**
-   * 구매자 회원가입
-   * 
-   * @param signupForm 회원가입 정보
-   * @param session HTTP 세션
-   * @return ResponseEntity<Map<String, Object>> 가입 결과 및 회원 정보
-   */
+  // 회원가입 API
   @PostMapping("/signup")
   public ResponseEntity<Map<String, Object>> signup(
           @Valid @RequestBody BuyerSignupForm signupForm,
@@ -68,13 +62,7 @@ public class BuyerApiController {
     return ResponseEntity.ok(response);
   }
 
-  /**
-   * 구매자 로그인
-   * 
-   * @param loginRequest 로그인 요청 정보 (email, password)
-   * @param session HTTP 세션
-   * @return ResponseEntity<Map<String, Object>> 로그인 결과 및 구매자 정보
-   */
+  // 로그인 API
   @PostMapping("/login")
   public ResponseEntity<Map<String, Object>> login(
           @RequestBody Map<String, String> loginRequest, 
@@ -85,7 +73,7 @@ public class BuyerApiController {
       log.info("구매자 로그인 요청: email={}", email);
       
       Buyer buyer = buyerSVC.login(email, password);
-                  LoginMember loginMember = LoginMember.buyer(buyer.getBuyerId(), buyer.getEmail());
+      LoginMember loginMember = LoginMember.buyer(buyer.getBuyerId(), buyer.getEmail());
       session.setAttribute(CommonConstants.LOGIN_MEMBER_KEY, loginMember);
       session.setMaxInactiveInterval(CommonConstants.SESSION_TIMEOUT);
       
@@ -106,12 +94,7 @@ public class BuyerApiController {
     }
   }
 
-  /**
-   * 현재 로그인한 구매자 정보 조회
-   * 
-   * @param session HTTP 세션
-   * @return ResponseEntity<Map<String, Object>> 구매자 정보 및 추가 데이터
-   */
+  // 내 정보 조회 API
   @GetMapping("/info")
   public ResponseEntity<Map<String, Object>> getBuyerInfo(HttpSession session) {
     try {
@@ -145,13 +128,7 @@ public class BuyerApiController {
     }
   }
 
-  /**
-   * 특정 구매자 정보 조회 (본인만 가능)
-   * 
-   * @param buyerId 구매자 ID
-   * @param session HTTP 세션
-   * @return ResponseEntity<Map<String, Object>> 구매자 정보
-   */
+  // 회원 정보 조회 API
   @GetMapping("/{buyerId}")
   public ResponseEntity<Map<String, Object>> getBuyer(
           @PathVariable("buyerId") Long buyerId, 
@@ -180,14 +157,7 @@ public class BuyerApiController {
     }
   }
 
-  /**
-   * 구매자 정보 수정
-   * 
-   * @param buyerId 구매자 ID
-   * @param request 수정할 정보 (currentPassword 필수)
-   * @param session HTTP 세션
-   * @return ResponseEntity<Map<String, Object>> 수정 결과
-   */
+  // 정보 수정 API
   @PutMapping("/{buyerId}")
   public ResponseEntity<Map<String, Object>> update(
           @PathVariable("buyerId") Long buyerId, 
@@ -224,24 +194,17 @@ public class BuyerApiController {
       }
     } catch (SecurityException e) {
       log.warn("권한 없는 정보 수정 시도: buyerId={}", buyerId);
-              return ResponseEntity.status(403).body(ApiResponse.error("권한이 없습니다."));
-      } catch (BusinessException e) {
-        log.warn("정보 수정 실패 (비즈니스 로직): buyerId={}", buyerId, e);
-        return ResponseEntity.badRequest().body(ApiResponse.error("정보 수정에 실패했습니다."));
-      } catch (Exception e) {
-        log.error("정보 수정 실패 (시스템 오류): buyerId={}", buyerId, e);
-        return ResponseEntity.internalServerError().body(ApiResponse.error("시스템 오류가 발생했습니다."));
-      }
+      return ResponseEntity.status(403).body(ApiResponse.error("권한이 없습니다."));
+    } catch (BusinessException e) {
+      log.warn("정보 수정 실패 (비즈니스 로직): buyerId={}", buyerId, e);
+      return ResponseEntity.badRequest().body(ApiResponse.error("정보 수정에 실패했습니다."));
+    } catch (Exception e) {
+      log.error("정보 수정 실패 (시스템 오류): buyerId={}", buyerId, e);
+      return ResponseEntity.internalServerError().body(ApiResponse.error("시스템 오류가 발생했습니다."));
+    }
   }
 
-  /**
-   * 구매자 탈퇴
-   * 
-   * @param buyerId 구매자 ID
-   * @param request 탈퇴 정보 (password, reason 필수)
-   * @param session HTTP 세션
-   * @return ResponseEntity<Map<String, Object>> 탈퇴 결과
-   */
+  // 회원 탈퇴 API
   @PostMapping("/{buyerId}/withdraw")
   public ResponseEntity<Map<String, Object>> withdraw(
           @PathVariable("buyerId") Long buyerId, 
@@ -263,7 +226,6 @@ public class BuyerApiController {
         return ResponseEntity.badRequest().body(ApiResponse.error("비밀번호가 일치하지 않습니다."));
       }
       
-      // 탈퇴 가능 여부 확인
       if (!buyerSVC.canWithdraw(buyerId)) {
         MemberStatusInfo statusInfo = buyerSVC.getServiceUsage(buyerId);
         Map<String, Object> usage = statusInfo.toMap();
@@ -290,13 +252,7 @@ public class BuyerApiController {
     }
   }
 
-  /**
-   * 구매자 서비스 이용현황 조회
-   * 
-   * @param buyerId 구매자 ID
-   * @param session HTTP 세션
-   * @return ResponseEntity<Map<String, Object>> 서비스 이용현황 정보
-   */
+  // 서비스 이용현황 조회 API
   @GetMapping("/{buyerId}/usage")
   public ResponseEntity<Map<String, Object>> getUsage(
           @PathVariable("buyerId") Long buyerId, 
@@ -321,13 +277,7 @@ public class BuyerApiController {
     }
   }
 
-  /**
-   * 비밀번호 확인 API
-   * 
-   * @param request 비밀번호 정보
-   * @param session HTTP 세션
-   * @return ResponseEntity<Map<String, Object>> 확인 결과
-   */
+  // 비밀번호 확인 API
   @PostMapping("/verify-password")
   public ResponseEntity<Map<String, Object>> verifyPassword(
           @RequestBody Map<String, Object> request,
@@ -357,12 +307,7 @@ public class BuyerApiController {
     }
   }
 
-  /**
-   * 이메일 중복 확인
-   * 
-   * @param email 확인할 이메일
-   * @return ResponseEntity<Map<String, Object>> 중복 확인 결과
-   */
+  // 이메일 중복 확인 API
   @GetMapping("/check-email")
   public ResponseEntity<Map<String, Object>> checkEmailDuplication(@RequestParam String email) {
     try {
@@ -379,12 +324,7 @@ public class BuyerApiController {
     }
   }
 
-  /**
-   * 닉네임 중복 확인
-   * 
-   * @param nickname 확인할 닉네임
-   * @return ResponseEntity<Map<String, Object>> 중복 확인 결과
-   */
+  // 닉네임 중복 확인 API
   @GetMapping("/check-nickname")
   public ResponseEntity<Map<String, Object>> checkNickname(@RequestParam String nickname) {
     try {

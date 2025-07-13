@@ -357,7 +357,6 @@ public class SellerSVCImpl implements SellerSVC {
     return CodeNameInfo.of(seller.getSellerId().toString(), seller.getShopName());
   }
 
-  @Override
   public Optional<Seller> reactivate(String email, String password) {
     log.info("판매자 계정 재활성화 시도: email={}", email);
     

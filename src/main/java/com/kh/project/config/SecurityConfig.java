@@ -24,18 +24,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  /**
-   * 비밀번호 인코더 - 현재 평문 저장 (2차 프로젝트에서 암호화 예정)
-   */
+  // 비밀번호 인코더 설정
   @Bean
   @SuppressWarnings("deprecation")
   public PasswordEncoder passwordEncoder() {
     return NoOpPasswordEncoder.getInstance();
   }
 
-  /**
-   * Security 필터 체인 설정
-   */
+  // Security 필터 체인 설정
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
@@ -72,17 +68,15 @@ public class SecurityConfig {
     return http.build();
   }
 
-  /**
-   * CORS 설정
-   */
+  // CORS 설정
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
     configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    configuration.setAllowedMethods(Arrays.asList("HEAD", "POST", "GET", "DELETE", "PUT"));
     configuration.setAllowedHeaders(Arrays.asList("*"));
     configuration.setAllowCredentials(true);
-    
+
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
     return source;

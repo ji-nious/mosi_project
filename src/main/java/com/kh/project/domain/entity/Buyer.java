@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 
 /**
- * 구매자 엔티티
+ * 구매자 정보 엔티티
  */
 @Data
 @NoArgsConstructor
@@ -59,16 +59,12 @@ public class Buyer {
   private Date withdrawnAt;
   private String withdrawnReason;
 
-  /**
-   * 로그인 가능 여부 확인
-   */
+  // 로그인 가능 여부 확인
   public boolean canLogin() {
     return "활성화".equals(this.status) && this.withdrawnAt == null;
   }
 
-  /**
-   * 탈퇴 여부 확인
-   */
+  // 탈퇴 여부 확인
   public boolean isWithdrawn() {
     return "탈퇴".equals(this.status);
   }

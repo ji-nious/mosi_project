@@ -5,7 +5,6 @@ import com.kh.project.web.common.CodeNameInfo;
 import com.kh.project.web.common.dto.MemberStatusInfo;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -13,81 +12,54 @@ import java.util.Optional;
  */
 public interface BuyerSVC {
   
-  /**
-   * 구매자 회원가입
-   * @param buyer 구매자 정보
-   * @return Buyer - 저장된 구매자 정보
-   */
+  // 회원가입
   Buyer join(Buyer buyer);
   
-  /**
-   * 구매자 로그인
-   */
+  // 로그인
   Buyer login(String email, String password);
   
-  /**
-   * 구매자 정보 조회
-   * @return Optional<Buyer> - 조회된 구매자 정보
-   */
+  // 정보 조회
   Optional<Buyer> findById(Long buyerId);
 
-  /**
-   * 이메일로 구매자 조회
-   * @param email 이메일 주소
-   * @return Optional<Buyer> - 조회된 구매자 정보
-   */
+  // 이메일로 회원 조회
   Optional<Buyer> findByEmail(String email);
   
-  /**
-   * 구매자 정보 수정
-   */
+  // 정보 수정
   int update(Long buyerId, Buyer buyer);
 
-  /**
-   * 구매자 탈퇴 (논리 삭제)
-   */
+  // 회원 탈퇴
   int withdraw(Long buyerId, String reason);
 
-  /**
-   * 이메일 중복 체크
-   */
+  // 이메일 중복 체크
   boolean existsByEmail(String email);
 
-  /**
-   * 닉네임 중복 체크
-   */
+  // 닉네임 중복 체크
   boolean existsByNickname(String nickname);
 
-  /**
-   * 비밀번호 확인
-   */
+  // 비밀번호 확인
   boolean checkPassword(Long buyerId, String password);
 
-  // 비즈니스 로직
+  // 로그인 가능 여부 확인
   boolean canLogin(Buyer buyer);
+  
+  // 탈퇴 여부 확인
   boolean isWithdrawn(Buyer buyer);
+  
+  // 회원 등급 정보 조회
   CodeNameInfo getGubunInfo(Buyer buyer);
+  
+  // 회원 상태 정보 조회
   CodeNameInfo getStatusInfo(Buyer buyer);
 
-  /**
-   * 탈퇴한 회원 계정 재활성화
-   * @param email 대상 이메일
-   * @param password 새로운 비밀번호
-   * @return 재활성화된 구매자 정보
-   */
+  // 탈퇴 회원 계정 재활성화
   Optional<Buyer> reactivate(String email, String password);
 
-  // 관리 기능
+  // 탈퇴 회원 목록 조회
   List<Buyer> getWithdrawnMembers();
 
-  // 프로세스 설계서: 비밀번호 재확인과 서비스 이용현황 조회
-  /**
-   * 서비스 이용현황 조회 및 탈퇴 가능성 판단
-   */
+  // 서비스 이용현황 조회
   MemberStatusInfo getServiceUsage(Long buyerId);
   
-  /**
-   * 탈퇴 가능 여부 판단
-   */
+  // 탈퇴 가능 여부 판단
   boolean canWithdraw(Long buyerId);
 }

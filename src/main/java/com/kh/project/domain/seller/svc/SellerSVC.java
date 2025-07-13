@@ -5,7 +5,6 @@ import com.kh.project.web.common.CodeNameInfo;
 import com.kh.project.web.common.dto.MemberStatusInfo;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -13,93 +12,63 @@ import java.util.Optional;
  */
 public interface SellerSVC {
   
-  /**
-   * 판매자 회원가입
-   */
+  // 회원가입
   Seller join(Seller seller);
   
-  /**
-   * 판매자 로그인 인증
-   */
+  // 로그인
   Seller login(String email, String password);
   
-  /**
-   * 판매자 정보 조회
-   */
+  // 정보 조회
   Optional<Seller> findById(Long sellerId);
   
-  /**
-   * 판매자 정보 수정
-   */
+  // 정보 수정
   int update(Long sellerId, Seller seller);
   
-  /**
-   * 판매자 탈퇴
-   */
+  // 회원 탈퇴
   int withdraw(Long sellerId, String reason);
 
-  /**
-   * 이메일 중복 체크
-   */
+  // 이메일 중복 체크
   boolean existsByEmail(String email);
 
-  /**
-   * 사업자 등록번호 중복 체크
-   */
+  // 사업자등록번호 중복 체크
   boolean existsByBizRegNo(String bizRegNo);
 
-  /**
-   * 상호명 중복 체크
-   */
+  // 상호명 중복 체크
   boolean existsByShopName(String shopName);
 
-  /**
-   * 대표자명 중복 체크
-   */
+  // 대표자명 중복 체크
   boolean existsByName(String name);
 
-  /**
-   * 사업장 주소 중복 체크
-   */
+  // 사업장 주소 중복 체크
   boolean existsByShopAddress(String shopAddress);
 
-  /**
-   * 비밀번호 확인
-   */
+  // 비밀번호 확인
   boolean checkPassword(Long sellerId, String password);
 
+  // 로그인 가능 여부 확인
   boolean canLogin(Seller seller);
+  
+  // 탈퇴 여부 확인
   boolean isWithdrawn(Seller seller);
+  
+  // 회원 등급 정보 조회
   CodeNameInfo getGubunInfo(Seller seller);
+  
+  // 회원 상태 정보 조회
   CodeNameInfo getStatusInfo(Seller seller);
+  
+  // 가게 정보 조회
   CodeNameInfo getShopInfo(Seller seller);
   
-  /**
-   * 관리 기능
-   */
+  // 탈퇴 회원 목록 조회
   List<Seller> getWithdrawnMembers();
 
-  /**
-   * 사업자등록번호 검증
-   */
+  // 사업자등록번호 검증
   boolean validateBizRegNo(String bizRegNo);
 
-  // 프로세스 설계서: 비밀번호 재확인과 서비스 이용현황 조회
-  /**
-   * 서비스 이용현황 조회 및 탈퇴 가능성 판단
-   */
+  // 서비스 이용현황 조회
   MemberStatusInfo getServiceUsage(Long sellerId);
   
-  /**
-   * 탈퇴 가능 여부 판단
-   */
+  // 탈퇴 가능 여부 판단
   boolean canWithdraw(Long sellerId);
-
-  /**
-   * 탈퇴한 판매자 계정 재활성화
-   * @param email 대상 이메일
-   * @param password 새로운 비밀번호
-   * @return 재활성화된 판매자 정보
-   */
-  Optional<Seller> reactivate(String email, String password);
 }
