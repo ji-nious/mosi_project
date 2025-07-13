@@ -30,47 +30,43 @@ public class BuyerSVCImpl implements BuyerSVC {
   private final BuyerDAO buyerDAO;
 
   @Override
+  @Transactional
   public Buyer join(Buyer buyer) {
-    log.info("구매자 회원가입 시도: email={}", buyer.getEmail());
+    log.info("구매자 회원가입 처리 시작: email={}", buyer.getEmail());
 
-    // 1. 이메일로 회원 조회
+    // 1. 이메일로 기존 회원 정보 조회
     Optional<Buyer> existingBuyerOpt = buyerDAO.findByEmail(buyer.getEmail());
 
     if (existingBuyerOpt.isPresent()) {
       Buyer existingBuyer = existingBuyerOpt.get();
-      // 2. 이미 존재하는 회원 처리
+      
+      // 2. 이미 존재하는 회원 상태에 따라 분기
       if (existingBuyer.isWithdrawn()) {
-        // 2-1. 탈퇴한 회원이면 재가입 처리
-        log.info("탈퇴한 회원 재가입 시도: email={}", buyer.getEmail());
-        buyer.setStatus("활성화"); // 상태 명시적 설정
-        int updatedRows = buyerDAO.rejoin(buyer);
-        if (updatedRows == 0) {
-          throw new MemberException.MemberNotFoundException(); // 재가입 대상이 사라진 경우
-        }
-        log.info("회원 재가입 성공: email={}", buyer.getEmail());
-        // rejoin은 ID를 반환하지 않으므로, 기존 ID를 설정하여 반환
-        buyer.setBuyerId(existingBuyer.getBuyerId()); 
-        return buyer;
+        // 2-1. 탈퇴한 회원이면, 재활성화 시도
+        log.info("탈퇴한 계정 재활성화 시도: email={}", buyer.getEmail());
+        Optional<Buyer> reactivatedBuyer = reactivate(buyer.getEmail(), buyer.getPassword());
+        
+        return reactivatedBuyer.orElseThrow(() -> 
+          new BusinessException("계정 재활성화에 실패했습니다. 비밀번호를 확인해주세요.")
+        );
 
       } else {
         // 2-2. 활성/정지 등 다른 상태의 회원이면 중복 오류
-        throw new MemberException.EmailDuplicationException(buyer.getEmail());
+        log.warn("이미 존재하는 활성 계정으로 가입 시도: email={}", buyer.getEmail());
+        throw new BusinessException("이미 사용중인 이메일입니다: " + buyer.getEmail());
       }
     }
 
     // 3. 신규 회원 가입
-    // 닉네임 중복 체크 (신규 가입 시에만)
-    if (buyer.getNickname() != null && buyerDAO.existsByNickname(buyer.getNickname())) {
-      throw new BusinessException("이미 사용중인 닉네임입니다.");
+    log.info("신규 회원 가입 진행: email={}", buyer.getEmail());
+    
+    // 닉네임 중복 체크
+    if (buyerDAO.existsByNickname(buyer.getNickname())) {
+      throw new BusinessException("이미 사용중인 닉네임입니다: " + buyer.getNickname());
     }
 
-    // 기본값 설정
-    buyer.setStatus("활성화");
-
-    Buyer savedBuyer = buyerDAO.save(buyer);
-    log.info("구매자 회원가입 성공: buyerId={}, email={}", savedBuyer.getBuyerId(), savedBuyer.getEmail());
-
-    return savedBuyer;
+    // 신규 회원으로 저장
+    return buyerDAO.save(buyer);
   }
 
   @Override

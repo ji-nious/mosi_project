@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.validation.Validator;
 
 /**
  * 구매자 페이지 컨트롤러
@@ -43,6 +44,7 @@ public class BuyerPageController {
   
   private final BuyerSVC buyerSVC;
   private final SellerSVC sellerSVC;
+  private final Validator validator;
 
   @GetMapping("/login")
   public String buyerLogin(Model model) {
@@ -122,47 +124,36 @@ public class BuyerPageController {
   }
   
   @PostMapping({"/signup", "/join"})
-  public String buyerSignup(@Valid @ModelAttribute BuyerSignupForm signupForm,
+  public String buyerSignup(@ModelAttribute BuyerSignupForm signupForm,
                            BindingResult bindingResult,
                            HttpSession session,
                            RedirectAttributes redirectAttributes,
                            Model model) {
-    log.info("구매자 회원가입 처리: email={}", signupForm.getEmail());
+    log.info("구매자 회원가입 요청: email={}", signupForm.getEmail());
 
-    // 1. 탈퇴 회원 재활성화 시도
-    Optional<Buyer> withdrawnBuyer = buyerSVC.findByEmail(signupForm.getEmail())
-        .filter(Buyer::isWithdrawn);
+    // 시나리오 분기: 재활성화 vs 신규가입
+    Optional<Buyer> existingBuyer = buyerSVC.findByEmail(signupForm.getEmail());
 
-    if (withdrawnBuyer.isPresent()) {
-      Optional<Buyer> reactivatedBuyer = buyerSVC.reactivate(signupForm.getEmail(), signupForm.getPassword());
-      if (reactivatedBuyer.isPresent()) {
-        // 재활성화 성공 시 바로 로그인
-        Buyer buyer = reactivatedBuyer.get();
-        LoginMember loginMember = LoginMember.buyer(buyer.getBuyerId(), buyer.getEmail());
-        session.setAttribute("loginMember", loginMember);
-        session.setMaxInactiveInterval(1800);
-        
-        redirectAttributes.addFlashAttribute("message", "계정이 다시 활성화되었습니다. 환영합니다!");
-        return "redirect:/";
-      } else {
-        // 재활성화 실패 (드문 경우)
-        bindingResult.reject("reactivate.fail", "계정 재활성화에 실패했습니다. 관리자에게 문의하세요.");
+    if (existingBuyer.isPresent() && existingBuyer.get().isWithdrawn()) {
+      // 1. 재활성화 시나리오: 이메일과 비밀번호만 확인
+      if (signupForm.getPassword() == null || signupForm.getPassword().isBlank()) {
+        bindingResult.rejectValue("password", "error.password", "비밀번호를 입력해주세요.");
+        return "buyer/buyer_signup";
+      }
+    } else {
+      // 2. 신규가입 시나리오: 전체 폼 유효성 검사
+      validator.validate(signupForm, bindingResult);
+      if (bindingResult.hasErrors()) {
+        return "buyer/buyer_signup";
+      }
+      if (!signupForm.isValidBirth()) {
+        bindingResult.rejectValue("birth", "error.birth", "생년월일은 오늘 이전 날짜여야 합니다.");
         return "buyer/buyer_signup";
       }
     }
-
-    // 2. 신규 회원 가입 유효성 검사
-    if (bindingResult.hasErrors()) {
-      return "buyer/buyer_signup";
-    }
-    
-    // 생년월일 검증
-    if (!signupForm.isValidBirth()) {
-      bindingResult.rejectValue("birth", "error.birth", "생년월일은 오늘 이전 날짜여야 합니다.");
-      return "buyer/buyer_signup";
-    }
     
     try {
+      // 서비스 계층에 회원가입(재활성화 포함) 위임
       Buyer buyer = new Buyer();
       buyer.setEmail(signupForm.getEmail());
       buyer.setPassword(signupForm.getPassword());
@@ -175,23 +166,27 @@ public class BuyerPageController {
       }
       buyer.setAddress(signupForm.getFullAddress());
       
-      Buyer savedBuyer = buyerSVC.join(buyer);
+      Buyer processedBuyer = buyerSVC.join(buyer);
       
-      redirectAttributes.addFlashAttribute("message", "회원가입이 완료되었습니다. 로그인해 주세요.");
-      log.info("구매자 회원가입 성공: buyerId={}", savedBuyer.getBuyerId());
+      // 3. 성공 처리 (자동 로그인 및 리디렉션)
+      LoginMember loginMember = LoginMember.buyer(processedBuyer.getBuyerId(), processedBuyer.getEmail());
+      session.setAttribute("loginMember", loginMember);
+      session.setMaxInactiveInterval(1800);
+      
+      redirectAttributes.addFlashAttribute("message", "회원가입(또는 계정 활성화)이 완료되었습니다. 환영합니다!");
+      log.info("구매자 회원가입/재활성화 성공: buyerId={}", processedBuyer.getBuyerId());
       return "redirect:/";
       
-    } catch (Exception e) {
+    } catch (BusinessException e) {
       log.error("구매자 회원가입 실패: email={}, error={}", signupForm.getEmail(), e.getMessage());
       
-      // 특정 필드 에러로 처리
-      if (e.getMessage().contains("이메일") || e.getMessage().contains("email")) {
+      // 4. 실패 처리 (오류 메시지 표시)
+      if (e.getMessage().contains("이메일")) {
         bindingResult.rejectValue("email", "error.email", e.getMessage());
       } else if (e.getMessage().contains("닉네임")) {
         bindingResult.rejectValue("nickname", "error.nickname", e.getMessage());
       } else {
-        log.error("Unhandled signup error: {}", e.getMessage(), e); // 스택 트레이스 로깅
-        bindingResult.reject("signup.fail", "회원가입 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+        bindingResult.reject("signup.fail", e.getMessage());
       }
       
       return "buyer/buyer_signup";

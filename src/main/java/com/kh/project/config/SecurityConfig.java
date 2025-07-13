@@ -47,10 +47,30 @@ public class SecurityConfig {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/", "/home", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll()
-            .requestMatchers("/common/**", "/error/**").permitAll()
-            .requestMatchers("/buyer/login", "/buyer/signup").permitAll()
-            .requestMatchers("/seller/login", "/seller/signup").permitAll()
+            // 정적 리소스 및 공통 페이지
+            .requestMatchers(
+                "/", "/home", 
+                "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico"
+            ).permitAll()
+            // 회원가입 및 로그인 관련
+            .requestMatchers(
+                "/login", "/signup",
+                "/common/select_login", "/common/select-login",
+                "/common/select_signup",
+                "/common/juso-popup", "/error/**"
+            ).permitAll()
+            // 구매자 관련
+            .requestMatchers(
+                "/buyer/login",
+                "/buyer/signup", "/buyer/join"
+            ).permitAll()
+            // 판매자 관련
+            .requestMatchers(
+                "/seller/login",
+                "/seller/signup", "/seller/join"
+            ).permitAll()
+            // API 경로
+            .requestMatchers("/api/**").permitAll()
             .anyRequest().authenticated() 
         )
         .formLogin(form -> form
