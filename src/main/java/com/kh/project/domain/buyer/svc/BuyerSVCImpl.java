@@ -6,6 +6,7 @@ import com.kh.project.domain.entity.MemberGubun;
 import com.kh.project.domain.entity.MemberStatus;
 import com.kh.project.web.common.CodeNameInfo;
 import com.kh.project.web.common.MemberGubunUtils;
+import com.kh.project.web.common.dto.MemberStatusInfo;
 import com.kh.project.web.exception.BusinessException;
 import com.kh.project.web.exception.MemberException;
 import lombok.RequiredArgsConstructor;
@@ -81,6 +82,8 @@ public class BuyerSVCImpl implements BuyerSVC {
   @Override
   @Transactional(readOnly = true)
   public Buyer login(String email, String password) {
+    // 이메일을 소문자로 변환 (대소문자 구분 방지)
+    email = email.toLowerCase().trim();
     log.info("구매자 로그인 시도: email={}", email);
 
     Buyer buyer = buyerDAO.findByEmail(email)
@@ -142,7 +145,8 @@ public class BuyerSVCImpl implements BuyerSVC {
   public int withdraw(Long buyerId, String reason) {
     // 1. 탈퇴 가능 여부 확인
     if (!canWithdraw(buyerId)) {
-      Map<String, Object> usage = getServiceUsage(buyerId);
+      MemberStatusInfo statusInfo = getServiceUsage(buyerId);
+      Map<String, Object> usage = statusInfo.toMap();
       List<String> blockReasons = (List<String>) usage.get("withdrawBlockReasons");
       String reasonText = String.join(", ", blockReasons);
       throw new BusinessException("탈퇴할 수 없습니다. 사유: " + reasonText);
@@ -219,7 +223,7 @@ public class BuyerSVCImpl implements BuyerSVC {
 
   @Override
   @Transactional(readOnly = true)
-  public Map<String, Object> getServiceUsage(Long buyerId) {
+  public MemberStatusInfo getServiceUsage(Long buyerId) {
     log.info("구매자 서비스 이용현황 조회: buyerId={}", buyerId);
 
     Optional<Buyer> buyerOpt = buyerDAO.findById(buyerId);
@@ -227,64 +231,34 @@ public class BuyerSVCImpl implements BuyerSVC {
       throw new MemberException.MemberNotFoundException();
     }
 
-    Buyer buyer = buyerOpt.get();
-
-    // 서비스 이용현황 기본값
-    int activeOrderCount = 0;
-    int completedOrderCount = 5;
-    int unresolvedDisputeCount = 0;
-    int openInquiryCount = 0;
-    int pointBalance = 0;
-    int pendingRefundAmount = 0;
-
-    // 탈퇴 불가 사유 검사
-    List<String> withdrawBlockReasons = new java.util.ArrayList<>();
+    // TODO: 실제 데이터베이스에서 조회하도록 구현
+    // 현재는 기본값 0으로 설정 (적립금, 쿠폰, 주문 테이블 구현 후 실제 조회 로직 추가)
     
-    if (activeOrderCount > 0) {
-      withdrawBlockReasons.add("진행중인 주문이 " + activeOrderCount + "건 있습니다.");
-    }
+    // 구현 예정:
+    // int points = pointDAO.getPointBalance(buyerId);
+    // int coupons = couponDAO.countUsableCouponsByBuyerId(buyerId);
+    // int activeOrders = orderDAO.countActiveOrdersByBuyerId(buyerId);
+    // int shippingOrders = orderDAO.countOrdersByBuyerIdAndStatus(buyerId, "SHIPPING");
     
-    if (unresolvedDisputeCount > 0) {
-      withdrawBlockReasons.add("미해결 분쟁이 " + unresolvedDisputeCount + "건 있습니다.");
-    }
+    int points = 0;            // 보유 적립금
+    int coupons = 0;           // 사용 가능한 쿠폰
+    int activeOrders = 0;      // 진행 중인 주문
+    int shippingOrders = 0;    // 배송 중인 주문
     
-    if (pointBalance > 0) {
-      withdrawBlockReasons.add("사용하지 않은 포인트가 " + pointBalance + "P 있습니다.");
-    }
-    
-    if (pendingRefundAmount > 0) {
-      withdrawBlockReasons.add("환불 대기 금액이 " + pendingRefundAmount + "원 있습니다.");
-    }
-
-    // 가입 기간 검사 - 제거됨 (즉시 탈퇴 가능)
-
-    boolean canWithdraw = withdrawBlockReasons.isEmpty();
-
-    Map<String, Object> serviceUsage = new HashMap<>();
-    serviceUsage.put("memberId", buyerId);
-    serviceUsage.put("memberType", "BUYER");
-    serviceUsage.put("joinDate", buyer.getCdate());
-    serviceUsage.put("activeOrderCount", activeOrderCount);
-    serviceUsage.put("completedOrderCount", completedOrderCount);
-    serviceUsage.put("unresolvedDisputeCount", unresolvedDisputeCount);
-    serviceUsage.put("openInquiryCount", openInquiryCount);
-    serviceUsage.put("pointBalance", pointBalance);
-    serviceUsage.put("pendingRefundAmount", pendingRefundAmount);
-    serviceUsage.put("canWithdraw", canWithdraw);
-    serviceUsage.put("withdrawBlockReasons", withdrawBlockReasons);
-
-    log.info("구매자 서비스 이용현황 조회 완료: buyerId={}, canWithdraw={}, blockReasons={}", 
-             buyerId, canWithdraw, withdrawBlockReasons.size());
-
-    return serviceUsage;
+    return MemberStatusInfo.builder()
+        .canWithdraw(true)
+        .points(points)
+        .coupons(coupons)
+        .activeOrders(activeOrders)
+        .shippingOrders(shippingOrders)
+        .build();
   }
 
   @Override
   @Transactional(readOnly = true)
-  @SuppressWarnings("unchecked")
   public boolean canWithdraw(Long buyerId) {
-    Map<String, Object> usage = getServiceUsage(buyerId);
-    return (Boolean) usage.get("canWithdraw");
+    MemberStatusInfo statusInfo = getServiceUsage(buyerId);
+    return statusInfo.isCanWithdraw();
   }
 
   @Override

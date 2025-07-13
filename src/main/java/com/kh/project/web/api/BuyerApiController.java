@@ -2,8 +2,13 @@ package com.kh.project.web.api;
 
 import com.kh.project.domain.buyer.svc.BuyerSVC;
 import com.kh.project.domain.entity.Buyer;
-import com.kh.project.web.common.*;
+import com.kh.project.web.common.ApiResponse;
+import com.kh.project.web.common.AuthUtils;
+import com.kh.project.web.common.CommonConstants;
+import com.kh.project.web.common.LoginMember;
+import com.kh.project.web.common.MemberGubunUtils;
 import com.kh.project.web.common.dto.BuyerSignupForm;
+import com.kh.project.web.common.dto.MemberStatusInfo;
 import com.kh.project.web.exception.BusinessException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -260,7 +265,8 @@ public class BuyerApiController {
       
       // 탈퇴 가능 여부 확인
       if (!buyerSVC.canWithdraw(buyerId)) {
-        Map<String, Object> usage = buyerSVC.getServiceUsage(buyerId);
+        MemberStatusInfo statusInfo = buyerSVC.getServiceUsage(buyerId);
+        Map<String, Object> usage = statusInfo.toMap();
         @SuppressWarnings("unchecked")
         List<String> blockReasons = (List<String>) usage.get("withdrawBlockReasons");
         String reasonText = String.join(", ", blockReasons);

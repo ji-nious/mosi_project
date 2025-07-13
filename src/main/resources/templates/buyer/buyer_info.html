@@ -239,62 +239,194 @@
             font-size: 1.15rem;
             font-weight: 700;
         }
+        .modal-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            position: relative;
+        }
+        
+        .modal-icon.warning {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+        }
+        
+        .modal-icon.security {
+            background: linear-gradient(135deg, #658352, #5a7347);
+            color: white;
+            box-shadow: 0 8px 25px rgba(101, 131, 82, 0.3);
+        }
+        
         .close-button {
-            color: #aaa;
             position: absolute;
-            top: 12px;
-            right: 18px;
-            font-size: 28px;
+            top: 15px;
+            right: 20px;
+            color: #aaa;
+            font-size: 24px;
             font-weight: bold;
             cursor: pointer;
-            transition: color 0.2s;
+            transition: color 0.3s ease;
         }
-        .close-button:hover {
-            color: #658352;
+        
+        .close-button:hover,
+        .close-button:focus {
+            color: #666;
         }
-        #passwordInput {
-            width: calc(100% - 24px);
-            margin: 16px 0 8px 0;
-            box-sizing: border-box;
-            padding: 12px;
+        
+        .modal-content h2 {
+            margin: 0 0 15px 0;
+            font-family: 'Cabin', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #2c3e50;
+        }
+        
+        .modal-content .warning-title {
+            color: #dc3545;
+        }
+        
+        .modal-content p {
+            margin-bottom: 25px;
+            color: #6c757d;
             font-size: 1rem;
-            border-radius: 8px;
-            border: 1px solid #bbb;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+        
+        .modal-content .warning-text {
+            color: #495057;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        #passwordInput {
+            width: 100%;
+            padding: 15px 20px;
+            margin-bottom: 8px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+        
+        #passwordInput:focus {
             outline: none;
-            transition: border 0.2s;
+            border-color: #658352;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(101, 131, 82, 0.1);
         }
 
         .modal-content .error-msg {
-            color: red;
-            font-size: 0.85rem;
-            min-height: 1.5em;
-            text-align: center;
-            width: 100%;
-            margin-bottom: 10px;
+            color: #dc3545;
+            font-size: 0.9rem;
+            margin: 8px 0 20px;
+            min-height: 1.2em;
+            font-weight: 500;
         }
+        
         .modal-content button {
-            width: 100%;
-            padding: 10px 0;
-            font-size: 1rem;
-            border-radius: 20px;
-            border: 1px solid #658352;
-            background: #658352;
-            color: #fff;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: background 0.2s;
-        }
-        .modal-content button:hover {
-            background: #94A687;
-        }
-        .modal-content .danger {
-            background: #b82a0b;
+            padding: 14px 32px;
+            border-radius: 12px;
             border: none;
-            color: #fff;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            position: relative;
+            overflow: hidden;
+            margin: 7px;
         }
+        
+        .modal-content button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .modal-content button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        #confirmPasswordBtn {
+            background: linear-gradient(135deg, #658352, #5a7347);
+            color: white;
+            box-shadow: 0 4px 15px rgba(101, 131, 82, 0.3);
+        }
+        
+        #confirmPasswordBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(101, 131, 82, 0.4);
+        }
+        
+        .cancel-btn {
+            background: white;
+            color: #6c757d;
+            border: 2px solid #e9ecef !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .cancel-btn:hover {
+            background: #f8f9fa;
+            border-color: #dee2e6 !important;
+            color: #495057;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .modal-content .danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+        
         .modal-content .danger:hover {
-            background: #d33c1a;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+        }
+        
+        .warning-notice {
+            background: linear-gradient(135deg, #fff3cd, #fdf4d2);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 1px solid #ffeaa7;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.15);
+        }
+        
+        .warning-notice strong {
+            color: #856404;
+            font-size: 1.1rem;
+        }
+        
+        .warning-notice p {
+            color: #856404;
+            margin: 10px 0 0 0;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -350,35 +482,25 @@
     <div id="passwordModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
-            <h2>비밀번호 확인</h2>
-            <p>계속하려면 비밀번호를 입력하세요.</p>
-            <input type="password" id="passwordInput" placeholder="비밀번호" autocomplete="current-password">
+            <div class="modal-icon security">
+                🔒
+            </div>
+            <h2>보안 인증</h2>
+            <p>개인정보 보호를 위해 현재 비밀번호를 다시 한 번 입력해주세요.</p>
+            <input type="password" id="passwordInput" placeholder="현재 비밀번호를 입력하세요" autocomplete="current-password">
             <div id="modalErrorMessage" class="error-msg"></div>
-            <button id="confirmPasswordBtn">확인</button>
+            <div class="modal-actions">
+                <button id="confirmPasswordBtn">확인</button>
+            </div>
         </div>
     </div>
 
-    <!-- Delete Confirm Modal -->
-    <div id="deleteModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" id="deleteCloseBtn">&times;</span>
-            <h2>정말로 계정을 탈퇴 하시겠습니까?</h2>
-            <div style="background:#f8f6e7;padding:16px 12px;border-radius:8px;margin:18px 0 20px 0;color:#a00;font-size:1rem;">
-                <strong>탈퇴 주의사항</strong><br>
-                탈퇴 시 모든 정보가 삭제되며 복구가 불가합니다.
-            </div>
-            <div style="display:flex; gap:12px; justify-content:center;">
-                <button id="deleteCancelBtn" style="background:#eee;color:#333;border:1px solid #bbb;width:110px;padding:10px 0;font-size:1rem;border-radius:24px;">취소</button>
-                <button id="deleteConfirmBtn" style="background:#a00;color:#fff;width:110px;padding:10px 0;font-size:1rem;border:none;border-radius:24px;">회원 탈퇴</button>
-            </div>
-        </div>
-    </div>
+
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         // --- DOM 요소 ---
         const passwordModal = document.getElementById('passwordModal');
-        const deleteModal = document.getElementById('deleteModal');
         const editBtn = document.getElementById('editBtn');
         const deleteBtn = document.getElementById('deleteBtn');
         const passwordInput = document.getElementById('passwordInput');
@@ -455,17 +577,7 @@
             if (e.target === passwordModal) closeModal(passwordModal);
         });
 
-        // 회원 탈퇴 확인 모달
-        deleteModal.querySelector('#deleteConfirmBtn').addEventListener('click', () => {
-            closeModal(deleteModal);
-            // 탈퇴 페이지로 이동
-            window.location.href = '/buyer/withdraw';
-        });
-        deleteModal.querySelector('#deleteCancelBtn').addEventListener('click', () => closeModal(deleteModal));
-        deleteModal.querySelector('#deleteCloseBtn').addEventListener('click', () => closeModal(deleteModal));
-        deleteModal.addEventListener('click', e => {
-            if (e.target === deleteModal) closeModal(deleteModal);
-        });
+
     });
 
     // 로그아웃 기능

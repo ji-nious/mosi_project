@@ -47,7 +47,7 @@ public class SecurityConfig {
             .requestMatchers(
                 "/login", "/signup",
                 "/common/select_login", "/common/select-login",
-                "/common/select_signup",
+                "/common/select_signup", "/common/signup-complete",
                 "/common/juso-popup", "/error/**"
             ).permitAll()
             .requestMatchers("/buyer/**").permitAll()

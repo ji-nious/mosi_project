@@ -77,51 +77,208 @@
         }
         #edit-btn { background-color: var(--color-primary); color: white; border-color: var(--color-primary); }
         #back-btn { background-color: transparent; color: var(--color-primary); border-color: var(--color-primary); }
-        #withdraw-btn { background-color: var(--color-danger); color: white; border-color: var(--color-danger); }
-        #withdraw-btn:hover { background-color: var(--color-danger-dark); }
+        #withdraw-btn { background-color: var(--color-primary); color: white; border-color: var(--color-primary); }
+        #withdraw-btn:hover { opacity: 0.9; }
         
         /* --- Modal Styles --- */
         .modal {
             display: none; position: fixed; z-index: 2000;
             left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
             justify-content: center; align-items: center;
+            animation: fadeIn 0.3s ease-out;
         }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { 
+                opacity: 0; 
+                transform: translate(-50%, -50%) scale(0.8); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1); 
+            }
+        }
+        
         .modal-content {
-            background-color: white; padding: 30px; border-radius: 10px;
-            text-align: center; width: 90%; max-width: 400px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            width: 90%;
+            max-width: 480px;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.15),
+                0 10px 25px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid rgba(255, 255, 255, 0.8);
         }
+        
+        .modal-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            position: relative;
+        }
+        
+        .modal-icon.warning {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+        }
+        
+        .modal-icon.security {
+            background: linear-gradient(135deg, #658352, #5a7347);
+            color: white;
+            box-shadow: 0 8px 25px rgba(101, 131, 82, 0.3);
+        }
+        
         .modal-content h3 {
-            margin-top: 0; font-family: 'Cabin', sans-serif;
-            color: var(--color-primary);
+            margin: 0 0 15px 0;
+            font-family: 'Cabin', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
-        .modal-content p { margin-bottom: 20px; }
+        
+        .modal-content .security-title {
+            color: #2c3e50;
+        }
+        
+        .modal-content .warning-title {
+            color: #dc3545;
+        }
+        
+        .modal-content p {
+            margin-bottom: 25px;
+            color: #6c757d;
+            font-size: 1rem;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+        
+        .modal-content .warning-text {
+            color: #495057;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
         #password-confirm-input {
-             width: 100%; padding: 10px; margin-bottom: 20px;
-             border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;
+            width: 100%;
+            padding: 15px 20px;
+            margin-bottom: 8px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
         }
-        .modal-actions {
-            display: flex; justify-content: flex-end; gap: 10px;
-        }
-        .modal-actions button {
-            padding: 10px 20px; border-radius: 8px; border: 1px solid;
-            font-weight: bold; cursor: pointer;
-        }
-        .modal-confirm-btn {
-            background-color: var(--color-primary);
+        
+        #password-confirm-input:focus {
+            outline: none;
             border-color: var(--color-primary);
-            color: white;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(101, 131, 82, 0.1);
         }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .modal-actions button {
+            padding: 14px 32px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modal-actions button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .modal-actions button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .modal-confirm-btn {
+            background: linear-gradient(135deg, var(--color-primary), #5a7347);
+            color: white;
+            box-shadow: 0 4px 15px rgba(101, 131, 82, 0.3);
+        }
+        
+        .modal-confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(101, 131, 82, 0.4);
+        }
+        
         .modal-cancel-btn {
-             background-color: transparent; border-color: #ccc; color: #555;
+            background: white;
+            color: #6c757d;
+            border: 2px solid #e9ecef !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
+        
+        .modal-cancel-btn:hover {
+            background: #f8f9fa;
+            border-color: #dee2e6 !important;
+            color: #495057;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+        
         #withdraw-confirm-btn {
-            background-color: var(--color-danger);
-            border-color: var(--color-danger);
+            background: linear-gradient(135deg, #dc3545, #c82333);
             color: white;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
         }
+        
         #withdraw-confirm-btn:hover {
-            background-color: var(--color-danger-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+        }
+        
+        .modal-error {
+            color: #dc3545;
+            font-size: 0.9rem;
+            margin: 8px 0 20px;
+            min-height: 1.2em;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -170,10 +327,13 @@
 <!-- Password Confirmation Modal -->
 <div id="password-modal" class="modal">
   <div class="modal-content">
-    <h3>비밀번호 확인</h3>
-    <p>정보를 안전하게 보호하기 위해 비밀번호를 다시 입력해주세요.</p>
-    <input type="password" id="password-confirm-input" placeholder="비밀번호 입력">
-    <div id="modal-error-message" style="color: red; font-size: 0.9rem; margin: 10px 0; min-height: 1.2em;"></div>
+    <div class="modal-icon security">
+      🔒
+    </div>
+    <h3 class="security-title">보안 인증</h3>
+    <p>개인정보 보호를 위해 현재 비밀번호를 다시 한 번 입력해주세요.</p>
+    <input type="password" id="password-confirm-input" placeholder="현재 비밀번호를 입력하세요">
+    <div id="modal-error-message" class="modal-error"></div>
     <div class="modal-actions">
       <button type="button" class="modal-cancel-btn">취소</button>
       <button type="button" class="modal-confirm-btn">확인</button>
@@ -181,22 +341,7 @@
   </div>
 </div>
 
-<!-- Account Withdraw Modal -->
-<div id="withdraw-modal" class="modal">
-  <div class="modal-content">
-    <h3 style="color: var(--color-danger);">회원 탈퇴</h3>
-    <p style="font-weight: bold;">정말로 탈퇴하시겠습니까?</p>
-    <ul style="text-align: left; font-size: 0.9rem; color: #555; margin-top: 0; padding-left: 20px; list-style-position: inside; line-height: 1.6;">
-        <li>모든 판매 상품이 삭제되며 복구할 수 없습니다.</li>
-        <li>정산 내역 등 모든 정보가 영구적으로 삭제됩니다.</li>
-        <li>탈퇴 후 동일한 이메일로 재가입이 불가능할 수 있습니다.</li>
-    </ul>
-    <div class="modal-actions">
-      <button type="button" class="modal-cancel-btn">취소</button>
-      <button type="button" id="withdraw-confirm-btn">탈퇴 확인</button>
-    </div>
-  </div>
-</div>
+
 
 
 <script src="/js/common/logout.js"></script>
@@ -204,13 +349,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Modal Elements
     const passwordModal = document.getElementById('password-modal');
-    const withdrawModal = document.getElementById('withdraw-modal');
     
     // Buttons
     const editBtn = document.getElementById('edit-btn');
     const withdrawBtn = document.getElementById('withdraw-btn');
     const passwordConfirmBtn = passwordModal.querySelector('.modal-confirm-btn');
-    const withdrawConfirmBtn = document.getElementById('withdraw-confirm-btn');
 
     // Input & Error
     const passwordInput = document.getElementById('password-confirm-input');
@@ -224,12 +367,21 @@ document.addEventListener('DOMContentLoaded', () => {
         passwordModal.style.display = 'flex';
         passwordInput.value = '';
         errorElement.textContent = '';
-        passwordInput.focus();
+        
+        // 애니메이션을 위한 약간의 지연
+        setTimeout(() => {
+            passwordInput.focus();
+        }, 100);
     }
 
     function closeModal() {
-        passwordModal.style.display = 'none';
-        withdrawModal.style.display = 'none';
+        // 페이드 아웃 애니메이션
+        passwordModal.style.animation = 'fadeIn 0.2s ease-out reverse';
+        
+        setTimeout(() => {
+            passwordModal.style.display = 'none';
+            passwordModal.style.animation = '';
+        }, 200);
     }
 
     async function proceedWithAction() {
@@ -253,14 +405,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
             
             if (result.success) {
-                passwordModal.style.display = 'none';
                 if (nextAction === 'edit') {
-                    window.location.href = '/seller/edit';
+                    passwordModal.style.animation = 'fadeIn 0.2s ease-out reverse';
+                    setTimeout(() => {
+                        passwordModal.style.display = 'none';
+                        window.location.href = '/seller/edit';
+                    }, 200);
                 } else if (nextAction === 'withdraw') {
-                    withdrawModal.style.display = 'flex';
+                    passwordModal.style.animation = 'fadeIn 0.2s ease-out reverse';
+                    setTimeout(() => {
+                        passwordModal.style.display = 'none';
+                        window.location.href = '/seller/withdraw';
+                    }, 200);
                 }
             } else {
-                errorElement.textContent = '비밀번호가 틀렸습니다.';
+                errorElement.textContent = '비밀번호가 일치하지 않습니다.';
+                passwordInput.style.borderColor = '#dc3545';
+                passwordInput.style.boxShadow = '0 0 0 4px rgba(220, 53, 69, 0.1)';
+                
+                // 에러 상태 초기화
+                setTimeout(() => {
+                    passwordInput.style.borderColor = '';
+                    passwordInput.style.boxShadow = '';
+                }, 3000);
             }
         } catch (error) {
             errorElement.textContent = '서버 오류가 발생했습니다.';
@@ -276,18 +443,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') proceedWithAction();
     });
 
-    // --- Event listener for the final step of withdrawal ---
-    withdrawConfirmBtn.addEventListener('click', () => {
-        window.location.href = '/seller/withdraw';
-    });
-    
     // --- General event listeners to CLOSE modals ---
     document.querySelectorAll('.modal-cancel-btn').forEach(btn => {
         btn.addEventListener('click', closeModal);
     });
 
     window.addEventListener('click', (event) => {
-        if (event.target == passwordModal || event.target == withdrawModal) {
+        if (event.target == passwordModal) {
             closeModal();
         }
     });

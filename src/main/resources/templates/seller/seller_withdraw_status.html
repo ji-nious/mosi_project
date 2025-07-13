@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>판매자 회원 탈퇴</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+    
+    .header {
+      text-align: center;
+      padding: 40px 20px 20px;
+      background: white;
+    }
+    
+    .header h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #333;
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
+    
+    .divider {
+      height: 3px;
+      background: #333;
+      margin: 20px 40px 0;
+    }
+    
+    .content {
+      padding: 40px;
+    }
+    
+    .section {
+      margin-bottom: 40px;
+    }
+    
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .status-container {
+      background: #f8f9fa;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+    }
+    
+    .status-item {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #e9ecef;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    
+    .status-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .status-item h4 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #333;
+      margin: 0 0 15px 0;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f8f9fa;
+    }
+    
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 12px 0;
+      padding: 8px 0;
+    }
+    
+    .status-label {
+      color: #666;
+      font-size: 0.95rem;
+    }
+    
+    .status-value {
+      font-weight: 600;
+      color: #658352;
+      font-size: 1rem;
+    }
+    
+    .status-notice {
+      color: #6c757d;
+      font-size: 0.85rem;
+      margin-top: 15px;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      border-left: 4px solid #658352;
+    }
+    
+    .warning-container {
+      background: #fff3cd;
+      padding: 25px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      border: 1px solid #ffeaa7;
+    }
+    
+    .warning-header {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #856404;
+      margin-bottom: 15px;
+    }
+    
+    .warning-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .warning-list li {
+      color: #856404;
+      font-size: 0.9rem;
+      margin: 8px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    
+    .warning-list li::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: #856404;
+      font-weight: bold;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 40px;
+    }
+    
+    .btn {
+      padding: 15px 40px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 120px;
+    }
+    
+    .btn-cancel {
+      background: white;
+      color: #666;
+      border: 2px solid #ddd;
+    }
+    
+    .btn-cancel:hover {
+      border-color: #999;
+      color: #333;
+    }
+    
+    .btn-withdraw {
+      background: #658352;
+      color: white;
+      border: 2px solid #658352;
+    }
+    
+    .btn-withdraw:hover {
+      background: #5a7347;
+      border-color: #5a7347;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(101, 131, 82, 0.3);
+    }
+    
+    .btn-disabled {
+      background: #ccc;
+      border-color: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .btn-disabled:hover {
+      background: #ccc;
+      border-color: #ccc;
+      transform: none;
+      box-shadow: none;
+          }
+      
+      /* 탈퇴 완료 모달 스타일 - 완전히 새로 작성 */
+      .withdraw-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        animation: modalFadeIn 0.3s ease-out;
+      }
+
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes modalSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-30px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .withdraw-modal-container {
+        background: #ffffff;
+        border-radius: 16px;
+        max-width: 480px;
+        width: 90%;
+        padding: 60px 50px 50px;
+        text-align: center;
+        box-shadow: 
+          0 20px 40px rgba(0, 0, 0, 0.1),
+          0 10px 20px rgba(0, 0, 0, 0.05);
+        position: relative;
+        animation: modalSlideIn 0.4s ease-out;
+        font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+      }
+
+      .withdraw-check-icon {
+        width: 88px;
+        height: 88px;
+        background: #658352;
+        border-radius: 50%;
+        margin: 0 auto 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        box-shadow: 0 4px 20px rgba(101, 131, 82, 0.2);
+      }
+
+      .withdraw-check-icon::after {
+        content: '';
+        position: absolute;
+        width: 8px;
+        height: 16px;
+        border: solid white;
+        border-width: 0 4px 4px 0;
+        transform: rotate(45deg);
+        margin-left: 4px;
+        margin-top: -4px;
+      }
+
+      .withdraw-modal-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #333333;
+        margin-bottom: 16px;
+        line-height: 1.4;
+        letter-spacing: -0.02em;
+      }
+
+      .withdraw-modal-message {
+        font-size: 0.95rem;
+        font-weight: 400;
+        color: #666666;
+        margin-bottom: 40px;
+        line-height: 1.5;
+      }
+
+      .withdraw-modal-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+      }
+
+      .withdraw-modal-btn {
+        padding: 16px 32px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 120px;
+        font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+        letter-spacing: -0.01em;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .withdraw-modal-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+      }
+
+      .withdraw-modal-btn:hover::before {
+        width: 300px;
+        height: 300px;
+      }
+
+      .withdraw-btn-home {
+        background: #6c757d;
+        color: white;
+        border: 1px solid #6c757d;
+        box-shadow: 0 2px 8px rgba(108, 117, 125, 0.15);
+      }
+
+      .withdraw-btn-home:hover {
+        background: #5a6268;
+        border-color: #5a6268;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.25);
+      }
+
+      .withdraw-btn-home {
+        background: #658352;
+        color: white;
+        border: 1px solid #658352;
+        box-shadow: 0 2px 8px rgba(101, 131, 82, 0.2);
+      }
+
+      .withdraw-btn-home:hover {
+        background: #4d683f;
+        border-color: #4d683f;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(101, 131, 82, 0.3);
+      }
+      
+      /* 모바일 반응형 스타일 */
+      @media (max-width: 768px) {
+        .withdraw-modal-container {
+          width: 95%;
+          max-width: 380px;
+          padding: 50px 30px 40px 30px;
+        }
+        
+        .withdraw-check-icon {
+          width: 75px;
+          height: 75px;
+          margin: 0 auto 25px;
+        }
+        
+        .withdraw-check-icon::after {
+          width: 7px;
+          height: 14px;
+          border-width: 0 3px 3px 0;
+          margin-left: 3px;
+          margin-top: -3px;
+        }
+        
+        .withdraw-modal-title {
+          font-size: 1.2rem;
+          margin-bottom: 14px;
+        }
+        
+        .withdraw-modal-message {
+          font-size: 0.9rem;
+          margin-bottom: 35px;
+        }
+        
+        .withdraw-modal-buttons {
+          gap: 12px;
+        }
+        
+        .withdraw-modal-btn {
+          padding: 14px 24px;
+          font-size: 0.9rem;
+          min-width: 100px;
+        }
+      }
+
+            .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #f5c6cb;
+        margin: 20px 0;
+      }
+      
+      .success-message {
+        background: #d4edda;
+        color: #155724;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #c3e6cb;
+        margin: 20px 0;
+      }
+      
+      .container {
+        margin: 20px;
+        border-radius: 8px;
+      }
+      
+      .content {
+        padding: 30px 20px;
+      }
+      
+      .status-container {
+        padding: 20px;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 헤더 -->
+  <div class="header">
+    <h1>회원탈퇴안내</h1>
+    <div class="divider"></div>
+  </div>
+
+  <!-- 컨텐츠 -->
+  <div class="content">
+    <div class="section">
+      <div class="section-title">서비스 현황 조회</div>
+      
+      <div class="status-container">
+        <!-- 판매 상품 현황 -->
+        <div class="status-item">
+          <h4>판매 상품 현황</h4>
+          <div class="status-row">
+            <span class="status-label">등록된 상품</span>
+            <span class="status-value" th:text="${memberStatus.totalProducts} + '개'">0개</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">판매 중인 상품</span>
+            <span class="status-value" th:text="${memberStatus.activeProducts} + '개'">0개</span>
+          </div>
+          <div class="status-notice">
+            회원 탈퇴 시 등록된 모든 상품이 즉시 삭제되며 복구가 불가능합니다.
+          </div>
+        </div>
+
+        <!-- 매출 현황 -->
+        <div class="status-item">
+          <h4>매출 현황</h4>
+          <div class="status-row">
+            <span class="status-label">이번 달 매출</span>
+            <span class="status-value" th:text="${memberStatus.monthlyRevenue} + '원'">0원</span>
+          </div>
+          <div class="status-notice">
+            회원 탈퇴 후에도 기 발생한 매출에 대한 정산은 관련 법령에 따라 정상 처리됩니다.
+          </div>
+        </div>
+
+        <!-- 주문 현황 -->
+        <div class="status-item">
+          <h4>주문 현황</h4>
+          <div class="status-row">
+            <span class="status-label">진행 중인 주문</span>
+            <span class="status-value" th:text="${memberStatus.activeOrders} + '건'">0건</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">배송 준비 중인 주문</span>
+            <span class="status-value" th:text="${memberStatus.preparingOrders} + '건'">0건</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">배송 중인 주문</span>
+            <span class="status-value" th:text="${memberStatus.shippingOrders} + '건'">0건</span>
+          </div>
+          <div class="status-notice">
+            미처리 주문이 있는 경우 회원 탈퇴가 제한됩니다. 모든 주문 처리 완료 후 탈퇴를 진행해주시기 바랍니다.
+          </div>
+        </div>
+
+        <!-- 정산 현황 -->
+        <div class="status-item">
+          <h4>정산 현황</h4>
+          <div class="status-row">
+            <span class="status-label">정산 대기 금액</span>
+            <span class="status-value" th:text="${memberStatus.pendingAmount} + '원'">0원</span>
+          </div>
+          <div class="status-notice">
+            미정산 금액이 있는 경우 회원 탈퇴가 제한됩니다. 정산 완료 후 탈퇴를 진행해주시기 바랍니다.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 탈퇴 불가 사유 (조건부 표시) -->
+    <div th:if="${!memberStatus.canWithdraw}" class="warning-container">
+      <div class="warning-header">회원 탈퇴 제한 사유</div>
+      <ul class="warning-list">
+        <li th:if="${memberStatus.activeOrders > 0}">처리 중인 주문이 있습니다. 모든 주문 처리 완료 후 탈퇴를 진행해주시기 바랍니다.</li>
+        <li th:if="${memberStatus.preparingOrders > 0}">배송 준비 중인 주문이 있습니다. 배송 완료 후 탈퇴를 진행해주시기 바랍니다.</li>
+        <li th:if="${memberStatus.shippingOrders > 0}">배송 중인 주문이 있습니다. 배송 완료 후 탈퇴를 진행해주시기 바랍니다.</li>
+        <li th:if="${memberStatus.pendingAmount > 0}">미정산 금액이 있습니다. 정산 완료 후 탈퇴를 진행해주시기 바랍니다.</li>
+      </ul>
+    </div>
+
+    <!-- 버튼 그룹 -->
+    <div class="button-group">
+      <button type="button" onclick="history.back()" class="btn btn-cancel">취소</button>
+      <button type="button" 
+              id="withdrawButton"
+              th:disabled="${!memberStatus.canWithdraw}"
+              th:class="${memberStatus.canWithdraw ? 'btn btn-withdraw' : 'btn btn-disabled'}"
+              th:data-can-withdraw="${memberStatus.canWithdraw}">
+        회원 탈퇴
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 웹사이트 회원 탈퇴 신청 완료 모달 -->
+<div id="withdrawCompleteModal" class="withdraw-modal-overlay">
+  <div class="withdraw-modal-container">
+    <div class="withdraw-check-icon"></div>
+    <div class="withdraw-modal-title">PLANT 웹사이트의 회원탈퇴가 완료되었습니다.</div>
+    <div class="withdraw-modal-message">그동안 이용해주셔서 감사합니다.</div>
+    
+    <div class="withdraw-modal-buttons">
+      <button type="button" class="withdraw-modal-btn withdraw-btn-home" onclick="goToHome()">메인화면으로 이동</button>
+    </div>
+  </div>
+</div>
+
+<!-- 숨겨진 실제 탈퇴 폼 -->
+<form id="withdrawForm" th:action="@{/seller/withdraw-final}" method="post" style="display:none;">
+  <input type="hidden" name="reason" th:value="${reason}" />
+</form>
+
+<!-- 에러/성공 메시지 표시 -->
+<div th:if="${error}" class="error-message" th:text="${error}"></div>
+<div th:if="${message}" class="success-message" th:text="${message}"></div>
+
+<script>
+// DOM이 로드된 후 이벤트 리스너 설정
+document.addEventListener('DOMContentLoaded', function() {
+  const withdrawButton = document.getElementById('withdrawButton');
+  
+  if (withdrawButton) {
+    withdrawButton.addEventListener('click', function() {
+      const canWithdraw = this.getAttribute('data-can-withdraw') === 'true';
+      if (canWithdraw) {
+        showWithdrawCompleteModal();
+      }
+    });
+  }
+});
+
+// 탈퇴 완료 모달 표시
+function showWithdrawCompleteModal() {
+  document.getElementById('withdrawCompleteModal').style.display = 'flex';
+}
+
+// 탈퇴 처리 후 메인화면으로 이동
+function goToHome() {
+  document.getElementById('withdrawForm').submit();
+}
+
+// 모달 바깥 클릭 시 닫기 방지 (탈퇴 완료이므로 반드시 버튼을 통해 이동)
+window.addEventListener('click', function(event) {
+  const modal = document.getElementById('withdrawCompleteModal');
+  if (event.target === modal) {
+    // 탈퇴 완료 모달은 바깥 클릭으로 닫지 않음
+    return false;
+  }
+});
+
+// ESC 키로 닫기 방지
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    return false;
+  }
+});
+</script>
+
+</body>
+</html> 

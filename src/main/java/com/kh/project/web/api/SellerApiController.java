@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import com.kh.project.web.common.dto.MemberStatusInfo;
 
 /**
  * 판매자 API 컨트롤러
@@ -258,7 +259,8 @@ public class SellerApiController {
       
       // 탈퇴 가능 여부 확인
       if (!sellerSVC.canWithdraw(sellerId)) {
-        Map<String, Object> usage = sellerSVC.getServiceUsage(sellerId);
+        MemberStatusInfo statusInfo = sellerSVC.getServiceUsage(sellerId);
+        Map<String, Object> usage = statusInfo.toMap();
         @SuppressWarnings("unchecked")
         List<String> blockReasons = (List<String>) usage.get("withdrawBlockReasons");
         String reasonText = String.join(", ", blockReasons);

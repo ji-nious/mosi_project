@@ -110,6 +110,15 @@ public class CommonController {
     }
   }
 
+  /**
+   * 회원가입 완료 모달 페이지
+   */
+  @GetMapping("/common/signup-complete")
+  public String signupComplete() {
+    log.info("회원가입 완료 페이지 요청");
+    return "common/signup_complete";
+  }
+
   @GetMapping("/common/juso-popup")
   public String jusoPopup() {
     log.info("주소 검색 팝업 요청");

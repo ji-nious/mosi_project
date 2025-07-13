@@ -2,6 +2,7 @@ package com.kh.project.domain.buyer.svc;
 
 import com.kh.project.domain.entity.Buyer;
 import com.kh.project.web.common.CodeNameInfo;
+import com.kh.project.web.common.dto.MemberStatusInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -83,7 +84,7 @@ public interface BuyerSVC {
   /**
    * 서비스 이용현황 조회 및 탈퇴 가능성 판단
    */
-  Map<String, Object> getServiceUsage(Long buyerId);
+  MemberStatusInfo getServiceUsage(Long buyerId);
   
   /**
    * 탈퇴 가능 여부 판단

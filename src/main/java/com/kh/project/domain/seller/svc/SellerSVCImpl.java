@@ -6,6 +6,7 @@ import com.kh.project.domain.entity.MemberStatus;
 import com.kh.project.domain.seller.dao.SellerDAO;
 import com.kh.project.web.common.CodeNameInfo;
 import com.kh.project.web.common.MemberGubunUtils;
+import com.kh.project.web.common.dto.MemberStatusInfo;
 import com.kh.project.web.exception.BusinessException;
 import com.kh.project.web.exception.MemberException;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,8 @@ public class SellerSVCImpl implements SellerSVC {
 
   @Override
   public Seller join(Seller seller) {
+    // 이메일을 소문자로 변환 (대소문자 구분 방지)
+    seller.setEmail(seller.getEmail().toLowerCase().trim());
     log.info("판매자 회원가입 시도: email={}, bizRegNo={}", seller.getEmail(), seller.getBizRegNo());
 
     // 1. 이메일로 기존 회원 정보 조회 (탈퇴 회원 포함)
@@ -111,6 +114,8 @@ public class SellerSVCImpl implements SellerSVC {
   @Override
   @Transactional(readOnly = true)
   public Seller login(String email, String password) {
+    // 이메일을 소문자로 변환 (대소문자 구분 방지)
+    email = email.toLowerCase().trim();
     log.info("판매자 로그인 시도: email={}", email);
 
     Seller seller = sellerDAO.findByEmail(email)
@@ -130,6 +135,7 @@ public class SellerSVCImpl implements SellerSVC {
 
     if (!seller.getPassword().equals(password)) {
       log.warn("비밀번호 불일치: email={}", email);
+      log.debug("입력된 비밀번호: [{}], DB 저장된 비밀번호: [{}]", password, seller.getPassword());
       throw new MemberException.LoginFailedException();
     }
 
@@ -166,7 +172,8 @@ public class SellerSVCImpl implements SellerSVC {
 
     // 1. 탈퇴 가능 여부 확인
     if (!canWithdraw(sellerId)) {
-      Map<String, Object> usage = getServiceUsage(sellerId);
+      MemberStatusInfo statusInfo = getServiceUsage(sellerId);
+      Map<String, Object> usage = statusInfo.toMap();
       @SuppressWarnings("unchecked")
       List<String> blockReasons = (List<String>) usage.get("withdrawBlockReasons");
       String reasonText = String.join(", ", blockReasons);
@@ -250,7 +257,7 @@ public class SellerSVCImpl implements SellerSVC {
 
   @Override
   @Transactional(readOnly = true)
-  public Map<String, Object> getServiceUsage(Long sellerId) {
+  public MemberStatusInfo getServiceUsage(Long sellerId) {
     log.info("판매자 서비스 이용현황 조회: sellerId={}", sellerId);
 
     Optional<Seller> sellerOpt = sellerDAO.findById(sellerId);
@@ -258,69 +265,43 @@ public class SellerSVCImpl implements SellerSVC {
       throw new MemberException.MemberNotFoundException();
     }
 
-    Seller seller = sellerOpt.get();
-
-    // 서비스 이용현황 기본값
-    int activeOrderCount = 0;
-    int activeSaleCount = 0;
-    int completedOrderCount = 3;
-    int unresolvedDisputeCount = 0;
-    int openInquiryCount = 0;
-    int pointBalance = 0;
-    int pendingRefundAmount = 0;
-
-    // 탈퇴 불가 사유 검사
-    List<String> withdrawBlockReasons = new java.util.ArrayList<>();
+    // TODO: 실제 데이터베이스에서 조회하도록 구현
+    // 현재는 기본값 0으로 설정 (상품, 주문, 정산 테이블 구현 후 실제 조회 로직 추가)
     
-    if (activeOrderCount > 0) {
-      withdrawBlockReasons.add("진행중인 주문이 " + activeOrderCount + "건 있습니다.");
-    }
+    // 구현 예정:
+    // int totalProducts = productDAO.countBySellerIdAndStatus(sellerId, "ALL");
+    // int activeProducts = productDAO.countBySellerIdAndStatus(sellerId, "ACTIVE");
+    // int monthlyRevenue = orderDAO.getMonthlyRevenue(sellerId, YearMonth.now());
+    // int activeOrders = orderDAO.countActiveOrdersBySellerId(sellerId);
+    // int preparingOrders = orderDAO.countOrdersBySellerIdAndStatus(sellerId, "PREPARING");
+    // int shippingOrders = orderDAO.countOrdersBySellerIdAndStatus(sellerId, "SHIPPING");
+    // int pendingAmount = settlementDAO.getPendingAmountBySellerId(sellerId);
     
-    if (activeSaleCount > 0) {
-      withdrawBlockReasons.add("판매중인 상품이 " + activeSaleCount + "개 있습니다.");
-    }
+    int totalProducts = 0;       // 등록된 상품 수
+    int activeProducts = 0;      // 판매 중인 상품 수  
+    int monthlyRevenue = 0;      // 이번 달 매출
+    int activeOrders = 0;        // 진행 중인 주문
+    int preparingOrders = 0;     // 배송 준비 중인 주문
+    int shippingOrders = 0;      // 배송 중인 주문
+    int pendingAmount = 0;       // 정산 대기 금액
     
-    if (unresolvedDisputeCount > 0) {
-      withdrawBlockReasons.add("미해결 분쟁이 " + unresolvedDisputeCount + "건 있습니다.");
-    }
-    
-    if (pointBalance > 0) {
-      withdrawBlockReasons.add("사용하지 않은 포인트가 " + pointBalance + "P 있습니다.");
-    }
-    
-    if (pendingRefundAmount > 0) {
-      withdrawBlockReasons.add("환불 대기 금액이 " + pendingRefundAmount + "원 있습니다.");
-    }
-
-    // 가입 기간 검사 - 제거됨 (즉시 탈퇴 가능)
-
-    boolean canWithdraw = withdrawBlockReasons.isEmpty();
-
-    Map<String, Object> serviceUsage = new HashMap<>();
-    serviceUsage.put("memberId", sellerId);
-    serviceUsage.put("memberType", "SELLER");
-    serviceUsage.put("joinDate", seller.getCdate());
-    serviceUsage.put("activeOrderCount", activeOrderCount);
-    serviceUsage.put("activeSaleCount", activeSaleCount);
-    serviceUsage.put("completedOrderCount", completedOrderCount);
-    serviceUsage.put("unresolvedDisputeCount", unresolvedDisputeCount);
-    serviceUsage.put("openInquiryCount", openInquiryCount);
-    serviceUsage.put("pointBalance", pointBalance);
-    serviceUsage.put("pendingRefundAmount", pendingRefundAmount);
-    serviceUsage.put("canWithdraw", canWithdraw);
-    serviceUsage.put("withdrawBlockReasons", withdrawBlockReasons);
-
-    log.info("판매자 서비스 이용현황 조회 완료: sellerId={}, canWithdraw={}, blockReasons={}", 
-             sellerId, canWithdraw, withdrawBlockReasons.size());
-
-    return serviceUsage;
+    return MemberStatusInfo.builder()
+        .canWithdraw(true)
+        .totalProducts(totalProducts)
+        .activeProducts(activeProducts)
+        .monthlyRevenue(monthlyRevenue)
+        .activeOrders(activeOrders)
+        .preparingOrders(preparingOrders)
+        .shippingOrders(shippingOrders)
+        .pendingAmount(pendingAmount)
+        .build();
   }
 
   @Override
   @Transactional(readOnly = true)
   public boolean canWithdraw(Long sellerId) {
-    Map<String, Object> usage = getServiceUsage(sellerId);
-    return (Boolean) usage.get("canWithdraw");
+    MemberStatusInfo statusInfo = getServiceUsage(sellerId);
+    return statusInfo.isCanWithdraw();
   }
 
   @Override

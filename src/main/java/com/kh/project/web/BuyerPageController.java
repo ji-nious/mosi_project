@@ -11,6 +11,7 @@ import com.kh.project.web.common.SessionService;
 import com.kh.project.web.common.dto.BuyerSignupForm;
 import com.kh.project.web.common.dto.BuyerEditForm;
 import com.kh.project.web.common.dto.LoginForm;
+import com.kh.project.web.common.dto.MemberStatusInfo;
 import com.kh.project.web.exception.BusinessException;
 import com.kh.project.web.exception.MemberException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -171,10 +172,9 @@ public class BuyerPageController {
       
       Buyer processedBuyer = buyerSVC.join(buyer);
       
-      // 회원가입 완료 처리 (자동 로그인 제거)
-      redirectAttributes.addFlashAttribute("message", "회원가입이 완료되었습니다. 로그인해 주세요.");
+      // 회원가입 완료 처리 (모달 페이지로 리다이렉트)
       log.info("구매자 회원가입 성공: buyerId={}", processedBuyer.getBuyerId());
-      return "redirect:/";
+      return "redirect:/common/signup-complete";
       
     } catch (BusinessException e) {
       log.error("구매자 회원가입 실패: email={}, error={}", signupForm.getEmail(), e.getMessage());
@@ -337,12 +337,14 @@ public class BuyerPageController {
     return "buyer/buyer_withdraw";
   }
   
-  @PostMapping("/withdraw")
-  public String buyerWithdraw(HttpSession session,
-                             RedirectAttributes redirectAttributes,
-                             @RequestParam("password") String password,
-                             @RequestParam("reason") String reason) {
-    log.info("구매자 탈퇴 처리 요청");
+  // 구매자 탈퇴 1단계: 비밀번호 확인 및 탈퇴 사유 입력
+  @PostMapping("/withdraw-status")
+  public String buyerWithdrawStatus(HttpSession session,
+                                   RedirectAttributes redirectAttributes,
+                                   @RequestParam("password") String password,
+                                   @RequestParam("reason") String reason,
+                                   Model model) {
+    log.info("구매자 탈퇴 1단계 처리 요청");
 
     Buyer buyer = getAuthenticatedBuyer(session);
     if (buyer == null) {
@@ -357,29 +359,59 @@ public class BuyerPageController {
         return "redirect:/buyer/withdraw";
       }
       
-      // 2. 탈퇴 가능 여부 확인
+      // 2. 서비스 이용 현황 조회
+      MemberStatusInfo statusInfo = buyerSVC.getServiceUsage(buyer.getBuyerId());
+      
+      // 3. 모델에 데이터 추가
+      model.addAttribute("memberStatus", statusInfo);
+      model.addAttribute("reason", reason);
+      model.addAttribute("buyerId", buyer.getBuyerId());
+      model.addAttribute("email", buyer.getEmail());
+      model.addAttribute("name", buyer.getName());
+      
+      log.info("구매자 탈퇴 1단계 완료: buyerId={}, canWithdraw={}", buyer.getBuyerId(), statusInfo.isCanWithdraw());
+      return "buyer/buyer_withdraw_status";
+
+    } catch (Exception e) {
+      log.error("구매자 탈퇴 1단계 처리 중 오류 발생: buyerId={}, error={}", buyer.getBuyerId(), e.getMessage());
+      redirectAttributes.addFlashAttribute("error", "처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      return "redirect:/buyer/withdraw";
+    }
+  }
+  
+  // 구매자 탈퇴 2단계: 최종 탈퇴 처리
+  @PostMapping("/withdraw-final")
+  public String buyerWithdrawFinal(HttpSession session,
+                                  RedirectAttributes redirectAttributes,
+                                  @RequestParam("reason") String reason) {
+    log.info("구매자 탈퇴 2단계 처리 요청");
+
+    Buyer buyer = getAuthenticatedBuyer(session);
+    if (buyer == null) {
+      redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
+      return "redirect:/buyer/login";
+    }
+
+    try {
+      // 1. 탈퇴 가능 여부 재확인
       boolean canWithdraw = buyerSVC.canWithdraw(buyer.getBuyerId());
       
       if (canWithdraw) {
-        // 3. 탈퇴 처리
+        // 2. 탈퇴 처리
         buyerSVC.withdraw(buyer.getBuyerId(), reason);
         session.invalidate(); // 세션 무효화
         redirectAttributes.addFlashAttribute("message", "회원 탈퇴가 정상적으로 처리되었습니다.");
         log.info("구매자 탈퇴 성공: buyerId={}", buyer.getBuyerId());
         return "redirect:/";
       } else {
-        // 4. 탈퇴 불가 처리
-        Map<String, Object> usage = buyerSVC.getServiceUsage(buyer.getBuyerId());
-        @SuppressWarnings("unchecked")
-        String reasons = String.join(", ", (java.util.List<String>) usage.get("withdrawBlockReasons"));
-        
-        redirectAttributes.addFlashAttribute("error", "다음 사유로 탈퇴할 수 없습니다: " + reasons);
-        log.warn("구매자 탈퇴 실패 (탈퇴 불가): buyerId={}, reasons={}", buyer.getBuyerId(), reasons);
+        // 3. 탈퇴 불가 처리
+        redirectAttributes.addFlashAttribute("error", "현재 탈퇴할 수 없는 상태입니다. 다시 확인해주세요.");
+        log.warn("구매자 탈퇴 실패 (탈퇴 불가): buyerId={}", buyer.getBuyerId());
         return "redirect:/buyer/withdraw";
       }
 
     } catch (Exception e) {
-      log.error("구매자 탈퇴 처리 중 오류 발생: buyerId={}, error={}", buyer.getBuyerId(), e.getMessage());
+      log.error("구매자 탈퇴 2단계 처리 중 오류 발생: buyerId={}, error={}", buyer.getBuyerId(), e.getMessage());
       redirectAttributes.addFlashAttribute("error", "탈퇴 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
       return "redirect:/buyer/withdraw";
     }

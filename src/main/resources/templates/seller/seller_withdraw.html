@@ -5,65 +5,459 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>판매자 회원 탈퇴</title>
   <link rel="stylesheet" th:href="@{/css/style.css}">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+    
+    .header {
+      text-align: center;
+      padding: 40px 20px 20px;
+      background: white;
+    }
+    
+    .header h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #333;
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
+    
+    .divider {
+      height: 3px;
+      background: #333;
+      margin: 20px 40px 0;
+    }
+    
+    .content {
+      padding: 40px;
+    }
+    
+    .section {
+      margin-bottom: 40px;
+    }
+    
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+    }
+    
+    .notice-section {
+      margin-bottom: 30px;
+    }
+    
+    .notice-text {
+      color: #666;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+    
+    .highlight-text {
+      color: #658352;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+    
+    .notice-list {
+      color: #666;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    
+    .notice-list li {
+      margin-bottom: 8px;
+    }
+    
+    .password-section {
+      margin-bottom: 30px;
+    }
+    
+    .password-input {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    
+    .password-input:focus {
+      outline: none;
+      border-color: #658352;
+      box-shadow: 0 0 0 3px rgba(101, 131, 82, 0.1);
+    }
+    
+    .reason-section {
+      margin-bottom: 30px;
+    }
+    
+    .reason-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .reason-item {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      border: 2px solid #f1f3f4;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    .reason-item:hover {
+      border-color: #658352;
+      background: #f0f4ed;
+    }
+    
+    .reason-item.selected {
+      border-color: #658352;
+      background: #f0f4ed;
+    }
+    
+    .reason-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #ddd;
+      border-radius: 50%;
+      margin-right: 12px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    
+    .reason-item.selected .reason-checkbox {
+      border-color: #658352;
+      background: #658352;
+    }
+    
+    .reason-checkbox::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .reason-item.selected .reason-checkbox::after {
+      opacity: 1;
+    }
+    
+    .reason-text {
+      font-size: 0.95rem;
+      color: #333;
+      font-weight: 500;
+    }
+    
+    .feedback-section {
+      margin-bottom: 30px;
+    }
+    
+    .feedback-label {
+      display: block;
+      color: #666;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+    }
+    
+    .feedback-textarea {
+      width: 100%;
+      height: 120px;
+      padding: 15px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      resize: vertical;
+      font-family: inherit;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      transition: all 0.3s ease;
+    }
+    
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: #658352;
+      box-shadow: 0 0 0 3px rgba(101, 131, 82, 0.1);
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 40px;
+    }
+    
+    .btn {
+      padding: 15px 40px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 120px;
+    }
+    
+    .btn-cancel {
+      background: white;
+      color: #666;
+      border: 2px solid #ddd;
+    }
+    
+    .btn-cancel:hover {
+      border-color: #999;
+      color: #333;
+    }
+    
+    .btn-submit {
+      background: #658352;
+      color: white;
+      border: 2px solid #658352;
+    }
+    
+    .btn-submit:hover {
+      background: #5a7347;
+      border-color: #5a7347;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(101, 131, 82, 0.3);
+    }
+    
+    .btn-submit:disabled {
+      background: #ccc;
+      border-color: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .error-message {
+      color: #e74c3c;
+      font-size: 0.85rem;
+      margin-top: 8px;
+      display: none;
+    }
+    
+
+    
+    @media (max-width: 768px) {
+      .container {
+        margin: 20px;
+        border-radius: 8px;
+      }
+      
+      .content {
+        padding: 30px 20px;
+      }
+      
+      .reason-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
 
-<!-- 🏠 대시보드로 이동 버튼 -->
-<a th:href="@{/seller/dashboard}">
-    <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="대시보드" style="width:48px;height:48px;margin:20px 0 0 20px;position:fixed;left:20px;top:20px;z-index:100;">
-</a>
 
-<!-- 👤 판매자 탈퇴 폼 -->
-<form th:action="@{/seller/withdraw}" method="post" class="buyer-form">
-  <h2>판매자 회원 탈퇴</h2>
 
-  <!-- 탈퇴 안내 -->
-  <div style="background:#f8f6e7;padding:20px;border-radius:8px;margin:20px 0;color:#a00;">
-    <h3>⚠️ 탈퇴 전 확인사항</h3>
-    <ul style="text-align:left;margin:10px 0;">
-      <li>탈퇴 시 모든 판매 상품 정보가 삭제되며 복구가 불가능합니다.</li>
-      <li>진행 중인 정산 내역이 있다면 완료 후 탈퇴를 진행해주세요.</li>
-      <li>판매 데이터 및 고객 문의 내역 등 모든 정보가 삭제됩니다.</li>
-      <li>동일한 사업자등록번호로 언제든 재가입이 가능합니다.</li>
-    </ul>
+<div class="container">
+  <!-- 헤더 -->
+  <div class="header">
+    <h1>회원탈퇴안내</h1>
+    <div class="divider"></div>
   </div>
 
-  <!-- 비밀번호 확인 -->
-  <div class="form-row">
-    <label for="password">비밀번호 확인</label>
-    <div class="input-col">
-      <input type="password" id="password" name="password" placeholder="본인 확인을 위해 비밀번호를 입력하세요" required />
-    </div>
-  </div>
+  <!-- 컨텐츠 -->
+  <div class="content">
+    <form id="withdrawForm" th:action="@{/seller/withdraw-status}" method="post">
+      
+      <!-- 탈퇴 안내 섹션 -->
+      <div class="section notice-section">
+        <div class="section-title">회원탈퇴안내</div>
+        <p class="notice-text">
+          회원탈퇴를 신청하시기 전에 아래 사항을 반드시 확인하시고 신중히 결정하시기 바랍니다. 
+          탈퇴 처리 시 고객님의 모든 정보가 삭제되며, 이는 복구할 수 없습니다.
+        </p>
+        
+        <p class="highlight-text">회원 탈퇴 시 아래 사항을 숙지하시기 바랍니다.</p>
+        
+        <ol class="notice-list">
+          <li>회원 탈퇴 시 고객님의 개인정보는 「개인정보보호법」 및 「전자상거래 등에서의 소비자보호에 관한 법률」에 따라 처리됩니다.</li>
+          <li>탈퇴 시 고객님께서 등록하신 모든 상품 정보 및 판매 내역은 즉시 삭제됩니다.</li>
+          <li>회원 탈퇴 후 0개월간 재가입이 불가능합니다.</li>
+          <li>미완료된 주문 및 정산이 있는 경우 완료 후 탈퇴 처리됩니다. 탈퇴 시 모든 판매 활동이 즉시 중단됩니다.</li>
+          <li>탈퇴 후 고객 문의 및 서비스 이용에 제한이 있을 수 있습니다.</li>
+        </ol>
+      </div>
 
-  <!-- 탈퇴 사유 -->
-  <div class="form-row">
-    <label for="reason">탈퇴 사유</label>
-    <div class="input-col">
-      <select id="reason" name="reason">
-        <option value="">선택해주세요</option>
-        <option value="business_closure">사업 종료</option>
-        <option value="platform_transfer">타 플랫폼 이전</option>
-        <option value="low_sales">판매 부진</option>
-        <option value="service_inconvenience">서비스 이용 불편</option>
-        <option value="other">기타</option>
-      </select>
-    </div>
-  </div>
+      <!-- 비밀번호 입력 섹션 -->
+      <div class="section password-section">
+        <div class="section-title">비밀번호 입력</div>
+        <input type="password" id="password" name="password" class="password-input" 
+               placeholder="현재 비밀번호를 입력해주세요" required>
+        <div class="error-message" id="password-error">비밀번호를 입력해주세요.</div>
+      </div>
 
-  <!-- ▶ 탈퇴 버튼 -->
-  <button type="submit" style="background-color:#a00;">회원 탈퇴</button>
-</form>
+      <!-- 탈퇴 사유 선택 섹션 -->
+      <div class="section reason-section">
+        <div class="section-title">무엇이 불편하셨나요?</div>
+        <div class="reason-grid">
+          <div class="reason-item" data-value="business_closure">
+            <div class="reason-checkbox"></div>
+            <div class="reason-text">사업 종료</div>
+          </div>
+          <div class="reason-item" data-value="low_sales">
+            <div class="reason-checkbox"></div>
+            <div class="reason-text">판매 실적 부진</div>
+          </div>
+          <div class="reason-item" data-value="commission_concern">
+            <div class="reason-checkbox"></div>
+            <div class="reason-text">수수료 부담</div>
+          </div>
+          <div class="reason-item" data-value="operational_difficulty">
+            <div class="reason-checkbox"></div>
+            <div class="reason-text">운영상의 어려움</div>
+          </div>
+          <div class="reason-item" data-value="service_dissatisfaction">
+            <div class="reason-checkbox"></div>
+            <div class="reason-text">서비스 불만족</div>
+          </div>
+          <div class="reason-item" data-value="system_issues">
+            <div class="reason-checkbox"></div>
+            <div class="reason-text">시스템 오류 빈발</div>
+          </div>
+          <div class="reason-item" data-value="competitor_migration">
+            <div class="reason-checkbox"></div>
+            <div class="reason-text">타 플랫폼 이전</div>
+          </div>
+          <div class="reason-item" data-value="other">
+            <div class="reason-checkbox"></div>
+            <div class="reason-text">기타 사유</div>
+          </div>
+        </div>
+        <input type="hidden" id="reason" name="reason" required>
+        <div class="error-message" id="reason-error">탈퇴 사유를 선택해주세요.</div>
+      </div>
+
+      <!-- 피드백 섹션 -->
+      <div class="section feedback-section">
+        <textarea id="feedback" name="feedback" class="feedback-textarea" 
+                  placeholder="서비스 개선을 위해 불편하셨던 점이나 개선사항을 자세히 적어주시면 큰 도움이 됩니다."></textarea>
+      </div>
+
+      <!-- 버튼 그룹 -->
+      <div class="button-group">
+        <button type="button" class="btn btn-cancel" onclick="history.back()">취소</button>
+        <button type="submit" class="btn btn-submit" id="submitBtn" disabled>탈퇴</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <!-- 에러/성공 메시지 표시 -->
-<div th:if="${error}" style="color: red; text-align: center; margin: 10px;" th:text="${error}"></div>
+<div th:if="${error}" style="position: fixed; top: 20px; right: 20px; background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; border: 1px solid #f5c6cb; z-index: 1000;" th:text="${error}"></div>
+<div th:if="${message}" style="position: fixed; top: 20px; right: 20px; background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; border: 1px solid #c3e6cb; z-index: 1000;" th:text="${message}"></div>
 
 <script>
-// Form Submit에 확인창만 추가
-document.querySelector('form').addEventListener('submit', function(e) {
-  if (!confirm('정말로 탈퇴하시겠습니까? 모든 판매 정보가 삭제되며 이 작업은 되돌릴 수 없습니다.')) {
-    e.preventDefault();
-  }
+document.addEventListener('DOMContentLoaded', function() {
+    const reasonItems = document.querySelectorAll('.reason-item');
+    const reasonInput = document.getElementById('reason');
+    const passwordInput = document.getElementById('password');
+    const submitBtn = document.getElementById('submitBtn');
+    const form = document.getElementById('withdrawForm');
+    
+    let selectedReason = '';
+    
+    // 탈퇴 사유 선택 처리
+    reasonItems.forEach(item => {
+        item.addEventListener('click', function() {
+            // 기존 선택 제거
+            reasonItems.forEach(r => r.classList.remove('selected'));
+            
+            // 새로운 선택 추가
+            this.classList.add('selected');
+            selectedReason = this.dataset.value;
+            reasonInput.value = selectedReason;
+            
+            // 버튼 활성화 상태 확인
+            checkFormValidity();
+        });
+    });
+    
+    // 비밀번호 입력 감지
+    passwordInput.addEventListener('input', checkFormValidity);
+    
+    // 폼 유효성 검사
+    function checkFormValidity() {
+        const isPasswordValid = passwordInput.value.trim().length > 0;
+        const isReasonSelected = selectedReason !== '';
+        
+        submitBtn.disabled = !(isPasswordValid && isReasonSelected);
+    }
+    
+    // 폼 제출 처리
+    form.addEventListener('submit', function(e) {
+        const password = passwordInput.value.trim();
+        const reason = reasonInput.value;
+        
+        // 에러 메시지 초기화
+        document.getElementById('password-error').style.display = 'none';
+        document.getElementById('reason-error').style.display = 'none';
+        
+        let hasError = false;
+        
+        // 비밀번호 검증
+        if (!password) {
+            e.preventDefault();
+            document.getElementById('password-error').style.display = 'block';
+            passwordInput.focus();
+            hasError = true;
+        }
+        
+        // 탈퇴 사유 검증
+        if (!reason) {
+            e.preventDefault();
+            document.getElementById('reason-error').style.display = 'block';
+            hasError = true;
+        }
+        
+        if (hasError) {
+            return false;
+        }
+    });
 });
 </script>
 
