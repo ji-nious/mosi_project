@@ -9,6 +9,7 @@ import com.kh.project.web.common.form.BuyerEditForm;
 import com.kh.project.web.common.form.BuyerSignupForm;
 import com.kh.project.web.common.form.LoginForm;
 import com.kh.project.web.common.form.MemberStatusInfo;
+import com.kh.project.web.exception.BusinessException;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
