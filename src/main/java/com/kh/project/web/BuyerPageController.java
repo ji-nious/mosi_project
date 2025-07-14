@@ -9,7 +9,7 @@ import com.kh.project.web.common.form.BuyerEditForm;
 import com.kh.project.web.common.form.BuyerSignupForm;
 import com.kh.project.web.common.form.LoginForm;
 import com.kh.project.web.common.form.MemberStatusInfo;
-import com.kh.project.web.exception.MemberException;
+
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -71,7 +71,7 @@ public class BuyerPageController {
       
       log.info("구매자 로그인 성공: buyerId={}", buyer.getBuyerId());
       return "redirect:/buyer/info";
-    } catch (MemberException e) {
+    } catch (BusinessException e) {
       log.warn("구매자 로그인 실패: {}", e.getMessage());
       redirectAttributes.addFlashAttribute("error", e.getMessage());
       return "redirect:/buyer/login";
@@ -117,7 +117,7 @@ public class BuyerPageController {
       log.info("구매자 회원가입 성공: buyerId={}", savedBuyer.getBuyerId());
       
       return "redirect:/common/signup-complete";
-    } catch (MemberException e) {
+    } catch (BusinessException e) {
       log.warn("구매자 회원가입 실패: {}", e.getMessage());
       redirectAttributes.addFlashAttribute("error", e.getMessage());
       return "redirect:/buyer/signup";
@@ -236,7 +236,7 @@ public class BuyerPageController {
         redirectAttributes.addFlashAttribute("error", "정보 수정에 실패했습니다.");
         return "redirect:/buyer/edit";
       }
-    } catch (MemberException e) {
+    } catch (BusinessException e) {
       log.warn("구매자 정보 수정 실패: {}", e.getMessage());
       redirectAttributes.addFlashAttribute("error", e.getMessage());
       return "redirect:/buyer/edit";
@@ -315,7 +315,7 @@ public class BuyerPageController {
         redirectAttributes.addFlashAttribute("error", "탈퇴 처리에 실패했습니다.");
         return "redirect:/buyer/withdraw";
       }
-    } catch (MemberException e) {
+    } catch (BusinessException e) {
       log.warn("구매자 탈퇴 실패: {}", e.getMessage());
       redirectAttributes.addFlashAttribute("error", e.getMessage());
       return "redirect:/buyer/withdraw";

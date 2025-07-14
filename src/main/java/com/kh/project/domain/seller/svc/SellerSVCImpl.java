@@ -7,7 +7,7 @@ import com.kh.project.domain.seller.dao.SellerDAO;
 
 import com.kh.project.web.common.form.MemberStatusInfo;
 import com.kh.project.web.exception.BusinessException;
-import com.kh.project.web.exception.MemberException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -78,7 +78,7 @@ public class SellerSVCImpl implements SellerSVC {
       } else {
         // 2-2. 활성/정지 등 다른 상태의 회원이면 중복 오류
         log.warn("이미 존재하는 활성 계정으로 가입 시도: email={}", seller.getEmail());
-        throw new MemberException.EmailDuplicationException(seller.getEmail());
+        throw new BusinessException("이미 사용중인 이메일입니다: " + seller.getEmail());
       }
     }
 
@@ -118,24 +118,24 @@ public class SellerSVCImpl implements SellerSVC {
     log.info("판매자 로그인 시도: email={}", email);
 
     Seller seller = sellerDAO.findByEmail(email)
-        .orElseThrow(() -> new MemberException.LoginFailedException());
+        .orElseThrow(() -> new BusinessException("로그인에 실패했습니다."));
 
     // 1. 탈퇴한 회원인지 확인
     if (seller.isWithdrawn()) {
       log.warn("탈퇴한 판매자의 로그인 시도: email={}", email);
-      throw new MemberException.AlreadyWithdrawnException();
+      throw new BusinessException("이미 탈퇴한 회원입니다.");
     }
 
     // 2. 활성 상태 계정인지 확인
     if (!seller.canLogin()) {
       log.warn("로그인 불가능한 상태: email={}, status={}", email, seller.getStatus());
-      throw new MemberException.LoginFailedException();
+      throw new BusinessException("로그인에 실패했습니다.");
     }
 
     if (!seller.getPassword().equals(password)) {
       log.warn("비밀번호 불일치: email={}", email);
       log.debug("입력된 비밀번호: [{}], DB 저장된 비밀번호: [{}]", password, seller.getPassword());
-      throw new MemberException.LoginFailedException();
+      throw new BusinessException("로그인에 실패했습니다.");
     }
 
     log.info("판매자 로그인 성공: email={}", email);
@@ -182,12 +182,12 @@ public class SellerSVCImpl implements SellerSVC {
     // 2. 판매자 존재 여부 확인
     Optional<Seller> sellerOpt = sellerDAO.findById(sellerId);
     if (sellerOpt.isEmpty()) {
-      throw new MemberException.MemberNotFoundException();
+      throw new BusinessException("회원을 찾을 수 없습니다.");
     }
 
     Seller seller = sellerOpt.get();
     if (seller.isWithdrawn()) {
-      throw new MemberException.AlreadyWithdrawnException();
+      throw new BusinessException("이미 탈퇴한 회원입니다.");
     }
 
     // 3. 탈퇴 사유 설정
@@ -261,7 +261,7 @@ public class SellerSVCImpl implements SellerSVC {
 
     Optional<Seller> sellerOpt = sellerDAO.findById(sellerId);
     if (sellerOpt.isEmpty()) {
-      throw new MemberException.MemberNotFoundException();
+      throw new BusinessException("회원을 찾을 수 없습니다.");
     }
 
     // TODO: 실제 데이터베이스에서 조회하도록 구현

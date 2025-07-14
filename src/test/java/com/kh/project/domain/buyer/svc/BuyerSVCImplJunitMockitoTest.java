@@ -4,7 +4,7 @@ import com.kh.project.domain.buyer.dao.BuyerDAO;
 import com.kh.project.domain.entity.Buyer;
 import com.kh.project.web.common.form.MemberStatusInfo;
 import com.kh.project.web.exception.BusinessException;
-import com.kh.project.web.exception.MemberException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -170,7 +170,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.login(email, "password"))
-                .isInstanceOf(MemberException.LoginFailedException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(buyerDAO).findByEmail(email);
         }
@@ -186,7 +186,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.login(email, "wrongPassword"))
-                .isInstanceOf(MemberException.LoginFailedException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(buyerDAO).findByEmail(email);
         }
@@ -201,7 +201,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.login(email, "password"))
-                .isInstanceOf(MemberException.AlreadyWithdrawnException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(buyerDAO).findByEmail(email);
         }
@@ -217,7 +217,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.login(email, "password123"))
-                .isInstanceOf(MemberException.LoginFailedException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(buyerDAO).findByEmail(email);
         }
@@ -471,7 +471,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.getServiceUsage(buyerId))
-                .isInstanceOf(MemberException.MemberNotFoundException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(buyerDAO).findById(buyerId);
         }

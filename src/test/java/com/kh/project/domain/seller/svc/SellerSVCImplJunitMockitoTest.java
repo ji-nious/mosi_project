@@ -4,7 +4,8 @@ import com.kh.project.domain.entity.Seller;
 import com.kh.project.domain.seller.dao.SellerDAO;
 import com.kh.project.web.common.form.MemberStatusInfo;
 import com.kh.project.web.exception.BusinessException;
-import com.kh.project.web.exception.MemberException;
+import com.kh.project.web.exception.BusinessException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -241,7 +242,7 @@ class SellerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> sellerSVC.login(email, "password"))
-                .isInstanceOf(MemberException.LoginFailedException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(sellerDAO).findByEmail(email);
         }
@@ -257,7 +258,7 @@ class SellerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> sellerSVC.login(email, "wrongPassword"))
-                .isInstanceOf(MemberException.LoginFailedException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(sellerDAO).findByEmail(email);
         }
@@ -272,7 +273,7 @@ class SellerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> sellerSVC.login(email, "password"))
-                .isInstanceOf(MemberException.AlreadyWithdrawnException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(sellerDAO).findByEmail(email);
         }
@@ -288,7 +289,7 @@ class SellerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> sellerSVC.login(email, "password123"))
-                .isInstanceOf(MemberException.LoginFailedException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(sellerDAO).findByEmail(email);
         }
@@ -402,7 +403,7 @@ class SellerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> sellerSVC.withdraw(sellerId, reason))
-                .isInstanceOf(MemberException.MemberNotFoundException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(sellerDAO).findById(sellerId);
             verify(sellerDAO, never()).withdrawWithReason(anyLong(), anyString());
@@ -419,7 +420,7 @@ class SellerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> sellerSVC.withdraw(sellerId, reason))
-                .isInstanceOf(MemberException.AlreadyWithdrawnException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(sellerDAO).findById(sellerId);
             verify(sellerDAO, never()).withdrawWithReason(anyLong(), anyString());
@@ -561,7 +562,7 @@ class SellerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> sellerSVC.getServiceUsage(sellerId))
-                .isInstanceOf(MemberException.MemberNotFoundException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(sellerDAO).findById(sellerId);
         }

@@ -13,7 +13,7 @@ import com.kh.project.web.common.form.SellerSignupForm;
 import com.kh.project.web.common.form.SellerEditForm;
 import com.kh.project.web.common.form.MemberStatusInfo;
 import com.kh.project.web.exception.BusinessException;
-import com.kh.project.web.exception.MemberException;
+
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -105,9 +105,14 @@ public class SellerPageController {
       log.info("판매자 로그인 성공: sellerId={}", seller.getSellerId());
       return "redirect:/seller/dashboard";
       
-    } catch (MemberException.AlreadyWithdrawnException e) {
-      log.warn("탈퇴한 판매자의 로그인 시도: email={}", loginForm.getEmail());
-      redirectAttributes.addFlashAttribute("error", "탈퇴한 회원입니다. 재가입을 원하시면 동일한 정보로 회원가입을 진행해주세요.");
+    } catch (BusinessException e) {
+      log.warn("판매자 로그인 실패: email={}, message={}", loginForm.getEmail(), e.getMessage());
+      // 탈퇴한 회원인 경우 특별한 메시지 제공
+      if ("이미 탈퇴한 회원입니다.".equals(e.getMessage())) {
+        redirectAttributes.addFlashAttribute("error", "탈퇴한 회원입니다. 재가입을 원하시면 동일한 정보로 회원가입을 진행해주세요.");
+      } else {
+        redirectAttributes.addFlashAttribute("error", e.getMessage());
+      }
       return "redirect:/seller/login";
     } catch (Exception e) {
       // 5. 로그인 실패

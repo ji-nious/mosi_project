@@ -7,7 +7,7 @@ import com.kh.project.domain.entity.MemberStatus;
 
 import com.kh.project.web.common.form.MemberStatusInfo;
 import com.kh.project.web.exception.BusinessException;
-import com.kh.project.web.exception.MemberException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -86,24 +86,24 @@ public class BuyerSVCImpl implements BuyerSVC {
     log.info("구매자 로그인 시도: email={}", email);
 
     Buyer buyer = buyerDAO.findByEmail(email)
-        .orElseThrow(() -> new MemberException.LoginFailedException());
+        .orElseThrow(() -> new BusinessException("로그인에 실패했습니다."));
 
     // 1. 탈퇴한 회원인지 확인
     if (buyer.isWithdrawn()) {
       log.warn("탈퇴한 회원의 로그인 시도: email={}", email);
-      throw new MemberException.AlreadyWithdrawnException();
+      throw new BusinessException("이미 탈퇴한 회원입니다.");
     }
 
     // 2. 활성 상태 계정인지 확인
     if (!buyer.canLogin()) {
       log.warn("로그인 불가능한 상태: email={}, status={}", email, buyer.getStatus());
-      throw new MemberException.LoginFailedException();
+      throw new BusinessException("로그인에 실패했습니다.");
     }
 
     // 3. 비밀번호 확인
     if (!buyer.getPassword().equals(password)) {
       log.warn("비밀번호 불일치: email={}", email);
-      throw new MemberException.LoginFailedException();
+      throw new BusinessException("로그인에 실패했습니다.");
     }
 
     log.info("구매자 로그인 성공: email={}", email);
@@ -227,7 +227,7 @@ public class BuyerSVCImpl implements BuyerSVC {
 
     Optional<Buyer> buyerOpt = buyerDAO.findById(buyerId);
     if (buyerOpt.isEmpty()) {
-      throw new MemberException.MemberNotFoundException();
+      throw new BusinessException("회원을 찾을 수 없습니다.");
     }
 
     // TODO: 실제 데이터베이스에서 조회하도록 구현
