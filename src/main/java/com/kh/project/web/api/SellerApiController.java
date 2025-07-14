@@ -8,7 +8,7 @@ import com.kh.project.util.CommonConstants;
 import com.kh.project.domain.entity.LoginMember;
 import com.kh.project.domain.entity.MemberGubun;
 import com.kh.project.web.common.form.SellerSignupForm;
-import com.kh.project.web.exception.BusinessException;
+import com.kh.project.web.exception.BusinessValidationException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -93,7 +93,7 @@ public class SellerApiController {
       
       log.info("판매자 로그인 성공: sellerId={}", seller.getSellerId());
       return ResponseEntity.ok(response);
-    } catch (BusinessException e) {
+    } catch (BusinessValidationException e) {
       log.warn("판매자 로그인 실패 (비즈니스 로직): email={}", loginRequest.get("email"), e);
       Map<String, Object> response = ApiResponse.error("이메일 또는 비밀번호가 올바르지 않습니다.");
       return ResponseEntity.badRequest().body(response);

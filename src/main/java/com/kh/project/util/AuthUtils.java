@@ -1,7 +1,7 @@
 package com.kh.project.util;
 
 import com.kh.project.domain.entity.LoginMember;
-import com.kh.project.web.exception.BusinessException;
+import com.kh.project.web.exception.BusinessValidationException;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -17,12 +17,12 @@ public class AuthUtils {
      */
     public static LoginMember getLoginMember(HttpSession session) {
         if (session == null) {
-            throw new BusinessException("로그인이 필요합니다.");
+            throw new BusinessValidationException("로그인이 필요합니다.");
         }
         
         LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
         if (loginMember == null) {
-            throw new BusinessException("로그인이 필요합니다.");
+            throw new BusinessValidationException("로그인이 필요합니다.");
         }
         
         return loginMember;

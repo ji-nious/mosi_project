@@ -4,7 +4,7 @@ import com.kh.project.domain.buyer.dao.BuyerDAO;
 import com.kh.project.domain.entity.Buyer;
 import com.kh.project.domain.entity.MemberGubun;
 import com.kh.project.domain.entity.MemberStatus;
-import com.kh.project.web.exception.BusinessException;
+import com.kh.project.web.exception.BusinessValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,10 +25,9 @@ import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * BuyerSVC 포괄적 단위 테스트
- */
+ * BuyerSVC ?�괄???�위 ?�스?? */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("BuyerSVC 포괄적 테스트")
+@DisplayName("BuyerSVC ?�괄???�스??)
 class BuyerSVCImplTest {
 
     @Mock
@@ -49,22 +48,22 @@ class BuyerSVCImplTest {
         buyer.setBuyerId(1L);
         buyer.setEmail("test@buyer.com");
         buyer.setPassword("password123");
-        buyer.setName("테스트구매자");
-        buyer.setNickname("테스터");
+        buyer.setName("?�스?�구매자");
+        buyer.setNickname("?�스??);
         buyer.setTel("010-1234-5678");
-        buyer.setGender("남성");
+        buyer.setGender("?�성");
         buyer.setBirth(new Date());
-        buyer.setAddress("부산시 해운대구");
+        buyer.setAddress("부?�시 ?�운?��?);
         buyer.setGubun(MemberGubun.NEW.getCode());
         buyer.setStatus(MemberStatus.ACTIVE);
         buyer.setCdate(new Date());
         return buyer;
     }
 
-    // ==================== 회원가입 테스트 ====================
+    // ==================== ?�원가???�스??====================
 
     @Test
-    @DisplayName("회원가입 - 성공")
+    @DisplayName("?�원가??- ?�공")
     void join_success() {
         // given
         when(buyerDAO.existsByEmail(testBuyer.getEmail())).thenReturn(false);
@@ -84,13 +83,13 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("회원가입 - 실패 (이메일 중복)")
+    @DisplayName("?�원가??- ?�패 (?�메??중복)")
     void join_fail_email_exists() {
         // given
         when(buyerDAO.existsByEmail(testBuyer.getEmail())).thenReturn(true);
 
         // when & then
-        assertThrows(BusinessException.class, () -> {
+        assertThrows(BusinessValidationException.class, () -> {
             buyerSVC.join(testBuyer);
         });
 
@@ -99,14 +98,14 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("회원가입 - 실패 (닉네임 중복)")
+    @DisplayName("?�원가??- ?�패 (?�네??중복)")
     void join_fail_nickname_exists() {
         // given
         when(buyerDAO.existsByEmail(testBuyer.getEmail())).thenReturn(false);
         when(buyerDAO.existsByNickname(testBuyer.getNickname())).thenReturn(true);
 
         // when & then
-        assertThrows(BusinessException.class, () -> {
+        assertThrows(BusinessValidationException.class, () -> {
             buyerSVC.join(testBuyer);
         });
 
@@ -115,10 +114,10 @@ class BuyerSVCImplTest {
         verify(buyerDAO, never()).save(any(Buyer.class));
     }
 
-    // ==================== 로그인 테스트 ====================
+    // ==================== 로그???�스??====================
 
     @Test
-    @DisplayName("로그인 - 성공")
+    @DisplayName("로그??- ?�공")
     void login_success() {
         // given
         when(buyerDAO.findByEmail(testBuyer.getEmail())).thenReturn(Optional.of(testBuyer));
@@ -133,13 +132,13 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("로그인 - 실패 (존재하지 않는 이메일)")
+    @DisplayName("로그??- ?�패 (존재?��? ?�는 ?�메??")
     void login_fail_user_not_found() {
         // given
         when(buyerDAO.findByEmail("notfound@email.com")).thenReturn(Optional.empty());
 
         // when & then
-        assertThrows(BusinessException.class, () -> {
+        assertThrows(BusinessValidationException.class, () -> {
             buyerSVC.login("notfound@email.com", "password");
         });
 
@@ -147,13 +146,13 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("로그인 - 실패 (잘못된 비밀번호)")
+    @DisplayName("로그??- ?�패 (?�못??비�?번호)")
     void login_fail_wrong_password() {
         // given
         when(buyerDAO.findByEmail(testBuyer.getEmail())).thenReturn(Optional.of(testBuyer));
 
         // when & then
-        assertThrows(BusinessException.class, () -> {
+        assertThrows(BusinessValidationException.class, () -> {
             buyerSVC.login(testBuyer.getEmail(), "wrongpassword");
         });
 
@@ -161,7 +160,7 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("로그인 - 실패 (탈퇴한 회원)")
+    @DisplayName("로그??- ?�패 (?�퇴???�원)")
     void login_fail_withdrawn_user() {
         // given
         testBuyer.setStatus(MemberStatus.WITHDRAWN);
@@ -169,17 +168,17 @@ class BuyerSVCImplTest {
         when(buyerDAO.findByEmail(testBuyer.getEmail())).thenReturn(Optional.of(testBuyer));
 
         // when & then
-        assertThrows(BusinessException.class, () -> {
+        assertThrows(BusinessValidationException.class, () -> {
             buyerSVC.login(testBuyer.getEmail(), testBuyer.getPassword());
         });
 
         verify(buyerDAO).findByEmail(testBuyer.getEmail());
     }
 
-    // ==================== 정보 조회 테스트 ====================
+    // ==================== ?�보 조회 ?�스??====================
 
     @Test
-    @DisplayName("ID로 회원 조회 - 성공")
+    @DisplayName("ID�??�원 조회 - ?�공")
     void findById_success() {
         // given
         when(buyerDAO.findById(1L)).thenReturn(Optional.of(testBuyer));
@@ -194,7 +193,7 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("ID로 회원 조회 - 실패 (존재하지 않음)")
+    @DisplayName("ID�??�원 조회 - ?�패 (존재?��? ?�음)")
     void findById_not_found() {
         // given
         when(buyerDAO.findById(999L)).thenReturn(Optional.empty());
@@ -207,14 +206,14 @@ class BuyerSVCImplTest {
         verify(buyerDAO).findById(999L);
     }
 
-    // ==================== 정보 수정 테스트 ====================
+    // ==================== ?�보 ?�정 ?�스??====================
 
     @Test
-    @DisplayName("회원 정보 수정 - 성공")
+    @DisplayName("?�원 ?�보 ?�정 - ?�공")
     void update_success() {
         // given
         Buyer updateBuyer = new Buyer();
-        updateBuyer.setName("수정된이름");
+        updateBuyer.setName("?�정?�이�?);
         updateBuyer.setTel("010-9999-8888");
         
         when(buyerDAO.update(eq(1L), any(Buyer.class))).thenReturn(1);
@@ -228,11 +227,11 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("회원 정보 수정 - 실패 (존재하지 않는 회원)")
+    @DisplayName("?�원 ?�보 ?�정 - ?�패 (존재?��? ?�는 ?�원)")
     void update_fail_user_not_found() {
         // given
         Buyer updateBuyer = new Buyer();
-        updateBuyer.setName("수정된이름");
+        updateBuyer.setName("?�정?�이�?);
         
         when(buyerDAO.update(eq(999L), any(Buyer.class))).thenReturn(0);
 
@@ -244,13 +243,13 @@ class BuyerSVCImplTest {
         verify(buyerDAO).update(eq(999L), any(Buyer.class));
     }
 
-    // ==================== 탈퇴 테스트 ====================
+    // ==================== ?�퇴 ?�스??====================
 
     @Test
-    @DisplayName("회원 탈퇴 - 성공")
+    @DisplayName("?�원 ?�퇴 - ?�공")
     void withdraw_success() {
         // given
-        String reason = "서비스 불만족";
+        String reason = "?�비??불만�?;
         when(buyerDAO.withdrawWithReason(1L, reason)).thenReturn(1);
 
         // when
@@ -262,10 +261,10 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("회원 탈퇴 - 실패 (존재하지 않는 회원)")
+    @DisplayName("?�원 ?�퇴 - ?�패 (존재?��? ?�는 ?�원)")
     void withdraw_fail_user_not_found() {
         // given
-        String reason = "서비스 불만족";
+        String reason = "?�비??불만�?;
         when(buyerDAO.withdrawWithReason(999L, reason)).thenReturn(0);
 
         // when
@@ -276,10 +275,10 @@ class BuyerSVCImplTest {
         verify(buyerDAO).withdrawWithReason(999L, reason);
     }
 
-    // ==================== 중복 체크 테스트 ====================
+    // ==================== 중복 체크 ?�스??====================
 
     @Test
-    @DisplayName("이메일 중복 체크 - 중복됨")
+    @DisplayName("?�메??중복 체크 - 중복??)
     void existsByEmail_true() {
         // given
         when(buyerDAO.existsByEmail("test@buyer.com")).thenReturn(true);
@@ -293,7 +292,7 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("이메일 중복 체크 - 중복 안됨")
+    @DisplayName("?�메??중복 체크 - 중복 ?�됨")
     void existsByEmail_false() {
         // given
         when(buyerDAO.existsByEmail("new@buyer.com")).thenReturn(false);
@@ -307,37 +306,37 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("닉네임 중복 체크 - 중복됨")
+    @DisplayName("?�네??중복 체크 - 중복??)
     void existsByNickname_true() {
         // given
-        when(buyerDAO.existsByNickname("테스터")).thenReturn(true);
+        when(buyerDAO.existsByNickname("?�스??)).thenReturn(true);
 
         // when
-        boolean exists = buyerSVC.existsByNickname("테스터");
+        boolean exists = buyerSVC.existsByNickname("?�스??);
 
         // then
         assertTrue(exists);
-        verify(buyerDAO).existsByNickname("테스터");
+        verify(buyerDAO).existsByNickname("?�스??);
     }
 
     @Test
-    @DisplayName("닉네임 중복 체크 - 중복 안됨")
+    @DisplayName("?�네??중복 체크 - 중복 ?�됨")
     void existsByNickname_false() {
         // given
-        when(buyerDAO.existsByNickname("새닉네임")).thenReturn(false);
+        when(buyerDAO.existsByNickname("?�닉?�임")).thenReturn(false);
 
         // when
-        boolean exists = buyerSVC.existsByNickname("새닉네임");
+        boolean exists = buyerSVC.existsByNickname("?�닉?�임");
 
         // then
         assertFalse(exists);
-        verify(buyerDAO).existsByNickname("새닉네임");
+        verify(buyerDAO).existsByNickname("?�닉?�임");
     }
 
-    // ==================== 비즈니스 로직 테스트 ====================
+    // ==================== 비즈?�스 로직 ?�스??====================
 
     @Test
-    @DisplayName("로그인 가능 여부 체크 - 가능")
+    @DisplayName("로그??가???��? 체크 - 가??)
     void canLogin_true() {
         // given
         testBuyer.setStatus(MemberStatus.ACTIVE);
@@ -351,7 +350,7 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("로그인 가능 여부 체크 - 불가능 (탈퇴)")
+    @DisplayName("로그??가???��? 체크 - 불�???(?�퇴)")
     void canLogin_false_withdrawn() {
         // given
         testBuyer.setStatus(MemberStatus.WITHDRAWN);
@@ -365,7 +364,7 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("탈퇴 여부 체크 - 탈퇴함")
+    @DisplayName("?�퇴 ?��? 체크 - ?�퇴??)
     void isWithdrawn_true() {
         // given
         testBuyer.setStatus(MemberStatus.WITHDRAWN);
@@ -379,7 +378,7 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("탈퇴 여부 체크 - 탈퇴 안함")
+    @DisplayName("?�퇴 ?��? 체크 - ?�퇴 ?�함")
     void isWithdrawn_false() {
         // given
         testBuyer.setStatus(MemberStatus.ACTIVE);
@@ -393,7 +392,7 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("회원 등급 정보 조회 - 정상")
+    @DisplayName("?�원 ?�급 ?�보 조회 - ?�상")
     void getGubunInfo_Success() {
         // given
         testBuyer.setGubun(MemberGubun.GOLD);
@@ -408,7 +407,7 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("회원 상태 정보 조회 - 정상")
+    @DisplayName("?�원 ?�태 ?�보 조회 - ?�상")
     void getStatusInfo_Success() {
         // given
         testBuyer.setStatus(MemberStatus.ACTIVE);
@@ -418,12 +417,12 @@ class BuyerSVCImplTest {
 
         // then
         assertThat(statusInfo).isNotNull();
-        assertThat(statusInfo.get("code")).isEqualTo("활성화");
-        assertThat(statusInfo.get("name")).isEqualTo("활성화");
+        assertThat(statusInfo.get("code")).isEqualTo("?�성??);
+        assertThat(statusInfo.get("name")).isEqualTo("?�성??);
     }
 
     @Test
-    @DisplayName("회원 정보 조회 - null인 경우")
+    @DisplayName("?�원 ?�보 조회 - null??경우")
     void getInfo_Null() {
         // when
         Map<String, String> gubunInfo = buyerSVC.getGubunInfo(null);
@@ -435,7 +434,7 @@ class BuyerSVCImplTest {
     }
 
     @Test
-    @DisplayName("회원 등급 정보 조회 - 등급이 null인 경우")
+    @DisplayName("?�원 ?�급 ?�보 조회 - ?�급??null??경우")
     void getGubunInfo_NullGubun() {
         // given
         testBuyer.setGubun(null);
@@ -445,13 +444,13 @@ class BuyerSVCImplTest {
 
         // then
         assertThat(gubunInfo.get("code")).isEqualTo("UNKNOWN");
-        assertThat(gubunInfo.get("name")).isEqualTo("알 수 없음");
+        assertThat(gubunInfo.get("name")).isEqualTo("?????�음");
     }
 
-    // ==================== 등급 승급 테스트 ====================
+    // ==================== ?�급 ?�급 ?�스??====================
 
     @Test
-    @DisplayName("등급 승급 - 성공")
+    @DisplayName("?�급 ?�급 - ?�공")
     void upgradeGubun_success() {
         // given
         when(buyerDAO.update(eq(1L), any(Buyer.class))).thenReturn(1);
@@ -464,10 +463,10 @@ class BuyerSVCImplTest {
         verify(buyerDAO).update(eq(1L), any(Buyer.class));
     }
 
-    // ==================== 관리 기능 테스트 ====================
+    // ==================== 관�?기능 ?�스??====================
 
     @Test
-    @DisplayName("탈퇴 회원 목록 조회")
+    @DisplayName("?�퇴 ?�원 목록 조회")
     void getWithdrawnMembers() {
         // given
         Buyer withdrawnBuyer1 = createSampleBuyer();
@@ -491,10 +490,10 @@ class BuyerSVCImplTest {
         verify(buyerDAO).findWithdrawnMembers();
     }
 
-    // ==================== Edge Case 테스트 ====================
+    // ==================== Edge Case ?�스??====================
 
     @Test
-    @DisplayName("null 회원 비즈니스 로직 테스트")
+    @DisplayName("null ?�원 비즈?�스 로직 ?�스??)
     void businessLogic_with_null_buyer() {
         // when & then
         assertFalse(buyerSVC.canLogin(null));
@@ -502,15 +501,15 @@ class BuyerSVCImplTest {
         
         Map<String, String> gubunInfo = buyerSVC.getGubunInfo(null);
         assertThat(gubunInfo.get("code")).isEqualTo("UNKNOWN");
-        assertThat(gubunInfo.get("name")).isEqualTo("알 수 없음");
+        assertThat(gubunInfo.get("name")).isEqualTo("?????�음");
         
         Map<String, String> statusInfo = buyerSVC.getStatusInfo(null);
         assertThat(statusInfo.get("code")).isEqualTo("UNKNOWN");
-        assertThat(statusInfo.get("name")).isEqualTo("알 수 없음");
+        assertThat(statusInfo.get("name")).isEqualTo("?????�음");
     }
 
     @Test
-    @DisplayName("잘못된 등급 코드 처리")
+    @DisplayName("?�못???�급 코드 처리")
     void getGubunInfo_invalid_code() {
         // given
         testBuyer.setGubun("INVALID_CODE");

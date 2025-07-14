@@ -16,14 +16,14 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 @Slf4j
-@RestControllerAdvice   // Controller에서 발생된 예외를 처리하는 클래스라는 것을 springboot에 알림
-public class GlobalExceptionHandler {
+@RestControllerAdvice   // Controller에서 발생된 예외를 처리하는 클래스라는 것를 springboot에 알림
+public class ApiExceptionHandler {
 
     /**
      * 유효성 검증 실패 시 처리
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationExceptions(
+    public ResponseEntity<ApiResponse<Void>> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
         
         BindingResult bindingResult = ex.getBindingResult();
@@ -35,7 +35,11 @@ public class GlobalExceptionHandler {
         
         log.error("Validation error: {}", details);
         
-        Map<String, Object> response = ApiResponse.error("입력값을 확인해주세요.", details);
+        ApiResponse<Void> response = ApiResponse.withDetails(
+                ApiResponseCode.VALIDATION_ERROR,
+                details,
+                null
+        );
         
         return ResponseEntity.ok(response);
     }
@@ -43,13 +47,17 @@ public class GlobalExceptionHandler {
     /**
      * 비즈니스 유효성 검증 예외 처리
      */
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<Map<String, Object>> handleBusinessException(
-        BusinessException ex) {
+    @ExceptionHandler(BusinessValidationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBusinessValidationException(
+        BusinessValidationException ex) {
 
         log.error("Business validation error: {}", ex.getMessage());
 
-        Map<String, Object> response = ApiResponse.error(ex.getMessage(), ex.getDetails());
+        ApiResponse<Void> response = ApiResponse.withDetails(
+            ApiResponseCode.BUSINESS_ERROR,
+            ex.getDetails(),
+            null
+        );
 
         return ResponseEntity.ok(response);
     }
@@ -58,15 +66,18 @@ public class GlobalExceptionHandler {
      * 엔티티를 찾을 수 없을 때 처리
      */
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<Map<String, Object>> handleNoSuchElementException(
+    public ResponseEntity<ApiResponse<Void>> handleNoSuchElementException(
             NoSuchElementException ex) {
         
         log.error("Entity not found: {}", ex.getMessage());
-        Map<String, String> errorDetails = new HashMap<>();
-        errorDetails.put("entity", ex.getMessage());
+        Map<String, String> map = new HashMap<>();
+        map.put("1", ex.getMessage());
 
-        Map<String, Object> response = ApiResponse.error("요청한 데이터를 찾을 수 없습니다.", errorDetails);
-        
+        ApiResponse<Void> response = ApiResponse.withDetails(
+                ApiResponseCode.ENTITY_NOT_FOUND,
+                map,
+                null
+        );
         return ResponseEntity.ok(response);
     }
 
@@ -74,10 +85,13 @@ public class GlobalExceptionHandler {
      * 기타 예외 처리
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleAllExceptions(Exception ex) {
+    public ResponseEntity<ApiResponse<Void>> handleAllExceptions(Exception ex) {
         log.error("Unhandled exception occurred", ex);
         
-        Map<String, Object> response = ApiResponse.error("서버 내부 오류가 발생했습니다.");
+        ApiResponse<Void> response = ApiResponse.of(
+                ApiResponseCode.INTERNAL_SERVER_ERROR,
+                null
+        );
         
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }

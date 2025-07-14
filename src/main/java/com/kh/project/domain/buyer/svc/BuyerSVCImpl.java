@@ -6,7 +6,7 @@ import com.kh.project.domain.entity.MemberGubun;
 import com.kh.project.domain.entity.MemberStatus;
 
 import com.kh.project.web.common.form.MemberStatusInfo;
-import com.kh.project.web.exception.BusinessException;
+import com.kh.project.web.exception.BusinessValidationException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,21 +48,21 @@ public class BuyerSVCImpl implements BuyerSVC {
         // 닉네임 중복 체크 (기존 닉네임과 다른 경우에만)
         if (!buyer.getNickname().equals(existingBuyer.getNickname()) && 
             buyerDAO.existsByNickname(buyer.getNickname())) {
-          throw new BusinessException("이미 사용중인 닉네임입니다: " + buyer.getNickname());
+          throw new BusinessValidationException("이미 사용중인 닉네임입니다: " + buyer.getNickname());
         }
         
         int updatedRows = buyerDAO.rejoin(buyer);
         if (updatedRows == 0) {
-          throw new BusinessException("계정 재활성화에 실패했습니다.");
+          throw new BusinessValidationException("계정 재활성화에 실패했습니다.");
         }
         
         return buyerDAO.findByEmail(buyer.getEmail())
-          .orElseThrow(() -> new BusinessException("재활성화된 계정을 찾을 수 없습니다."));
+          .orElseThrow(() -> new BusinessValidationException("재활성화된 계정을 찾을 수 없습니다."));
 
       } else {
         // 2-2. 활성/정지 등 다른 상태의 회원이면 중복 오류
         log.warn("이미 존재하는 활성 계정으로 가입 시도: email={}", buyer.getEmail());
-        throw new BusinessException("이미 사용중인 이메일입니다: " + buyer.getEmail());
+        throw new BusinessValidationException("이미 사용중인 이메일입니다: " + buyer.getEmail());
       }
     }
 
@@ -71,7 +71,7 @@ public class BuyerSVCImpl implements BuyerSVC {
     
     // 닉네임 중복 체크
     if (buyerDAO.existsByNickname(buyer.getNickname())) {
-      throw new BusinessException("이미 사용중인 닉네임입니다: " + buyer.getNickname());
+      throw new BusinessValidationException("이미 사용중인 닉네임입니다: " + buyer.getNickname());
     }
 
     // 신규 회원으로 저장
@@ -86,24 +86,24 @@ public class BuyerSVCImpl implements BuyerSVC {
     log.info("구매자 로그인 시도: email={}", email);
 
     Buyer buyer = buyerDAO.findByEmail(email)
-        .orElseThrow(() -> new BusinessException("로그인에 실패했습니다."));
+        .orElseThrow(() -> new BusinessValidationException("로그인에 실패했습니다."));
 
     // 1. 탈퇴한 회원인지 확인
     if (buyer.isWithdrawn()) {
       log.warn("탈퇴한 회원의 로그인 시도: email={}", email);
-      throw new BusinessException("이미 탈퇴한 회원입니다.");
+      throw new BusinessValidationException("이미 탈퇴한 회원입니다.");
     }
 
     // 2. 활성 상태 계정인지 확인
     if (!buyer.canLogin()) {
       log.warn("로그인 불가능한 상태: email={}, status={}", email, buyer.getStatus());
-      throw new BusinessException("로그인에 실패했습니다.");
+      throw new BusinessValidationException("로그인에 실패했습니다.");
     }
 
     // 3. 비밀번호 확인
     if (!buyer.getPassword().equals(password)) {
       log.warn("비밀번호 불일치: email={}", email);
-      throw new BusinessException("로그인에 실패했습니다.");
+      throw new BusinessValidationException("로그인에 실패했습니다.");
     }
 
     log.info("구매자 로그인 성공: email={}", email);
@@ -132,7 +132,7 @@ public class BuyerSVCImpl implements BuyerSVC {
       if (existingBuyer.isPresent() &&
           !buyer.getNickname().equals(existingBuyer.get().getNickname()) &&
           buyerDAO.existsByNickname(buyer.getNickname())) {
-        throw new BusinessException("이미 사용중인 닉네임입니다.");
+        throw new BusinessValidationException("이미 사용중인 닉네임입니다.");
       }
     }
 
@@ -148,19 +148,19 @@ public class BuyerSVCImpl implements BuyerSVC {
       Map<String, Object> usage = statusInfo.toMap();
       List<String> blockReasons = (List<String>) usage.get("withdrawBlockReasons");
       String reasonText = String.join(", ", blockReasons);
-      throw new BusinessException("탈퇴할 수 없습니다. 사유: " + reasonText);
+      throw new BusinessValidationException("탈퇴할 수 없습니다. 사유: " + reasonText);
     }
     
     // 2. 구매자 존재 여부 확인 (canWithdraw에서 이미 확인하지만, 안전을 위해 유지)
     Optional<Buyer> buyer = buyerDAO.findById(buyerId);
     if (buyer.isEmpty()) {
-      throw new BusinessException("구매자를 찾을 수 없습니다: " + buyerId);
+      throw new BusinessValidationException("구매자를 찾을 수 없습니다: " + buyerId);
     }
 
     // 3. 탈퇴 처리
     int updatedRows = buyerDAO.withdrawWithReason(buyerId, reason);
     if (updatedRows == 0) {
-      throw new BusinessException("구매자 탈퇴 처리에 실패했습니다: " + buyerId);
+      throw new BusinessValidationException("구매자 탈퇴 처리에 실패했습니다: " + buyerId);
     }
 
     log.info("구매자 탈퇴 완료: buyerId={}, reason={}", buyerId, reason);
@@ -227,7 +227,7 @@ public class BuyerSVCImpl implements BuyerSVC {
 
     Optional<Buyer> buyerOpt = buyerDAO.findById(buyerId);
     if (buyerOpt.isEmpty()) {
-      throw new BusinessException("회원을 찾을 수 없습니다.");
+      throw new BusinessValidationException("회원을 찾을 수 없습니다.");
     }
 
     // TODO: 실제 데이터베이스에서 조회하도록 구현

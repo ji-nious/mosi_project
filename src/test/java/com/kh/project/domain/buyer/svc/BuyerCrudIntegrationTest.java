@@ -4,7 +4,7 @@ import com.kh.project.domain.buyer.dao.BuyerDAO;
 import com.kh.project.domain.entity.Buyer;
 import com.kh.project.domain.entity.MemberGubun;
 import com.kh.project.domain.entity.MemberStatus;
-import com.kh.project.web.exception.BusinessException;
+import com.kh.project.web.exception.BusinessValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,13 +20,12 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * 구매자 조회/수정/탈퇴 통합 테스트 시나리오
- * 실제 데이터베이스와 모든 계층이 통합된 환경에서 테스트
- */
+ * 구매??조회/?�정/?�퇴 ?�합 ?�스???�나리오
+ * ?�제 ?�이?�베?�스?� 모든 계층???�합???�경?�서 ?�스?? */
 @SpringBootTest
 @TestPropertySource(locations = "classpath:application-test.properties")
 @Transactional
-@DisplayName("구매자 조회/수정/탈퇴 통합 테스트")
+@DisplayName("구매??조회/?�정/?�퇴 ?�합 ?�스??)
 class BuyerCrudIntegrationTest {
 
     @Autowired
@@ -39,21 +38,21 @@ class BuyerCrudIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // 테스트 데이터 정리
+        // ?�스???�이???�리
         buyerDAO.deleteAll();
         
-        // 테스트용 구매자 생성
+        // ?�스?�용 구매???�성
         testBuyer = Buyer.builder()
-                .name("김구매자")
+                .name("김구매??)
                 .nickname("buyer123")
                 .email("buyer@test.com")
                 .password("password123")
                 .tel("010-1234-5678")
-                .gender("남성")
+                .gender("?�성")
                 .birth(LocalDate.of(1990, 1, 1))
                 .postcode("12345")
-                .address("서울시 강남구 테스트로 123")
-                .detailAddress("101호")
+                .address("?�울??강남�??�스?�로 123")
+                .detailAddress("101??)
                 .memberGubun(MemberGubun.BRONZE.getCode())
                 .memberStatus(MemberStatus.ACTIVE.getCode())
                 .build();
@@ -62,67 +61,63 @@ class BuyerCrudIntegrationTest {
     }
 
     @Test
-    @DisplayName("통합 테스트 1: 회원 정보 조회 - ID로 조회")
+    @DisplayName("?�합 ?�스??1: ?�원 ?�보 조회 - ID�?조회")
     void integrationTest_findById() {
-        // When - ID로 회원 조회
+        // When - ID�??�원 조회
         Optional<Buyer> foundBuyer = buyerSVC.findById(testBuyer.getId());
 
-        // Then - 조회 성공 검증
-        assertTrue(foundBuyer.isPresent());
+        // Then - 조회 ?�공 검�?        assertTrue(foundBuyer.isPresent());
         assertEquals(testBuyer.getId(), foundBuyer.get().getId());
         assertEquals(testBuyer.getEmail(), foundBuyer.get().getEmail());
         assertEquals(testBuyer.getNickname(), foundBuyer.get().getNickname());
     }
 
     @Test
-    @DisplayName("통합 테스트 2: 회원 정보 조회 - 이메일로 조회")
+    @DisplayName("?�합 ?�스??2: ?�원 ?�보 조회 - ?�메?�로 조회")
     void integrationTest_findByEmail() {
-        // When - 이메일로 회원 조회
+        // When - ?�메?�로 ?�원 조회
         Optional<Buyer> foundBuyer = buyerSVC.findByEmail(testBuyer.getEmail());
 
-        // Then - 조회 성공 검증
-        assertTrue(foundBuyer.isPresent());
+        // Then - 조회 ?�공 검�?        assertTrue(foundBuyer.isPresent());
         assertEquals(testBuyer.getEmail(), foundBuyer.get().getEmail());
         assertEquals(testBuyer.getId(), foundBuyer.get().getId());
     }
 
     @Test
-    @DisplayName("통합 테스트 3: 회원 정보 수정 - 기본 정보 수정")
+    @DisplayName("?�합 ?�스??3: ?�원 ?�보 ?�정 - 기본 ?�보 ?�정")
     void integrationTest_updateBasicInfo() {
-        // Given - 수정할 정보
+        // Given - ?�정???�보
         Buyer updateBuyer = Buyer.builder()
-                .name("김구매자수정")
+                .name("김구매?�수??)
                 .nickname("modifiedBuyer")
                 .tel("010-9999-8888")
-                .gender("여성")
+                .gender("?�성")
                 .birth(LocalDate.of(1995, 5, 15))
                 .postcode("54321")
-                .address("부산시 해운대구 수정로 456")
-                .detailAddress("202호")
+                .address("부?�시 ?�운?��??�정�?456")
+                .detailAddress("202??)
                 .build();
 
-        // When - 정보 수정 실행
+        // When - ?�보 ?�정 ?�행
         int updateCount = buyerSVC.update(testBuyer.getId(), updateBuyer);
 
-        // Then - 수정 성공 검증
-        assertEquals(1, updateCount);
+        // Then - ?�정 ?�공 검�?        assertEquals(1, updateCount);
 
-        // 수정된 정보 조회 검증
-        Optional<Buyer> updatedBuyer = buyerSVC.findById(testBuyer.getId());
+        // ?�정???�보 조회 검�?        Optional<Buyer> updatedBuyer = buyerSVC.findById(testBuyer.getId());
         assertTrue(updatedBuyer.isPresent());
-        assertEquals("김구매자수정", updatedBuyer.get().getName());
+        assertEquals("김구매?�수??, updatedBuyer.get().getName());
         assertEquals("modifiedBuyer", updatedBuyer.get().getNickname());
         assertEquals("010-9999-8888", updatedBuyer.get().getTel());
-        assertEquals("여성", updatedBuyer.get().getGender());
-        assertEquals("부산시 해운대구 수정로 456", updatedBuyer.get().getAddress());
+        assertEquals("?�성", updatedBuyer.get().getGender());
+        assertEquals("부?�시 ?�운?��??�정�?456", updatedBuyer.get().getAddress());
     }
 
     @Test
-    @DisplayName("통합 테스트 4: 회원 정보 수정 - 닉네임 중복 시 실패")
+    @DisplayName("?�합 ?�스??4: ?�원 ?�보 ?�정 - ?�네??중복 ???�패")
     void integrationTest_updateNicknameDuplicateFailure() {
-        // Given - 다른 회원 생성
+        // Given - ?�른 ?�원 ?�성
         Buyer anotherBuyer = Buyer.builder()
-                .name("다른구매자")
+                .name("?�른구매??)
                 .nickname("anotherBuyer")
                 .email("another@test.com")
                 .password("password123")
@@ -132,42 +127,40 @@ class BuyerCrudIntegrationTest {
                 .build();
         buyerSVC.join(anotherBuyer);
 
-        // When & Then - 기존 닉네임으로 수정 시도
+        // When & Then - 기존 ?�네?�으�??�정 ?�도
         Buyer updateBuyer = Buyer.builder()
                 .nickname("anotherBuyer")
                 .build();
 
-        BusinessException exception = assertThrows(BusinessException.class, () -> {
+        BusinessValidationException exception = assertThrows(BusinessValidationException.class, () -> {
             buyerSVC.update(testBuyer.getId(), updateBuyer);
         });
 
-        assertEquals("이미 사용 중인 닉네임입니다.", exception.getMessage());
+        assertEquals("?��? ?�용 중인 ?�네?�입?�다.", exception.getMessage());
     }
 
     @Test
-    @DisplayName("통합 테스트 5: 비밀번호 확인 검증")
+    @DisplayName("?�합 ?�스??5: 비�?번호 ?�인 검�?)
     void integrationTest_passwordVerification() {
-        // When & Then - 올바른 비밀번호 확인
+        // When & Then - ?�바�?비�?번호 ?�인
         assertTrue(buyerSVC.checkPassword(testBuyer.getId(), "password123"));
 
-        // When & Then - 잘못된 비밀번호 확인
+        // When & Then - ?�못??비�?번호 ?�인
         assertFalse(buyerSVC.checkPassword(testBuyer.getId(), "wrongPassword"));
     }
 
     @Test
-    @DisplayName("통합 테스트 6: 회원 탈퇴 - 정상 탈퇴")
+    @DisplayName("?�합 ?�스??6: ?�원 ?�퇴 - ?�상 ?�퇴")
     void integrationTest_withdrawSuccess() {
-        // Given - 탈퇴 가능한 상태 확인
+        // Given - ?�퇴 가?�한 ?�태 ?�인
         assertTrue(buyerSVC.canWithdraw(testBuyer.getId()));
 
-        // When - 회원 탈퇴 실행
-        int withdrawResult = buyerSVC.withdraw(testBuyer.getId(), "개인사유");
+        // When - ?�원 ?�퇴 ?�행
+        int withdrawResult = buyerSVC.withdraw(testBuyer.getId(), "개인?�유");
 
-        // Then - 탈퇴 성공 검증
-        assertEquals(1, withdrawResult);
+        // Then - ?�퇴 ?�공 검�?        assertEquals(1, withdrawResult);
 
-        // 탈퇴 후 상태 검증
-        Optional<Buyer> withdrawnBuyer = buyerSVC.findById(testBuyer.getId());
+        // ?�퇴 ???�태 검�?        Optional<Buyer> withdrawnBuyer = buyerSVC.findById(testBuyer.getId());
         assertTrue(withdrawnBuyer.isPresent());
         assertEquals(MemberStatus.WITHDRAWN.getCode(), withdrawnBuyer.get().getMemberStatus());
         assertTrue(buyerSVC.isWithdrawn(withdrawnBuyer.get()));
@@ -175,51 +168,48 @@ class BuyerCrudIntegrationTest {
     }
 
     @Test
-    @DisplayName("통합 테스트 7: 탈퇴 후 로그인 차단")
+    @DisplayName("?�합 ?�스??7: ?�퇴 ??로그??차단")
     void integrationTest_loginBlockedAfterWithdraw() {
-        // Given - 회원 탈퇴
-        buyerSVC.withdraw(testBuyer.getId(), "개인사유");
+        // Given - ?�원 ?�퇴
+        buyerSVC.withdraw(testBuyer.getId(), "개인?�유");
 
-        // When & Then - 탈퇴한 회원 로그인 시도
-        BusinessException exception = assertThrows(BusinessException.class, () -> {
+        // When & Then - ?�퇴???�원 로그???�도
+        BusinessValidationException exception = assertThrows(BusinessValidationException.class, () -> {
             buyerSVC.login(testBuyer.getEmail(), testBuyer.getPassword());
         });
 
-        assertEquals("탈퇴한 회원입니다.", exception.getMessage());
+        assertEquals("?�퇴???�원?�니??", exception.getMessage());
     }
 
     @Test
-    @DisplayName("통합 테스트 8: 탈퇴 후 재활성화")
+    @DisplayName("?�합 ?�스??8: ?�퇴 ???�활?�화")
     void integrationTest_reactivateAfterWithdraw() {
-        // Given - 회원 탈퇴
-        buyerSVC.withdraw(testBuyer.getId(), "개인사유");
+        // Given - ?�원 ?�퇴
+        buyerSVC.withdraw(testBuyer.getId(), "개인?�유");
 
-        // When - 재활성화 시도
+        // When - ?�활?�화 ?�도
         Optional<Buyer> reactivatedBuyer = buyerSVC.reactivate(testBuyer.getEmail(), testBuyer.getPassword());
 
-        // Then - 재활성화 성공 검증
-        assertTrue(reactivatedBuyer.isPresent());
+        // Then - ?�활?�화 ?�공 검�?        assertTrue(reactivatedBuyer.isPresent());
         assertEquals(MemberStatus.ACTIVE.getCode(), reactivatedBuyer.get().getMemberStatus());
         assertTrue(buyerSVC.canLogin(reactivatedBuyer.get()));
         assertFalse(buyerSVC.isWithdrawn(reactivatedBuyer.get()));
     }
 
     @Test
-    @DisplayName("통합 테스트 9: 서비스 이용 현황 조회")
+    @DisplayName("?�합 ?�스??9: ?�비???�용 ?�황 조회")
     void integrationTest_serviceUsageInfo() {
-        // When - 서비스 이용 현황 조회
+        // When - ?�비???�용 ?�황 조회
         Map<String, Object> serviceUsage = buyerSVC.getServiceUsage(testBuyer.getId());
 
-        // Then - 이용 현황 검증
-        assertNotNull(serviceUsage);
+        // Then - ?�용 ?�황 검�?        assertNotNull(serviceUsage);
         assertTrue(serviceUsage.containsKey("canWithdraw"));
         assertTrue(serviceUsage.containsKey("orderCount"));
         assertTrue(serviceUsage.containsKey("pointBalance"));
         assertTrue(serviceUsage.containsKey("disputeCount"));
         assertTrue(serviceUsage.containsKey("refundCount"));
 
-        // 초기 상태 검증
-        assertTrue((Boolean) serviceUsage.get("canWithdraw"));
+        // 초기 ?�태 검�?        assertTrue((Boolean) serviceUsage.get("canWithdraw"));
         assertEquals(0, serviceUsage.get("orderCount"));
         assertEquals(0, serviceUsage.get("pointBalance"));
         assertEquals(0, serviceUsage.get("disputeCount"));
@@ -227,14 +217,13 @@ class BuyerCrudIntegrationTest {
     }
 
     @Test
-    @DisplayName("통합 테스트 10: 회원 등급 정보 조회")
+    @DisplayName("?�합 ?�스??10: ?�원 ?�급 ?�보 조회")
     void integrationTest_memberGradeInfo() {
-        // When - 회원 등급 정보 조회
+        // When - ?�원 ?�급 ?�보 조회
         var gubunInfo = buyerSVC.getGubunInfo(testBuyer);
         var statusInfo = buyerSVC.getStatusInfo(testBuyer);
 
-        // Then - 등급 정보 검증
-        assertNotNull(gubunInfo);
+        // Then - ?�급 ?�보 검�?        assertNotNull(gubunInfo);
         assertEquals(MemberGubun.BRONZE.getCode(), gubunInfo.getCode());
         assertEquals(MemberGubun.BRONZE.getDescription(), gubunInfo.getName());
 
@@ -244,15 +233,15 @@ class BuyerCrudIntegrationTest {
     }
 
     @Test
-    @DisplayName("통합 테스트 11: 전체 CRUD 시나리오 종합 검증")
+    @DisplayName("?�합 ?�스??11: ?�체 CRUD ?�나리오 종합 검�?)
     void integrationTest_completeCrudScenario() {
         // 1. 조회 (Read)
         Optional<Buyer> foundBuyer = buyerSVC.findById(testBuyer.getId());
         assertTrue(foundBuyer.isPresent());
 
-        // 2. 수정 (Update)
+        // 2. ?�정 (Update)
         Buyer updateBuyer = Buyer.builder()
-                .name("수정된이름")
+                .name("?�정?�이�?)
                 .nickname("modifiedNickname")
                 .tel("010-9999-9999")
                 .build();
@@ -260,28 +249,27 @@ class BuyerCrudIntegrationTest {
         int updateResult = buyerSVC.update(testBuyer.getId(), updateBuyer);
         assertEquals(1, updateResult);
 
-        // 3. 수정 확인
+        // 3. ?�정 ?�인
         Optional<Buyer> updatedBuyer = buyerSVC.findById(testBuyer.getId());
         assertTrue(updatedBuyer.isPresent());
-        assertEquals("수정된이름", updatedBuyer.get().getName());
+        assertEquals("?�정?�이�?, updatedBuyer.get().getName());
         assertEquals("modifiedNickname", updatedBuyer.get().getNickname());
 
-        // 4. 탈퇴 (Delete - 논리적 삭제)
-        int withdrawResult = buyerSVC.withdraw(testBuyer.getId(), "테스트 완료");
+        // 4. ?�퇴 (Delete - ?�리????��)
+        int withdrawResult = buyerSVC.withdraw(testBuyer.getId(), "?�스???�료");
         assertEquals(1, withdrawResult);
 
-        // 5. 탈퇴 확인
+        // 5. ?�퇴 ?�인
         Optional<Buyer> withdrawnBuyer = buyerSVC.findById(testBuyer.getId());
         assertTrue(withdrawnBuyer.isPresent());
         assertTrue(buyerSVC.isWithdrawn(withdrawnBuyer.get()));
 
-        // 6. 재활성화
+        // 6. ?�활?�화
         Optional<Buyer> reactivatedBuyer = buyerSVC.reactivate(testBuyer.getEmail(), testBuyer.getPassword());
         assertTrue(reactivatedBuyer.isPresent());
         assertFalse(buyerSVC.isWithdrawn(reactivatedBuyer.get()));
 
-        // 7. 최종 상태 검증
-        assertTrue(buyerSVC.canLogin(reactivatedBuyer.get()));
+        // 7. 최종 ?�태 검�?        assertTrue(buyerSVC.canLogin(reactivatedBuyer.get()));
         assertEquals(MemberStatus.ACTIVE.getCode(), reactivatedBuyer.get().getMemberStatus());
     }
 } 

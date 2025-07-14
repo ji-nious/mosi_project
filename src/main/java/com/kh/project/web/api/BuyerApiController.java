@@ -9,7 +9,7 @@ import com.kh.project.domain.entity.LoginMember;
 import com.kh.project.domain.entity.MemberGubun;
 import com.kh.project.web.common.form.BuyerSignupForm;
 import com.kh.project.web.common.form.MemberStatusInfo;
-import com.kh.project.web.exception.BusinessException;
+import com.kh.project.web.exception.BusinessValidationException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -83,7 +83,7 @@ public class BuyerApiController {
       
       log.info("구매자 로그인 성공: buyerId={}", buyer.getBuyerId());
       return ResponseEntity.ok(response);
-    } catch (BusinessException e) {
+    } catch (BusinessValidationException e) {
       log.warn("구매자 로그인 실패 (비즈니스 로직): email={}", loginRequest.get("email"), e);
       Map<String, Object> response = ApiResponse.error("이메일 또는 비밀번호가 올바르지 않습니다.");
       return ResponseEntity.badRequest().body(response);
@@ -119,7 +119,7 @@ public class BuyerApiController {
       Map<String, Object> response = ApiResponse.entitySuccess("회원 정보 조회 성공", buyer, additionalData);
       log.info("구매자 정보 조회 성공: buyerId={}", buyer.getBuyerId());
       return ResponseEntity.ok(response);
-    } catch (BusinessException e) {
+    } catch (BusinessValidationException e) {
       log.warn("구매자 정보 조회 실패 (비즈니스 로직)", e);
       return ResponseEntity.badRequest().body(ApiResponse.error("회원 정보 조회에 실패했습니다."));
     } catch (Exception e) {
@@ -195,7 +195,7 @@ public class BuyerApiController {
     } catch (SecurityException e) {
       log.warn("권한 없는 정보 수정 시도: buyerId={}", buyerId);
       return ResponseEntity.status(403).body(ApiResponse.error("권한이 없습니다."));
-    } catch (BusinessException e) {
+    } catch (BusinessValidationException e) {
       log.warn("정보 수정 실패 (비즈니스 로직): buyerId={}", buyerId, e);
       return ResponseEntity.badRequest().body(ApiResponse.error("정보 수정에 실패했습니다."));
     } catch (Exception e) {

@@ -4,7 +4,7 @@ import com.kh.project.domain.buyer.dao.BuyerDAO;
 import com.kh.project.domain.entity.Buyer;
 import com.kh.project.domain.entity.MemberGubun;
 import com.kh.project.domain.entity.MemberStatus;
-import com.kh.project.web.exception.BusinessException;
+import com.kh.project.web.exception.BusinessValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,13 +20,12 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * 구매자 회원가입 통합 테스트 시나리오
- * 실제 데이터베이스와 모든 계층이 통합된 환경에서 테스트
- */
+ * 구매???�원가???�합 ?�스???�나리오
+ * ?�제 ?�이?�베?�스?� 모든 계층???�합???�경?�서 ?�스?? */
 @SpringBootTest
 @TestPropertySource(locations = "classpath:application-test.properties")
 @Transactional
-@DisplayName("구매자 회원가입 통합 테스트")
+@DisplayName("구매???�원가???�합 ?�스??)
 class BuyerIntegrationTest {
 
     @Autowired
@@ -37,16 +36,16 @@ class BuyerIntegrationTest {
 
     private Buyer createValidBuyer() {
         return Buyer.builder()
-                .name("김구매자")
+                .name("김구매??)
                 .nickname("buyer123")
                 .email("buyer@test.com")
                 .password("password123")
                 .tel("010-1234-5678")
-                .gender("남성")
+                .gender("?�성")
                 .birth(LocalDate.of(1990, 1, 1))
                 .postcode("12345")
-                .address("서울시 강남구 테스트로 123")
-                .detailAddress("101호")
+                .address("?�울??강남�??�스?�로 123")
+                .detailAddress("101??)
                 .memberGubun(MemberGubun.BRONZE.getCode())
                 .memberStatus(MemberStatus.ACTIVE.getCode())
                 .build();
@@ -54,81 +53,75 @@ class BuyerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // 테스트 데이터 정리
+        // ?�스???�이???�리
         buyerDAO.deleteAll();
     }
 
     @Test
-    @DisplayName("통합 테스트 1: 정상 회원가입 플로우")
+    @DisplayName("?�합 ?�스??1: ?�상 ?�원가???�로??)
     void integrationTest_normalSignupFlow() {
-        // Given - 유효한 구매자 데이터
-        Buyer buyer = createValidBuyer();
+        // Given - ?�효??구매???�이??        Buyer buyer = createValidBuyer();
 
-        // When - 회원가입 실행
+        // When - ?�원가???�행
         Buyer savedBuyer = buyerSVC.join(buyer);
 
-        // Then - 회원가입 성공 검증
-        assertNotNull(savedBuyer);
+        // Then - ?�원가???�공 검�?        assertNotNull(savedBuyer);
         assertNotNull(savedBuyer.getId());
         assertEquals(buyer.getEmail(), savedBuyer.getEmail());
         assertEquals(buyer.getNickname(), savedBuyer.getNickname());
         assertEquals(MemberStatus.ACTIVE.getCode(), savedBuyer.getMemberStatus());
 
-        // 데이터베이스 저장 검증
-        Optional<Buyer> foundBuyer = buyerDAO.findByEmail(buyer.getEmail());
+        // ?�이?�베?�스 ?�??검�?        Optional<Buyer> foundBuyer = buyerDAO.findByEmail(buyer.getEmail());
         assertTrue(foundBuyer.isPresent());
         assertEquals(buyer.getEmail(), foundBuyer.get().getEmail());
     }
 
     @Test
-    @DisplayName("통합 테스트 2: 이메일 중복 시 회원가입 실패")
+    @DisplayName("?�합 ?�스??2: ?�메??중복 ???�원가???�패")
     void integrationTest_emailDuplicateFailure() {
-        // Given - 첫 번째 회원가입
-        Buyer firstBuyer = createValidBuyer();
+        // Given - �?번째 ?�원가??        Buyer firstBuyer = createValidBuyer();
         buyerSVC.join(firstBuyer);
 
-        // When & Then - 같은 이메일로 두 번째 회원가입 시도
+        // When & Then - 같�? ?�메?�로 ??번째 ?�원가???�도
         Buyer secondBuyer = createValidBuyer();
         secondBuyer.setNickname("differentNickname");
 
-        BusinessException exception = assertThrows(BusinessException.class, () -> {
+        BusinessValidationException exception = assertThrows(BusinessValidationException.class, () -> {
             buyerSVC.join(secondBuyer);
         });
 
-        assertEquals("이미 가입된 이메일입니다.", exception.getMessage());
+        assertEquals("?��? 가?�된 ?�메?�입?�다.", exception.getMessage());
     }
 
     @Test
-    @DisplayName("통합 테스트 3: 닉네임 중복 시 회원가입 실패")
+    @DisplayName("?�합 ?�스??3: ?�네??중복 ???�원가???�패")
     void integrationTest_nicknameDuplicateFailure() {
-        // Given - 첫 번째 회원가입
-        Buyer firstBuyer = createValidBuyer();
+        // Given - �?번째 ?�원가??        Buyer firstBuyer = createValidBuyer();
         buyerSVC.join(firstBuyer);
 
-        // When & Then - 같은 닉네임으로 두 번째 회원가입 시도
+        // When & Then - 같�? ?�네?�으�???번째 ?�원가???�도
         Buyer secondBuyer = createValidBuyer();
         secondBuyer.setEmail("different@test.com");
 
-        BusinessException exception = assertThrows(BusinessException.class, () -> {
+        BusinessValidationException exception = assertThrows(BusinessValidationException.class, () -> {
             buyerSVC.join(secondBuyer);
         });
 
-        assertEquals("이미 사용 중인 닉네임입니다.", exception.getMessage());
+        assertEquals("?��? ?�용 중인 ?�네?�입?�다.", exception.getMessage());
     }
 
     @Test
-    @DisplayName("통합 테스트 4: 탈퇴한 회원 재가입 성공")
+    @DisplayName("?�합 ?�스??4: ?�퇴???�원 ?��????�공")
     void integrationTest_withdrawnMemberRejoinSuccess() {
-        // Given - 회원가입 후 탈퇴
+        // Given - ?�원가?????�퇴
         Buyer buyer = createValidBuyer();
         Buyer savedBuyer = buyerSVC.join(buyer);
-        buyerSVC.withdraw(savedBuyer.getId(), "개인사유");
+        buyerSVC.withdraw(savedBuyer.getId(), "개인?�유");
 
-        // When - 동일한 이메일로 재가입 시도
+        // When - ?�일???�메?�로 ?��????�도
         Buyer rejoinBuyer = createValidBuyer();
-        rejoinBuyer.setNickname("newNickname"); // 닉네임 변경
-
-        // Then - 재가입 성공
+        rejoinBuyer.setNickname("newNickname"); // ?�네??변�?
+        // Then - ?��????�공
         Buyer rejoinedBuyer = buyerSVC.join(rejoinBuyer);
         assertNotNull(rejoinedBuyer);
         assertEquals(buyer.getEmail(), rejoinedBuyer.getEmail());
@@ -137,93 +130,81 @@ class BuyerIntegrationTest {
     }
 
     @Test
-    @DisplayName("통합 테스트 5: 회원가입 후 즉시 로그인 성공")
+    @DisplayName("?�합 ?�스??5: ?�원가????즉시 로그???�공")
     void integrationTest_signupThenLoginSuccess() {
-        // Given - 회원가입
-        Buyer buyer = createValidBuyer();
+        // Given - ?�원가??        Buyer buyer = createValidBuyer();
         buyerSVC.join(buyer);
 
-        // When - 로그인 시도
+        // When - 로그???�도
         Buyer loginBuyer = buyerSVC.login(buyer.getEmail(), buyer.getPassword());
 
-        // Then - 로그인 성공
+        // Then - 로그???�공
         assertNotNull(loginBuyer);
         assertEquals(buyer.getEmail(), loginBuyer.getEmail());
         assertTrue(buyerSVC.canLogin(loginBuyer));
     }
 
     @Test
-    @DisplayName("통합 테스트 6: 회원가입 후 중복 체크 기능 검증")
+    @DisplayName("?�합 ?�스??6: ?�원가????중복 체크 기능 검�?)
     void integrationTest_duplicateCheckAfterSignup() {
-        // Given - 회원가입
-        Buyer buyer = createValidBuyer();
+        // Given - ?�원가??        Buyer buyer = createValidBuyer();
         buyerSVC.join(buyer);
 
-        // When & Then - 중복 체크 검증
-        assertTrue(buyerSVC.existsByEmail(buyer.getEmail()));
+        // When & Then - 중복 체크 검�?        assertTrue(buyerSVC.existsByEmail(buyer.getEmail()));
         assertTrue(buyerSVC.existsByNickname(buyer.getNickname()));
         assertFalse(buyerSVC.existsByEmail("nonexistent@test.com"));
         assertFalse(buyerSVC.existsByNickname("nonexistentNickname"));
     }
 
     @Test
-    @DisplayName("통합 테스트 7: 회원가입 후 초기 상태 검증")
+    @DisplayName("?�합 ?�스??7: ?�원가????초기 ?�태 검�?)
     void integrationTest_initialStateAfterSignup() {
-        // Given - 회원가입
-        Buyer buyer = createValidBuyer();
+        // Given - ?�원가??        Buyer buyer = createValidBuyer();
         Buyer savedBuyer = buyerSVC.join(buyer);
 
-        // When - 초기 상태 조회
+        // When - 초기 ?�태 조회
         Map<String, Object> serviceUsage = buyerSVC.getServiceUsage(savedBuyer.getId());
 
-        // Then - 초기 상태 검증
-        assertTrue((Boolean) serviceUsage.get("canWithdraw"));
+        // Then - 초기 ?�태 검�?        assertTrue((Boolean) serviceUsage.get("canWithdraw"));
         assertEquals(0, serviceUsage.get("orderCount"));
         assertEquals(0, serviceUsage.get("pointBalance"));
         assertEquals(0, serviceUsage.get("disputeCount"));
     }
 
     @Test
-    @DisplayName("통합 테스트 8: 잘못된 데이터로 회원가입 시 예외 발생")
+    @DisplayName("?�합 ?�스??8: ?�못???�이?�로 ?�원가?????�외 발생")
     void integrationTest_invalidDataSignupFailure() {
-        // Given - 잘못된 이메일 형식
+        // Given - ?�못???�메???�식
         Buyer invalidBuyer = createValidBuyer();
         invalidBuyer.setEmail("invalid-email");
 
-        // When & Then - 데이터 유효성 검증 실패
+        // When & Then - ?�이???�효??검�??�패
         assertThrows(Exception.class, () -> {
             buyerSVC.join(invalidBuyer);
         });
     }
 
     @Test
-    @DisplayName("통합 테스트 9: 전체 회원가입 프로세스 종합 검증")
+    @DisplayName("?�합 ?�스??9: ?�체 ?�원가???�로?�스 종합 검�?)
     void integrationTest_completeSignupProcessValidation() {
-        // Given - 유효한 구매자 데이터
-        Buyer buyer = createValidBuyer();
+        // Given - ?�효??구매???�이??        Buyer buyer = createValidBuyer();
 
-        // When - 회원가입 실행
+        // When - ?�원가???�행
         Buyer savedBuyer = buyerSVC.join(buyer);
 
-        // Then - 종합 검증
-        // 1. 기본 정보 검증
-        assertEquals(buyer.getName(), savedBuyer.getName());
+        // Then - 종합 검�?        // 1. 기본 ?�보 검�?        assertEquals(buyer.getName(), savedBuyer.getName());
         assertEquals(buyer.getEmail(), savedBuyer.getEmail());
         assertEquals(buyer.getTel(), savedBuyer.getTel());
 
-        // 2. 시스템 설정 검증
-        assertEquals(MemberGubun.BRONZE.getCode(), savedBuyer.getMemberGubun());
+        // 2. ?�스???�정 검�?        assertEquals(MemberGubun.BRONZE.getCode(), savedBuyer.getMemberGubun());
         assertEquals(MemberStatus.ACTIVE.getCode(), savedBuyer.getMemberStatus());
 
-        // 3. 로그인 가능 상태 검증
-        assertTrue(buyerSVC.canLogin(savedBuyer));
+        // 3. 로그??가???�태 검�?        assertTrue(buyerSVC.canLogin(savedBuyer));
         assertFalse(buyerSVC.isWithdrawn(savedBuyer));
 
-        // 4. 서비스 이용 가능 상태 검증
-        assertTrue(buyerSVC.canWithdraw(savedBuyer.getId()));
+        // 4. ?�비???�용 가???�태 검�?        assertTrue(buyerSVC.canWithdraw(savedBuyer.getId()));
 
-        // 5. 데이터베이스 일관성 검증
-        Optional<Buyer> dbBuyer = buyerDAO.findByEmail(buyer.getEmail());
+        // 5. ?�이?�베?�스 ?��???검�?        Optional<Buyer> dbBuyer = buyerDAO.findByEmail(buyer.getEmail());
         assertTrue(dbBuyer.isPresent());
         assertEquals(savedBuyer.getId(), dbBuyer.get().getId());
     }

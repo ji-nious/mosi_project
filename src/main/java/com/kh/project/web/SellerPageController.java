@@ -12,7 +12,7 @@ import com.kh.project.web.common.form.LoginForm;
 import com.kh.project.web.common.form.SellerSignupForm;
 import com.kh.project.web.common.form.SellerEditForm;
 import com.kh.project.web.common.form.MemberStatusInfo;
-import com.kh.project.web.exception.BusinessException;
+import com.kh.project.web.exception.BusinessValidationException;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -105,7 +105,7 @@ public class SellerPageController {
       log.info("판매자 로그인 성공: sellerId={}", seller.getSellerId());
       return "redirect:/seller/dashboard";
       
-    } catch (BusinessException e) {
+    } catch (BusinessValidationException e) {
       log.warn("판매자 로그인 실패: email={}, message={}", loginForm.getEmail(), e.getMessage());
       // 탈퇴한 회원인 경우 특별한 메시지 제공
       if ("이미 탈퇴한 회원입니다.".equals(e.getMessage())) {
@@ -195,7 +195,7 @@ public class SellerPageController {
       log.info("판매자 회원가입 성공: sellerId={}", savedSeller.getSellerId());
       return "redirect:/common/signup-complete";
       
-    } catch (BusinessException e) {
+    } catch (BusinessValidationException e) {
       // 6. 회원가입 실패
       log.error("판매자 회원가입 실패: email={}, error={}", signupForm.getEmail(), e.getMessage());
       
