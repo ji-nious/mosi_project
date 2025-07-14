@@ -3,7 +3,7 @@ package com.kh.project.web.common.response;
 import java.util.Arrays;
 
 /**
- * API 응답 코드
+ *  REST API 응답메세지 헤더에 사용되는 응답코드, 응답메세지 상수화
  */
 public enum ApiResponseCode {
   // 성공 응답
@@ -41,10 +41,12 @@ public enum ApiResponseCode {
     return rtmsg;
   }
 
+  // 코드로 enum 조회
   public static ApiResponseCode of(String code) {
     return Arrays.stream(values())
-        .filter(rc -> rc.getRtcd().equals(code))
-        .findFirst()
-        .orElse(INTERNAL_SERVER_ERROR);
+            .filter(rc -> rc.getRtcd().equals(code))
+            .findFirst()
+            .orElse(INTERNAL_SERVER_ERROR);
   }
+
 } 
