@@ -5,10 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -16,9 +14,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * 판매자 DAO 구현체 (SQL 별칭 방식으로 단순화)
- */
 @Repository
 @Slf4j
 @RequiredArgsConstructor
@@ -26,234 +21,252 @@ public class SellerDAOImpl implements SellerDAO {
 
     private final NamedParameterJdbcTemplate template;
 
-    // SQL 별칭으로 컬럼명 매핑
-    private final String BASE_SELECT = """
-        SELECT 
-            seller_id as sellerId,
-            EMAIL as email,
-            PASSWORD as password,
-            biz_reg_no as bizRegNo,
-            shop_name as shopName,
-            NAME as name,
-            shop_address as shopAddress,
-            TEL as tel,
-            MEMBER_GUBUN as memberGubun,
-            PIC as pic,
-            STATUS as status,
-            CDATE as cdate,
-            UDATE as udate,
-            withdrawn_at as withdrawnAt,
-            withdrawn_reason as withdrawnReason
-        FROM seller
+    // 상수 정의
+    private static final Integer STATUS_ACTIVE = 1;
+    private static final Integer STATUS_WITHDRAWN = 0;
+
+    // 로그인용 SELECT 문 (PIC 컬럼 제거하여 BLOB 에러 방지)
+    private static final String LOGIN_SELECT = """
+        SELECT SELLER_ID as sellerId, EMAIL as email, PASSWORD as password, BIZ_REG_NO as bizRegNo,
+               SHOP_NAME as shopName, NAME as name, SHOP_ADDRESS as shopAddress, TEL as tel,
+               POST_NUMBER as postNumber, STATUS as status,
+               CDATE as cdate, UDATE as udate, WITHDRAWN_AT as withdrawnAt, WITHDRAWN_REASON as withdrawnReason
+        FROM SELLER
+        """;
+
+    // 상세 정보용 SELECT 문 (PIC 포함)
+    private static final String DETAIL_SELECT = """
+        SELECT SELLER_ID as sellerId, EMAIL as email, PASSWORD as password, BIZ_REG_NO as bizRegNo,
+               SHOP_NAME as shopName, NAME as name, SHOP_ADDRESS as shopAddress, TEL as tel,
+               PIC as pic, POST_NUMBER as postNumber, STATUS as status,
+               CDATE as cdate, UDATE as udate, WITHDRAWN_AT as withdrawnAt, WITHDRAWN_REASON as withdrawnReason
+        FROM SELLER
         """;
 
     @Override
     public Seller save(Seller seller) {
+        log.info("판매자 저장: email={}", seller.getEmail());
+        
+        // 시퀀스에서 다음 값을 가져옴
+        String seqSql = "SELECT seller_seller_id.NEXTVAL FROM DUAL";
+        Long sellerId = template.getJdbcTemplate().queryForObject(seqSql, Long.class);
+        
+        // SERVICE_USAGE 컬럼 제거
         String sql = """
-            INSERT INTO seller (EMAIL, PASSWORD, biz_reg_no, shop_name, NAME, shop_address, TEL, MEMBER_GUBUN, STATUS) 
-            VALUES (:email, :password, :bizRegNo, :shopName, :name, :shopAddress, :tel, :memberGubun, :status)
+            INSERT INTO SELLER (SELLER_ID, EMAIL, PASSWORD, BIZ_REG_NO, SHOP_NAME, NAME, SHOP_ADDRESS, TEL, PIC, POST_NUMBER, STATUS, CDATE, UDATE)
+            VALUES (:sellerId, :email, :password, :bizRegNo, :shopName, :name, :shopAddress, :tel, :pic, :postNumber, :status, SYSTIMESTAMP, SYSTIMESTAMP)
             """;
-
-        SqlParameterSource param = new BeanPropertySqlParameterSource(seller);
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        template.update(sql, param, keyHolder, new String[]{"seller_id"});
-
-        Long sellerId = keyHolder.getKey().longValue();
-        seller.setSellerId(sellerId);
-
-        log.info("판매자 저장 완료: sellerId={}", sellerId);
+        
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("sellerId", sellerId);
+        param.addValue("email", seller.getEmail());
+        param.addValue("password", seller.getPassword());
+        param.addValue("bizRegNo", seller.getBizRegNo());
+        param.addValue("shopName", seller.getShopName());
+        param.addValue("name", seller.getName());
+        param.addValue("shopAddress", seller.getShopAddress());
+        param.addValue("tel", seller.getTel());
+        param.addValue("pic", seller.getPic());
+        param.addValue("postNumber", seller.getPostNumber());
+        param.addValue("status", seller.getStatus());
+        
+        try {
+            template.update(sql, param);
+            seller.setSellerId(sellerId);
+            log.info("판매자 저장 완료: sellerId={}", sellerId);
+        } catch (Exception e) {
+            log.error("판매자 저장 실패: email={}, error={}", seller.getEmail(), e.getMessage());
+            throw e;
+        }
+        
         return seller;
     }
 
-
     @Override
     public Optional<Seller> findById(Long sellerId) {
-        String sql = BASE_SELECT + " WHERE seller_id = :sellerId AND STATUS != '탈퇴'";
-
+        String sql = DETAIL_SELECT + " WHERE SELLER_ID = :sellerId";
+        
+        MapSqlParameterSource param = new MapSqlParameterSource("sellerId", sellerId);
+        
         try {
-            MapSqlParameterSource param = new MapSqlParameterSource("sellerId", sellerId);
-
-            Seller seller = template.queryForObject(sql, param,
-                BeanPropertyRowMapper.newInstance(Seller.class));
-            return Optional.of(seller);
+            Seller seller = template.queryForObject(sql, param, BeanPropertyRowMapper.newInstance(Seller.class));
+            return Optional.ofNullable(seller);
         } catch (EmptyResultDataAccessException e) {
+            log.warn("판매자를 찾을 수 없습니다: sellerId={}", sellerId);
             return Optional.empty();
         }
     }
 
     @Override
     public Optional<Seller> findByEmail(String email) {
-        String sql = BASE_SELECT + " WHERE EMAIL = :email";
-
+        String sql = LOGIN_SELECT + " WHERE EMAIL = :email";
+        
+        MapSqlParameterSource param = new MapSqlParameterSource("email", email);
+        
         try {
-            MapSqlParameterSource param = new MapSqlParameterSource("email", email);
-
-            Seller seller = template.queryForObject(sql, param,
-                BeanPropertyRowMapper.newInstance(Seller.class));
-            return Optional.of(seller);
+            Seller seller = template.queryForObject(sql, param, BeanPropertyRowMapper.newInstance(Seller.class));
+            return Optional.ofNullable(seller);
         } catch (EmptyResultDataAccessException e) {
+            log.warn("이메일로 판매자를 찾을 수 없습니다: email={}", email);
             return Optional.empty();
         }
     }
 
-    @Override
-    public Optional<Seller> findByBizRegNo(String bizRegNo) {
-        String sql = BASE_SELECT + " WHERE biz_reg_no = :bizRegNo AND STATUS != '탈퇴'";
-
-        try {
-            MapSqlParameterSource param = new MapSqlParameterSource("bizRegNo", bizRegNo);
-
-            Seller seller = template.queryForObject(sql, param,
-                BeanPropertyRowMapper.newInstance(Seller.class));
-            return Optional.of(seller);
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
-    }
-
+    /**
+     * 이메일 중복 체크 (모든 상태)
+     */
     @Override
     public boolean existsByEmail(String email) {
-        String sql = "SELECT COUNT(*) FROM seller WHERE EMAIL = :email";
-
-        MapSqlParameterSource param = new MapSqlParameterSource("email", email);
-
-        Integer count = template.queryForObject(sql, param, Integer.class);
+        String sql = "SELECT COUNT(*) FROM SELLER WHERE EMAIL = :email";
+        
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("email", email);
+        
+        Integer count = template.queryForObject(sql, params, Integer.class);
         return count != null && count > 0;
     }
 
+    /**
+     * 이메일 중복 체크 (특정 상태 제외)
+     */
+    @Override
+    public boolean existsByEmailAndStatusNot(String email, Integer excludeStatus) {
+        String sql = "SELECT COUNT(*) FROM SELLER WHERE EMAIL = :email AND STATUS != :withdrawnStatus";
+        
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("email", email);
+        params.addValue("withdrawnStatus", excludeStatus);
+        
+        Integer count = template.queryForObject(sql, params, Integer.class);
+        return count != null && count > 0;
+    }
+
+    /**
+     * 사업자번호 중복 체크 (모든 상태)
+     */
     @Override
     public boolean existsByBizRegNo(String bizRegNo) {
-        String sql = "SELECT COUNT(*) FROM seller WHERE biz_reg_no = :bizRegNo AND STATUS IN ('활성화', '비활성화', '정지')";
-
-        MapSqlParameterSource param = new MapSqlParameterSource("bizRegNo", bizRegNo);
-
-        Integer count = template.queryForObject(sql, param, Integer.class);
+        String sql = "SELECT COUNT(*) FROM SELLER WHERE BIZ_REG_NO = :bizRegNo";
+        
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("bizRegNo", bizRegNo);
+        
+        Integer count = template.queryForObject(sql, params, Integer.class);
         return count != null && count > 0;
     }
 
     @Override
     public boolean existsByShopName(String shopName) {
-        String sql = "SELECT COUNT(*) FROM seller WHERE shop_name = :shopName AND STATUS IN ('활성화', '비활성화', '정지')";
-
-        MapSqlParameterSource param = new MapSqlParameterSource("shopName", shopName);
-
+        String sql = "SELECT COUNT(*) FROM SELLER WHERE SHOP_NAME = :shopName AND STATUS != :withdrawnStatus";
+        
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("shopName", shopName);
+        param.addValue("withdrawnStatus", STATUS_WITHDRAWN);
+        
         Integer count = template.queryForObject(sql, param, Integer.class);
         return count != null && count > 0;
     }
 
     @Override
     public boolean existsByName(String name) {
-        String sql = "SELECT COUNT(*) FROM seller WHERE NAME = :name AND STATUS IN ('활성화', '비활성화', '정지')";
-
-        MapSqlParameterSource param = new MapSqlParameterSource("name", name);
-
+        String sql = "SELECT COUNT(*) FROM SELLER WHERE NAME = :name AND STATUS != :withdrawnStatus";
+        
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("name", name);
+        param.addValue("withdrawnStatus", STATUS_WITHDRAWN);
+        
         Integer count = template.queryForObject(sql, param, Integer.class);
         return count != null && count > 0;
     }
 
     @Override
-    public boolean existsByShopAddress(String shopAddress) {
-        String sql = "SELECT COUNT(*) FROM seller WHERE shop_address = :shopAddress AND STATUS IN ('활성화', '비활성화', '정지')";
-
-        MapSqlParameterSource param = new MapSqlParameterSource("shopAddress", shopAddress);
-
-        Integer count = template.queryForObject(sql, param, Integer.class);
-        return count != null && count > 0;
+    public Optional<Seller> findByBizRegNo(String bizRegNo) {
+        String sql = DETAIL_SELECT + " WHERE BIZ_REG_NO = :bizRegNo";
+        
+        MapSqlParameterSource param = new MapSqlParameterSource("bizRegNo", bizRegNo);
+        
+        try {
+            Seller seller = template.queryForObject(sql, param, BeanPropertyRowMapper.newInstance(Seller.class));
+            return Optional.ofNullable(seller);
+        } catch (EmptyResultDataAccessException e) {
+            log.warn("사업자등록번호로 판매자를 찾을 수 없습니다: bizRegNo={}", bizRegNo);
+            return Optional.empty();
+        }
     }
 
     @Override
     public int update(Long sellerId, Seller seller) {
-        StringBuilder sql = new StringBuilder();
-        sql.append("UPDATE seller SET ");
-
+        // SERVICE_USAGE 컬럼 제거
+        String sql = """
+            UPDATE SELLER 
+            SET PASSWORD = :password, BIZ_REG_NO = :bizRegNo, SHOP_NAME = :shopName, NAME = :name,
+                SHOP_ADDRESS = :shopAddress, TEL = :tel, PIC = :pic, POST_NUMBER = :postNumber,
+                STATUS = :status, UDATE = SYSTIMESTAMP
+            WHERE SELLER_ID = :sellerId
+            """;
+        
         MapSqlParameterSource param = new MapSqlParameterSource();
-        StringBuilder setClauses = new StringBuilder();
-
-        // 동적 쿼리 생성 (null이 아닌 필드만 업데이트)
-        if (seller.getPassword() != null) {
-            setClauses.append("PASSWORD = :password, ");
-            param.addValue("password", seller.getPassword());
-        }
-        if (seller.getShopName() != null) {
-            setClauses.append("shop_name = :shopName, ");
-            param.addValue("shopName", seller.getShopName());
-        }
-        if (seller.getName() != null) {
-            setClauses.append("NAME = :name, ");
-            param.addValue("name", seller.getName());
-        }
-        if (seller.getShopAddress() != null) {
-            setClauses.append("shop_address = :shopAddress, ");
-            param.addValue("shopAddress", seller.getShopAddress());
-        }
-        if (seller.getTel() != null) {
-            setClauses.append("TEL = :tel, ");
-            param.addValue("tel", seller.getTel());
-        }
-        if (seller.getMemberGubun() != null) {
-            setClauses.append("MEMBER_GUBUN = :memberGubun, ");
-            param.addValue("memberGubun", seller.getMemberGubun());
-        }
-
-        // 항상 업데이트되는 필드
-        setClauses.append("UDATE = SYSTIMESTAMP ");
-
-        sql.append(setClauses.toString());
-        sql.append("WHERE seller_id = :sellerId AND STATUS != '탈퇴'");
-
         param.addValue("sellerId", sellerId);
-
-        return template.update(sql.toString(), param);
+        param.addValue("password", seller.getPassword());
+        param.addValue("bizRegNo", seller.getBizRegNo());
+        param.addValue("shopName", seller.getShopName());
+        param.addValue("name", seller.getName());
+        param.addValue("shopAddress", seller.getShopAddress());
+        param.addValue("tel", seller.getTel());
+        param.addValue("pic", seller.getPic());
+        param.addValue("postNumber", null);
+        param.addValue("status", seller.getStatus());
+        
+        return template.update(sql, param);
     }
 
     @Override
     public int withdrawWithReason(Long sellerId, String reason) {
         String sql = """
-            UPDATE seller SET 
-                STATUS = '탈퇴', 
-                UDATE = SYSTIMESTAMP,
-                withdrawn_at = SYSDATE,
-                withdrawn_reason = :reason
-            WHERE seller_id = :sellerId AND STATUS = '활성화'
+            UPDATE SELLER 
+            SET STATUS = :withdrawnStatus, 
+                WITHDRAWN_AT = SYSTIMESTAMP, 
+                WITHDRAWN_REASON = :reason, 
+                UDATE = SYSTIMESTAMP
+            WHERE SELLER_ID = :sellerId AND STATUS = :activeStatus
             """;
-
+        
         MapSqlParameterSource param = new MapSqlParameterSource();
         param.addValue("sellerId", sellerId);
         param.addValue("reason", reason);
-
+        param.addValue("withdrawnStatus", STATUS_WITHDRAWN);
+        param.addValue("activeStatus", STATUS_ACTIVE);
+        
         return template.update(sql, param);
     }
 
     @Override
     public List<Seller> findWithdrawnMembers() {
-        String sql = BASE_SELECT + " WHERE STATUS = '탈퇴' ORDER BY UDATE DESC";
-
+        String sql = DETAIL_SELECT + " WHERE WITHDRAWN_AT IS NOT NULL ORDER BY WITHDRAWN_AT DESC";
+        
         return template.query(sql, BeanPropertyRowMapper.newInstance(Seller.class));
     }
 
     @Override
     public List<Seller> findAll() {
-        String sql = BASE_SELECT + " WHERE STATUS != '탈퇴' ORDER BY CDATE DESC";
-
+        String sql = DETAIL_SELECT + " ORDER BY CDATE DESC";
+        
         return template.query(sql, BeanPropertyRowMapper.newInstance(Seller.class));
     }
 
     @Override
     public int reactivate(String email, String password) {
         String sql = """
-            UPDATE seller SET
-                PASSWORD = :password,
-                STATUS = '활성화',
-                UDATE = SYSTIMESTAMP,
-                withdrawn_at = null,
-                withdrawn_reason = null
-            WHERE email = :email AND STATUS = '탈퇴'
+            UPDATE SELLER 
+            SET STATUS = :activeStatus, WITHDRAWN_AT = NULL, WITHDRAWN_REASON = NULL, UDATE = SYSTIMESTAMP
+            WHERE EMAIL = :email AND PASSWORD = :password AND STATUS = :withdrawnStatus
             """;
         
         MapSqlParameterSource param = new MapSqlParameterSource();
         param.addValue("email", email);
         param.addValue("password", password);
+        param.addValue("activeStatus", STATUS_ACTIVE);
+        param.addValue("withdrawnStatus", STATUS_WITHDRAWN);
         
         return template.update(sql, param);
     }
@@ -261,21 +274,100 @@ public class SellerDAOImpl implements SellerDAO {
     @Override
     public int rejoin(Seller seller) {
         String sql = """
-            UPDATE seller SET
-                PASSWORD = :password,
-                biz_reg_no = :bizRegNo,
-                shop_name = :shopName,
-                NAME = :name,
-                shop_address = :shopAddress,
-                TEL = :tel,
-                STATUS = '활성화',
-                UDATE = SYSTIMESTAMP,
-                withdrawn_at = null,
-                withdrawn_reason = null
-            WHERE email = :email AND STATUS = '탈퇴'
+            UPDATE SELLER 
+            SET PASSWORD = :password, BIZ_REG_NO = :bizRegNo, SHOP_NAME = :shopName, NAME = :name,
+                SHOP_ADDRESS = :shopAddress, TEL = :tel, PIC = :pic, POST_NUMBER = :postNumber,
+                STATUS = :activeStatus, WITHDRAWN_AT = NULL, WITHDRAWN_REASON = NULL, UDATE = SYSTIMESTAMP
+            WHERE EMAIL = :email AND STATUS = :withdrawnStatus
             """;
         
-        SqlParameterSource param = new BeanPropertySqlParameterSource(seller);
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("email", seller.getEmail());
+        param.addValue("password", seller.getPassword());
+        param.addValue("bizRegNo", seller.getBizRegNo());
+        param.addValue("shopName", seller.getShopName());
+        param.addValue("name", seller.getName());
+        param.addValue("shopAddress", seller.getShopAddress());
+        param.addValue("tel", seller.getTel());
+        param.addValue("pic", seller.getPic());
+        param.addValue("postNumber", null);
+        param.addValue("activeStatus", STATUS_ACTIVE);
+        param.addValue("withdrawnStatus", STATUS_WITHDRAWN);
+        
         return template.update(sql, param);
+    }
+
+    // 복합 키 방식 중복 체크
+    @Override
+    public boolean existsByEmailAndStatus(String email, Integer status) {
+        String sql = "SELECT COUNT(*) FROM SELLER WHERE EMAIL = :email AND STATUS = :status";
+        
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("email", email);
+        param.addValue("status", status);
+        
+        Integer count = template.queryForObject(sql, param, Integer.class);
+        return count != null && count > 0;
+    }
+    
+    @Override
+    public boolean existsByBizRegNoAndStatus(String bizRegNo, Integer status) {
+        String sql = "SELECT COUNT(*) FROM SELLER WHERE BIZ_REG_NO = :bizRegNo AND STATUS = :status";
+        
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("bizRegNo", bizRegNo);
+        param.addValue("status", status);
+        
+        Integer count = template.queryForObject(sql, param, Integer.class);
+        return count != null && count > 0;
+    }
+    
+    @Override
+    public boolean existsByTelAndStatus(String tel, Integer status) {
+        String sql = "SELECT COUNT(*) FROM SELLER WHERE TEL = :tel AND STATUS = :status";
+        
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("tel", tel);
+        param.addValue("status", status);
+        
+        Integer count = template.queryForObject(sql, param, Integer.class);
+        return count != null && count > 0;
+    }
+
+    // 복합 키 전용 메서드들
+    @Override
+    public Optional<Seller> findByBizRegNoAndStatus(String bizRegNo, Integer status) {
+        String sql = DETAIL_SELECT + " WHERE BIZ_REG_NO = :bizRegNo AND STATUS = :status";
+        
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("bizRegNo", bizRegNo);
+        param.addValue("status", status);
+        
+        try {
+            Seller seller = template.queryForObject(sql, param, BeanPropertyRowMapper.newInstance(Seller.class));
+            return Optional.ofNullable(seller);
+        } catch (EmptyResultDataAccessException e) {
+            log.warn("사업자번호와 상태로 판매자를 찾을 수 없습니다: bizRegNo={}, status={}", bizRegNo, status);
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<Seller> findActiveSeller(String bizRegNo) {
+        return findByBizRegNoAndStatus(bizRegNo, STATUS_ACTIVE);
+    }
+
+    @Override
+    public Optional<Seller> findWithdrawnSeller(String bizRegNo) {
+        return findByBizRegNoAndStatus(bizRegNo, STATUS_WITHDRAWN);
+    }
+
+    @Override
+    public List<Seller> findAllByBizRegNo(String bizRegNo) {
+        String sql = DETAIL_SELECT + " WHERE BIZ_REG_NO = :bizRegNo ORDER BY CDATE DESC";
+        
+        MapSqlParameterSource param = new MapSqlParameterSource("bizRegNo", bizRegNo);
+        
+        return template.query(sql, param, BeanPropertyRowMapper.newInstance(Seller.class));
     }
 }

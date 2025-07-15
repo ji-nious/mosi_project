@@ -123,6 +123,12 @@
         color: var(--color-text);
     }
 
+    .required-mark {
+        color: #658352;
+        font-weight: bold;
+        margin-right: 3px;
+    }
+
     .form-control {
         width: 100%;
         padding: 12px 16px;
@@ -156,41 +162,152 @@
     }
 
     .error-message {
-        color: #D8000C;
-        background-color: #FFD2D2;
-        border: 1px solid #D8000C;
-        padding: 10px;
-        border-radius: 5px;
+        color: #8B5A00;
+        background-color: #FFF4E6;
+        border: 1px solid #D69E2E;
+        padding: 16px 20px;
+        border-radius: 12px;
         margin-bottom: 20px;
         text-align: center;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(214, 158, 46, 0.1);
     }
     .success-message {
         color: #4F8A10;
         background-color: #DFF2BF;
         border: 1px solid #4F8A10;
-        padding: 10px;
-        border-radius: 5px;
+        padding: 16px 20px;
+        border-radius: 12px;
         margin-bottom: 20px;
         text-align: center;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(79, 138, 16, 0.1);
     }
     .error-text {
-        color: #D8000C;
+        color: #D69E2E;
         font-size: 0.9rem;
         margin-top: 5px;
+        font-weight: 500;
     }
-  </style>
+
+        /* 알림 메시지 스타일 */
+        .alert-message {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1001;
+            min-width: 400px;
+            max-width: 90vw;
+            padding: 0;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .alert-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 12px;
+        }
+
+        .success-message .alert-content {
+            background: linear-gradient(135deg, #658352 0%, #5a7349 100%);
+            color: white;
+        }
+
+        .error-message .alert-content {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 12px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .alert-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+
+        @media(max-width: 479px) {
+            .alert-message {
+                min-width: 300px;
+                top: 70px;
+            }
+            .alert-content {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- 성공/에러 메시지 표시 -->
+    <div th:if="${success}" class="alert-message success-message" id="successAlert">
+        <div class="alert-content">
+            <span th:text="${success}"></span>
+            <button type="button" class="alert-close" onclick="closeAlert('successAlert')">&times;</button>
+        </div>
+    </div>
+    
+    <div th:if="${error}" class="alert-message error-message" id="errorAlert">
+        <div class="alert-content">
+            <span th:text="${error}"></span>
+            <button type="button" class="alert-close" onclick="closeAlert('errorAlert')">&times;</button>
+        </div>
+    </div>
 
-  <header class="navbar-container">
+    <div th:if="${message}" class="alert-message success-message" id="messageAlert">
+        <div class="alert-content">
+            <span th:text="${message}"></span>
+            <button type="button" class="alert-close" onclick="closeAlert('messageAlert')">&times;</button>
+        </div>
+    </div>
+
+    <header class="navbar-container">
     <div class="navbar">
       <a th:href="@{/}">
         <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="로고" class="navbar-logo-img"/>
       </a>
       <!-- 로그인 상태에 따른 네비게이션 버튼 -->
       <div class="navbar-buttons" th:if="${session.loginMember == null}">
-        <a th:href="@{/login}" class="btn-outline">로그인</a>
-        <a th:href="@{/signup}" class="btn-filled">회원가입</a>
+        <a th:href="@{/common/select-login}" class="btn-outline">로그인</a>
+        <a th:href="@{/common/select-signup}" class="btn-filled">회원가입</a>
       </div>
       <div class="navbar-buttons" th:if="${session.loginMember != null}">
         <span class="welcome-message" th:text="${userNickname} + '님, 환영합니다.'"></span>
@@ -204,20 +321,16 @@
   <div class="login-container">
     <h1>판매자 로그인</h1>
     
-    <!-- 에러 메시지 표시 -->
-    <div th:if="${error}" class="error-message" th:text="${error}"></div>
-    <!-- 성공 메시지 표시 -->
-    <div th:if="${message}" class="success-message" th:text="${message}"></div>
-    
     <form th:action="@{/seller/login}" method="post" th:object="${loginForm}" class="login-form">
       <div class="form-group">
         <label for="email">이메일</label>
         <input type="email" th:field="*{email}" class="form-control" placeholder="이메일 주소" required>
         <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error-text"></div>
+        <div id="emailError" class="error-text" style="display: none;">이메일 형식으로 입력하세요.</div>
       </div>
       <div class="form-group">
         <label for="password">비밀번호</label>
-        <input type="password" th:field="*{password}" class="form-control" placeholder="비밀번호" required>
+                        <input type="password" th:field="*{password}" class="form-control" placeholder="비밀번호" required>
         <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="error-text"></div>
       </div>
       <button type="submit" class="login-button">로그인</button>
@@ -225,6 +338,37 @@
   </div>
 
   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const emailInput = document.querySelector('input[name="email"]');
+        const emailError = document.getElementById('emailError');
+        const form = document.querySelector('.login-form');
+        
+        // 이메일 형식 검증 함수
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+        
+        // 이메일 입력 시 실시간 검증
+        emailInput.addEventListener('input', function() {
+            if (this.value.length > 0 && !validateEmail(this.value)) {
+                emailError.style.display = 'block';
+            } else {
+                emailError.style.display = 'none';
+            }
+        });
+        
+        // 폼 제출 시 검증
+        form.addEventListener('submit', function(e) {
+            // 이메일 검증
+            if (!validateEmail(emailInput.value)) {
+                e.preventDefault();
+                emailError.style.display = 'block';
+                emailInput.focus();
+            }
+        });
+    });
+    
     // 로그아웃 기능
     function logout() {
         if (confirm('로그아웃 하시겠습니까?')) {
@@ -238,5 +382,38 @@
     }
   </script>
 
-</body>
+  <script>
+        function closeAlert(alertId) {
+            const alertElement = document.getElementById(alertId);
+            if (alertElement) {
+                alertElement.style.animation = 'slideUp 0.3s ease-out forwards';
+                setTimeout(() => {
+                    alertElement.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        // 자동 닫기 타이머
+        document.addEventListener('DOMContentLoaded', function() {
+            const successAlert = document.getElementById('successAlert');
+            const errorAlert = document.getElementById('errorAlert');
+            const messageAlert = document.getElementById('messageAlert');
+
+            if (successAlert) {
+                setTimeout(() => closeAlert('successAlert'), 4000); // 4초 후 자동 닫기
+            }
+
+            if (errorAlert) {
+                setTimeout(() => closeAlert('errorAlert'), 6000); // 6초 후 자동 닫기
+            }
+
+            if (messageAlert) {
+                setTimeout(() => closeAlert('messageAlert'), 4000); // 4초 후 자동 닫기
+            }
+        });
+    </script>
+
+  </body>
 </html>
+
+<script th:src="@{/js/common/logout.js}"></script>

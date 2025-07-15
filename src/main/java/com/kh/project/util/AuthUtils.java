@@ -20,7 +20,7 @@ public class AuthUtils {
             throw new BusinessValidationException("로그인이 필요합니다.");
         }
         
-        LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
+        LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
         if (loginMember == null) {
             throw new BusinessValidationException("로그인이 필요합니다.");
         }
@@ -34,7 +34,7 @@ public class AuthUtils {
     public static void validateBuyerAccess(HttpSession session, Long targetBuyerId) {
         LoginMember loginMember = getLoginMember(session);
         
-        if (!CommonConstants.MEMBER_TYPE_BUYER.equals(loginMember.getMemberType())) {
+        if (!"BUYER".equals(loginMember.getMemberType())) {
             log.warn("구매자가 아닌 사용자가 구매자 API 접근 시도: {}", loginMember.getMemberType());
             throw new SecurityException("구매자만 접근 가능합니다.");
         }
@@ -52,7 +52,7 @@ public class AuthUtils {
     public static void validateSellerAccess(HttpSession session, Long targetSellerId) {
         LoginMember loginMember = getLoginMember(session);
         
-        if (!CommonConstants.MEMBER_TYPE_SELLER.equals(loginMember.getMemberType())) {
+        if (!"SELLER".equals(loginMember.getMemberType())) {
             log.warn("판매자가 아닌 사용자가 판매자 API 접근 시도: {}", loginMember.getMemberType());
             throw new SecurityException("판매자만 접근 가능합니다.");
         }
@@ -65,14 +65,12 @@ public class AuthUtils {
     }
 
     /**
-     * 관리자 권한 검증
+     * 권한 검증 없이 로그인 회원 정보만 조회
      */
-    public static void validateAdminAccess(HttpSession session) {
-        LoginMember loginMember = getLoginMember(session);
-        
-        if (!"ADMIN".equals(loginMember.getMemberType())) {
-            log.warn("관리자가 아닌 사용자가 관리자 API 접근 시도: {}", loginMember.getMemberType());
-            throw new SecurityException("관리자만 접근 가능합니다.");
+    public static LoginMember getLoginMemberWithoutValidation(HttpSession session) {
+        if (session == null) {
+            return null;
         }
+        return (LoginMember) session.getAttribute("loginMember");
     }
 } 

@@ -16,231 +16,234 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * 구매자 DAO 구현체 (SQL 별칭 방식으로 단순화)
- */
-@Slf4j
+// 구매자 데이터 접근 객체 구현체
 @Repository
+@Slf4j
 @RequiredArgsConstructor
+@SuppressWarnings("unused") // Spring에서 의존성 주입으로 사용됨
 public class BuyerDAOImpl implements BuyerDAO {
 
     private final NamedParameterJdbcTemplate template;
 
-    // SQL 별칭으로 컬럼명 매핑
-    private final String BASE_SELECT = """
-        SELECT 
-            Buyer_id as buyerId,
-            EMAIL as email,
-            PASSWORD as password,
-            NAME as name,
-            NICKNAME as nickname,
-            TEL as tel,
-            GENDER as gender,
-            BIRTH as birth,
-            ADDRESS as address,
-            MEMBER_GUBUN as memberGubun,
-            PIC as pic,
-            STATUS as status,
-            CDATE as cdate,
-            UDATE as udate,
-            withdrawn_at as withdrawnAt,
-            withdrawn_reason as withdrawnReason
-        FROM buyer
+    // 기본 SELECT 문 (Oracle 컬럼명으로 수정)
+    private static final String BASE_SELECT = """
+        SELECT BUYER_ID as buyerId, EMAIL as email, PASSWORD as password, NAME as name, 
+               NICKNAME as nickname, TEL as tel, GENDER as gender, BIRTH as birth, 
+               POST_NUMBER as postNumber, ADDRESS as address, MEMBER_GUBUN as memberGubun, 
+               PIC as pic, STATUS as status, CDATE as cdate, UDATE as udate, 
+               WITHDRAWN_AT as withdrawnAt, WITHDRAWN_REASON as withdrawnReason
+        FROM BUYER
         """;
 
+    // 구매자 저장 (Oracle 스키마에 맞게 수정)
     @Override
     public Buyer save(Buyer buyer) {
+        log.info("구매자 저장: email={}", buyer.getEmail());
+        
+        // 먼저 시퀀스에서 다음 값을 가져옴
+        String seqSql = "SELECT buyer_buyer_id.NEXTVAL FROM DUAL";
+        Long buyerId = template.getJdbcTemplate().queryForObject(seqSql, Long.class);
+        
         String sql = """
-            INSERT INTO buyer (EMAIL, PASSWORD, NAME, NICKNAME, TEL, GENDER, BIRTH, ADDRESS, STATUS) 
-            VALUES (:email, :password, :name, :nickname, :tel, :gender, :birth, :address, :status)
+            INSERT INTO BUYER (BUYER_ID, EMAIL, PASSWORD, NAME, NICKNAME, TEL, GENDER, BIRTH, POST_NUMBER, ADDRESS, MEMBER_GUBUN, PIC, STATUS, CDATE, UDATE)
+            VALUES (:buyerId, :email, :password, :name, :nickname, :tel, :gender, :birth, :postNumber, :address, :memberGubun, :pic, :status, SYSTIMESTAMP, SYSTIMESTAMP)
             """;
-
-        SqlParameterSource param = new BeanPropertySqlParameterSource(buyer);
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        template.update(sql, param, keyHolder, new String[]{"Buyer_id"});
-
-        Long buyerId = keyHolder.getKey().longValue();
-        buyer.setBuyerId(buyerId);
-
-        log.info("구매자 저장 완료: buyerId={}", buyerId);
+        
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("buyerId", buyerId);
+        param.addValue("email", buyer.getEmail());
+        param.addValue("password", buyer.getPassword());
+        param.addValue("name", buyer.getName());
+        param.addValue("nickname", buyer.getNickname());
+        param.addValue("tel", buyer.getTel());
+        param.addValue("gender", buyer.getGender());
+        param.addValue("birth", buyer.getBirth());
+        param.addValue("postNumber", buyer.getPostNumber()); // POST_NUMBER 값 사용
+        param.addValue("address", buyer.getAddress());
+        param.addValue("memberGubun", buyer.getMemberGubun() != null ? buyer.getMemberGubun().getCode() : "NEW");
+        param.addValue("pic", buyer.getPic());
+        param.addValue("status", buyer.getStatus());
+        
+        try {
+            template.update(sql, param);
+            buyer.setBuyerId(buyerId);
+            log.info("구매자 저장 완료: buyerId={}", buyerId);
+        } catch (Exception e) {
+            log.error("구매자 저장 실패: email={}, error={}", buyer.getEmail(), e.getMessage());
+            
+            // 상세한 제약 조건 오류 정보 제공
+            if (e.getMessage().contains("ORA-00001")) {
+                log.error("중복 제약 조건 위배 상세정보 - buyerId: {}, email: {}, nickname: {}", 
+                         buyerId, buyer.getEmail(), buyer.getNickname());
+                log.error("전체 오류 메시지: {}", e.getMessage());
+            }
+            
+            throw e;
+        }
+        
         return buyer;
     }
 
+    // ID로 구매자 조회
     @Override
     public Optional<Buyer> findById(Long buyerId) {
-        String sql = BASE_SELECT + " WHERE Buyer_id = :buyerId";
-
+        String sql = BASE_SELECT + " WHERE BUYER_ID = :buyerId";
+        
+        MapSqlParameterSource param = new MapSqlParameterSource("buyerId", buyerId);
+        
         try {
-            MapSqlParameterSource param = new MapSqlParameterSource("buyerId", buyerId);
-
-            // BeanPropertyRowMapper 자동 매핑 (별칭 떄문에 가능)
-            Buyer buyer = template.queryForObject(sql, param,
-                BeanPropertyRowMapper.newInstance(Buyer.class));
-            return Optional.of(buyer);
+            Buyer buyer = template.queryForObject(sql, param, BeanPropertyRowMapper.newInstance(Buyer.class));
+            return Optional.ofNullable(buyer);
         } catch (EmptyResultDataAccessException e) {
+            log.warn("구매자를 찾을 수 없습니다: buyerId={}", buyerId);
             return Optional.empty();
         }
     }
 
+    // 이메일로 구매자 조회
     @Override
     public Optional<Buyer> findByEmail(String email) {
         String sql = BASE_SELECT + " WHERE EMAIL = :email";
-
+        
+        MapSqlParameterSource param = new MapSqlParameterSource("email", email);
+        
         try {
-            MapSqlParameterSource param = new MapSqlParameterSource("email", email);
-
-            Buyer buyer = template.queryForObject(sql, param,
-                BeanPropertyRowMapper.newInstance(Buyer.class));
-            return Optional.of(buyer);
+            Buyer buyer = template.queryForObject(sql, param, BeanPropertyRowMapper.newInstance(Buyer.class));
+            return Optional.ofNullable(buyer);
         } catch (EmptyResultDataAccessException e) {
+            log.warn("이메일로 구매자를 찾을 수 없습니다: email={}", email);
             return Optional.empty();
         }
     }
 
+    // 이메일 중복 확인 (탈퇴하지 않은 회원만)
     @Override
     public boolean existsByEmail(String email) {
-        String sql = "SELECT COUNT(*) FROM buyer WHERE EMAIL = :email";
-
+        String sql = "SELECT COUNT(*) FROM BUYER WHERE UPPER(EMAIL) = UPPER(:email) AND STATUS != 0";
+        
         MapSqlParameterSource param = new MapSqlParameterSource("email", email);
-
+        
         Integer count = template.queryForObject(sql, param, Integer.class);
         return count != null && count > 0;
     }
 
+    // 닉네임 중복 확인 (탈퇴하지 않은 회원만)
     @Override
     public boolean existsByNickname(String nickname) {
-        String sql = "SELECT COUNT(*) FROM buyer WHERE NICKNAME = :nickname AND STATUS IN ('활성화', '비활성화', '정지')";
-
+        String sql = "SELECT COUNT(*) FROM BUYER WHERE NICKNAME = :nickname AND STATUS != 0";
+        
         MapSqlParameterSource param = new MapSqlParameterSource("nickname", nickname);
-
+        
         Integer count = template.queryForObject(sql, param, Integer.class);
         return count != null && count > 0;
     }
 
-
+    // 구매자 정보 수정
     @Override
     public int update(Long buyerId, Buyer buyer) {
-        StringBuilder sql = new StringBuilder();
-        sql.append("UPDATE buyer SET ");
-
+        String sql = """
+            UPDATE BUYER 
+            SET PASSWORD = :password, NAME = :name, NICKNAME = :nickname, TEL = :tel, 
+                GENDER = :gender, BIRTH = :birth, POST_NUMBER = :postNumber, ADDRESS = :address, 
+                MEMBER_GUBUN = :memberGubun, PIC = :pic, STATUS = :status, UDATE = SYSTIMESTAMP
+            WHERE BUYER_ID = :buyerId
+            """;
+        
         MapSqlParameterSource param = new MapSqlParameterSource();
-        StringBuilder setClauses = new StringBuilder();
-
-        // 동적 쿼리 생성 (null이 아닌 필드만 업데이트)
-        if (buyer.getPassword() != null) {
-            setClauses.append("PASSWORD = :password, ");
-            param.addValue("password", buyer.getPassword());
-        }
-        if (buyer.getName() != null) {
-            setClauses.append("NAME = :name, ");
-            param.addValue("name", buyer.getName());
-        }
-        if (buyer.getNickname() != null) {
-            setClauses.append("NICKNAME = :nickname, ");
-            param.addValue("nickname", buyer.getNickname());
-        }
-        if (buyer.getTel() != null) {
-            setClauses.append("TEL = :tel, ");
-            param.addValue("tel", buyer.getTel());
-        }
-        if (buyer.getGender() != null) {
-            setClauses.append("GENDER = :gender, ");
-            param.addValue("gender", buyer.getGender());
-        }
-        if (buyer.getBirth() != null) {
-            setClauses.append("BIRTH = :birth, ");
-            param.addValue("birth", buyer.getBirth());
-        }
-        if (buyer.getAddress() != null) {
-            setClauses.append("ADDRESS = :address, ");
-            param.addValue("address", buyer.getAddress());
-        }
-        if (buyer.getMemberGubun() != null) {
-            setClauses.append("MEMBER_GUBUN = :memberGubun, ");
-            param.addValue("memberGubun", buyer.getMemberGubun());
-        }
-
-        // 항상 업데이트되는 필드
-        setClauses.append("UDATE = SYSTIMESTAMP ");
-
-        sql.append(setClauses.toString());
-        sql.append("WHERE Buyer_id = :buyerId AND STATUS != '탈퇴'");
-
         param.addValue("buyerId", buyerId);
-
-        return template.update(sql.toString(), param);
+        param.addValue("password", buyer.getPassword());
+        param.addValue("name", buyer.getName());
+        param.addValue("nickname", buyer.getNickname());
+        param.addValue("tel", buyer.getTel());
+        param.addValue("gender", buyer.getGender());
+        param.addValue("birth", buyer.getBirth());
+        param.addValue("postNumber", null); // POST_NUMBER는 사용하지 않으므로 null
+        param.addValue("address", buyer.getAddress());
+        param.addValue("memberGubun", buyer.getMemberGubun() != null ? buyer.getMemberGubun().getCode() : "NEW");
+        param.addValue("pic", buyer.getPic());
+        param.addValue("status", buyer.getStatus());
+        
+        return template.update(sql, param);
     }
 
+    // 구매자 탈퇴 처리
     @Override
     public int withdrawWithReason(Long buyerId, String reason) {
+        // 구매자 테이블에는 명시적 UNIQUE 제약 조건이 없으므로 상태만 변경
         String sql = """
-            UPDATE buyer SET 
-                STATUS = '탈퇴', 
-                UDATE = SYSTIMESTAMP,
-                withdrawn_at = SYSDATE,
-                withdrawn_reason = :reason
-            WHERE Buyer_id = :buyerId AND STATUS = '활성화'
+            UPDATE BUYER 
+            SET STATUS = 0, 
+                WITHDRAWN_AT = SYSTIMESTAMP, 
+                WITHDRAWN_REASON = :reason, 
+                UDATE = SYSTIMESTAMP
+            WHERE BUYER_ID = :buyerId
             """;
-
+        
         MapSqlParameterSource param = new MapSqlParameterSource();
         param.addValue("buyerId", buyerId);
         param.addValue("reason", reason);
-
+        
         return template.update(sql, param);
     }
 
+    // 탈퇴 회원 목록 조회
     @Override
     public List<Buyer> findWithdrawnMembers() {
-        String sql = BASE_SELECT + " WHERE STATUS = '탈퇴' ORDER BY UDATE DESC";
-
+        String sql = BASE_SELECT + " WHERE WITHDRAWN_AT IS NOT NULL ORDER BY WITHDRAWN_AT DESC";
+        
         return template.query(sql, BeanPropertyRowMapper.newInstance(Buyer.class));
     }
 
+    // 전체 구매자 목록 조회
     @Override
     public List<Buyer> findAll() {
-        String sql = BASE_SELECT + " WHERE STATUS != '탈퇴' ORDER BY CDATE DESC";
-
+        String sql = BASE_SELECT + " ORDER BY CDATE DESC";
+        
         return template.query(sql, BeanPropertyRowMapper.newInstance(Buyer.class));
     }
 
-    @Override
-    public int rejoin(Buyer buyer) {
-        String sql = """
-            UPDATE buyer SET
-                PASSWORD = :password,
-                NAME = :name,
-                NICKNAME = :nickname,
-                TEL = :tel,
-                GENDER = :gender,
-                BIRTH = :birth,
-                ADDRESS = :address,
-                STATUS = '활성화',
-                UDATE = SYSTIMESTAMP,
-                withdrawn_at = null,
-                withdrawn_reason = null
-            WHERE email = :email AND STATUS = '탈퇴'
-            """;
-        
-        SqlParameterSource param = new BeanPropertySqlParameterSource(buyer);
-        return template.update(sql, param);
-    }
-
+    // 탈퇴 회원 재활성화
     @Override
     public int reactivate(String email, String password) {
         String sql = """
-            UPDATE buyer SET
-                PASSWORD = :password,
-                STATUS = '활성화',
-                UDATE = SYSTIMESTAMP,
-                withdrawn_at = null,
-                withdrawn_reason = null
-            WHERE email = :email AND STATUS = '탈퇴'
+            UPDATE BUYER 
+            SET STATUS = :activeStatus, WITHDRAWN_AT = NULL, WITHDRAWN_REASON = NULL, UDATE = SYSTIMESTAMP
+            WHERE EMAIL = :email AND PASSWORD = :password AND WITHDRAWN_AT IS NOT NULL
             """;
         
         MapSqlParameterSource param = new MapSqlParameterSource();
         param.addValue("email", email);
         param.addValue("password", password);
+        param.addValue("activeStatus", 1); // 1=활성화
+        
+        return template.update(sql, param);
+    }
+
+    // 탈퇴 회원 재가입 처리
+    @Override
+    public int rejoin(Buyer buyer) {
+        String sql = """
+            UPDATE BUYER 
+            SET PASSWORD = :password, NAME = :name, NICKNAME = :nickname, TEL = :tel, 
+                GENDER = :gender, BIRTH = :birth, POST_NUMBER = :postNumber, ADDRESS = :address, 
+                MEMBER_GUBUN = :memberGubun, PIC = :pic, STATUS = :activeStatus, 
+                WITHDRAWN_AT = NULL, WITHDRAWN_REASON = NULL, UDATE = SYSTIMESTAMP
+            WHERE EMAIL = :email AND WITHDRAWN_AT IS NOT NULL
+            """;
+        
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("email", buyer.getEmail());
+        param.addValue("password", buyer.getPassword());
+        param.addValue("name", buyer.getName());
+        param.addValue("nickname", buyer.getNickname());
+        param.addValue("tel", buyer.getTel());
+        param.addValue("gender", buyer.getGender());
+        param.addValue("birth", buyer.getBirth());
+        param.addValue("postNumber", null); // POST_NUMBER는 사용하지 않으므로 null
+        param.addValue("address", buyer.getAddress());
+        param.addValue("memberGubun", buyer.getMemberGubun() != null ? buyer.getMemberGubun().getCode() : "NEW");
+        param.addValue("pic", buyer.getPic());
+        param.addValue("activeStatus", 1); // 1=활성화
         
         return template.update(sql, param);
     }

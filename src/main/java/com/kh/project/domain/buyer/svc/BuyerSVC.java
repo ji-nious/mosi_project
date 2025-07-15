@@ -1,10 +1,8 @@
 package com.kh.project.domain.buyer.svc;
 
 import com.kh.project.domain.entity.Buyer;
-import com.kh.project.web.common.form.MemberStatusInfo;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -13,34 +11,24 @@ import java.util.Optional;
 public interface BuyerSVC {
   
   /**
-   * 회원가입
+   * 구매자 저장
+   */
+  Buyer save(Buyer buyer);
+  
+  /**
+   * 스마트 회원가입 (탈퇴 회원도 바로 재가입 가능)
    */
   Buyer join(Buyer buyer);
   
   /**
-   * 로그인
-   */
-  Buyer login(String email, String password);
-  
-  /**
-   * 정보 조회
+   * ID로 구매자 조회
    */
   Optional<Buyer> findById(Long buyerId);
 
   /**
-   * 이메일로 회원 조회
+   * 이메일로 구매자 조회
    */
   Optional<Buyer> findByEmail(String email);
-  
-  /**
-   * 정보 수정
-   */
-  int update(Long buyerId, Buyer buyer);
-
-  /**
-   * 회원 탈퇴
-   */
-  int withdraw(Long buyerId, String reason);
 
   /**
    * 이메일 중복 체크
@@ -51,49 +39,39 @@ public interface BuyerSVC {
    * 닉네임 중복 체크
    */
   boolean existsByNickname(String nickname);
-
-  /**
-   * 비밀번호 확인
-   */
-  boolean checkPassword(Long buyerId, String password);
-
-  /**
-   * 로그인 가능 여부 확인
-   */
-  boolean canLogin(Buyer buyer);
-  
-  /**
-   * 탈퇴 여부 확인
-   */
-  boolean isWithdrawn(Buyer buyer);
   
   /**
    * 회원 등급 정보 조회
    */
-  Map<String, String> getGubunInfo(Buyer buyer);
+  String getGubunInfo(Buyer buyer);
   
   /**
-   * 회원 상태 정보 조회
+   * 구매자 정보 수정
    */
-  Map<String, String> getStatusInfo(Buyer buyer);
+  int update(Long buyerId, Buyer buyer);
 
   /**
-   * 탈퇴 회원 계정 재활성화
+   * 구매자 탈퇴
    */
-  Optional<Buyer> reactivate(String email, String password);
+  int withdrawWithReason(Long buyerId, String reason);
 
   /**
    * 탈퇴 회원 목록 조회
    */
-  List<Buyer> getWithdrawnMembers();
+  List<Buyer> findWithdrawnMembers();
 
   /**
-   * 서비스 이용현황 조회
+   * 전체 구매자 목록 조회
    */
-  MemberStatusInfo getServiceUsage(Long buyerId);
+  List<Buyer> findAll();
+
+  /**
+   * 탈퇴 회원 재활성화
+   */
+  int reactivate(String email, String password);
   
   /**
-   * 탈퇴 가능 여부 판단
+   * 탈퇴 회원 재가입
    */
-  boolean canWithdraw(Long buyerId);
+  int rejoin(Buyer buyer);
 }

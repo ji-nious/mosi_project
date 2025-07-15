@@ -30,13 +30,12 @@ public class AddressApiController {
         
         // API 요청 URL 구성
         String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
-        String requestUrl = new StringBuilder(jusoApiUrl)
-                .append("?currentPage=").append(currentPage)
-                .append("&countPerPage=").append(countPerPage)
-                .append("&keyword=").append(encodedKeyword)
-                .append("&confmKey=").append(confmKey)
-                .append("&resultType=json")
-                .toString();
+        String requestUrl = jusoApiUrl +
+                "?currentPage=" + currentPage +
+                "&countPerPage=" + countPerPage +
+                "&keyword=" + encodedKeyword +
+                "&confmKey=" + confmKey +
+                "&resultType=json";
 
         // Java 11+ 내장 HttpClient를 사용한 API 호출
         HttpClient client = HttpClient.newHttpClient();

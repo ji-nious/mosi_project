@@ -3,6 +3,7 @@ package com.kh.project.web.exception;
 import com.kh.project.web.common.response.ApiResponse;
 import com.kh.project.web.common.response.ApiResponseCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -15,84 +16,92 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+/**
+ * Global Exception Handler
+ * 모든 컨트롤러에서 발생하는 예외를 통합 처리
+ */
 @Slf4j
-@RestControllerAdvice   // Controller에서 발생된 예외를 처리하는 클래스라는 것를 springboot에 알림
+@RestControllerAdvice
 public class ApiExceptionHandler {
 
     /**
      * 유효성 검증 실패 시 처리
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleValidationExceptions(
+    public ResponseEntity<Map<String, Object>> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
         
+        log.error("Validation error occurred", ex);
+        
         BindingResult bindingResult = ex.getBindingResult();
-        Map<String, String> details = new HashMap<>();
+        Map<String, String> errors = new HashMap<>();
         
         for (FieldError fieldError : bindingResult.getFieldErrors()) {
-            details.put(fieldError.getField(), fieldError.getDefaultMessage());
+            errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
         
-        log.error("Validation error: {}", details);
-        
-        ApiResponse<Void> response = ApiResponse.withDetails(
-                ApiResponseCode.VALIDATION_ERROR,
-                details,
-                null
-        );
-        
-        return ResponseEntity.ok(response);
+        Map<String, Object> response = ApiResponse.error("입력값 검증에 실패했습니다.", errors);
+        return ResponseEntity.badRequest().body(response);
     }
 
     /**
      * 비즈니스 유효성 검증 예외 처리
      */
     @ExceptionHandler(BusinessValidationException.class)
-    public ResponseEntity<ApiResponse<Void>> handleBusinessValidationException(
-        BusinessValidationException ex) {
-
-        log.error("Business validation error: {}", ex.getMessage());
-
-        ApiResponse<Void> response = ApiResponse.withDetails(
-            ApiResponseCode.BUSINESS_ERROR,
-            ex.getDetails(),
-            null
-        );
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Map<String, Object>> handleBusinessValidationException(
+            BusinessValidationException ex) {
+        
+        log.error("Business validation error occurred", ex);
+        
+        Map<String, Object> response = ApiResponse.error(ex.getMessage(), ex.getDetails());
+        return ResponseEntity.badRequest().body(response);
     }
 
     /**
-     * 엔티티를 찾을 수 없을 때 처리
+     * 권한 관련 예외 처리
+     */
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<Map<String, Object>> handleSecurityException(SecurityException ex) {
+        
+        log.error("Security error occurred", ex);
+        
+        Map<String, Object> response = ApiResponse.error("권한이 없습니다.");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    /**
+     * 데이터 조회 실패 시 처리
      */
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNoSuchElementException(
-            NoSuchElementException ex) {
+    public ResponseEntity<Map<String, Object>> handleNoSuchElementException(NoSuchElementException ex) {
         
-        log.error("Entity not found: {}", ex.getMessage());
-        Map<String, String> map = new HashMap<>();
-        map.put("1", ex.getMessage());
+        log.error("Data not found error occurred", ex);
+        
+        Map<String, Object> response = ApiResponse.error("요청한 데이터를 찾을 수 없습니다.");
+        return ResponseEntity.notFound().build();
+    }
 
-        ApiResponse<Void> response = ApiResponse.withDetails(
-                ApiResponseCode.ENTITY_NOT_FOUND,
-                map,
-                null
-        );
-        return ResponseEntity.ok(response);
+    /**
+     * 데이터베이스 접근 예외 처리
+     */
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<Map<String, Object>> handleDataAccessException(DataAccessException ex) {
+        
+        log.error("Database error occurred", ex);
+        
+        Map<String, Object> response = ApiResponse.error("데이터베이스 오류가 발생했습니다.");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
     /**
      * 기타 예외 처리
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleAllExceptions(Exception ex) {
-        log.error("Unhandled exception occurred", ex);
+    public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
         
-        ApiResponse<Void> response = ApiResponse.of(
-                ApiResponseCode.INTERNAL_SERVER_ERROR,
-                null
-        );
+        log.error("Unexpected error occurred", ex);
         
+        Map<String, Object> response = ApiResponse.error("서버 내부 오류가 발생했습니다.");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 }

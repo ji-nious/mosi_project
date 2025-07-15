@@ -1,24 +1,15 @@
 package com.kh.project.domain;
 
 import com.kh.project.domain.buyer.svc.BuyerSVC;
-import com.kh.project.domain.entity.Buyer;
-import com.kh.project.domain.entity.Seller;
-import com.kh.project.domain.seller.svc.SellerSVC;
-import com.kh.project.util.CommonConstants;
 import com.kh.project.domain.entity.LoginMember;
-import com.kh.project.domain.entity.MemberType;
+import com.kh.project.domain.seller.svc.SellerSVC;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.Model;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 /**
- * 세션 관리
+ * 세션 관리 서비스
  */
 @Slf4j
 @Service
@@ -29,53 +20,71 @@ public class SessionService {
     private final SellerSVC sellerSVC;
 
     /**
-     * 현재 로그인된 사용자 정보 조회
+     * 현재 로그인한 사용자 정보 조회
      */
+
     public LoginMember getCurrentUserInfo(HttpSession session) {
         if (session == null) {
             return null;
         }
-
-        LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
+        
+        LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
         if (loginMember == null) {
             return null;
         }
-
-        try {
-            if (MemberType.BUYER.getCode().equals(loginMember.getMemberType())) {
-                return getBuyerInfo(loginMember.getId());
-            } else if (MemberType.SELLER.getCode().equals(loginMember.getMemberType())) {
-                return getSellerInfo(loginMember.getId());
-            }
-        } catch (Exception e) {
-            log.error("사용자 정보 조회 실패: memberId={}, memberType={}", 
-                     loginMember.getId(), loginMember.getMemberType(), e);
-        }
-
-        return null;
-    }
-
-    /**
-     * 모델에 사용자 정보 추가
-     */
-    public void addUserInfoToModel(HttpSession session, Model model) {
-        LoginMember userInfo = getCurrentUserInfo(session);
-        if (userInfo != null) {
-            model.addAttribute("userNickname", userInfo.getNickname());
-            model.addAttribute("userName", userInfo.getName());
-            model.addAttribute("userType", userInfo.getMemberType());
-        }
-    }
-
-    /**
-     * 로그인 세션 생성
-     */
-    public void createLoginSession(HttpSession session, LoginMember loginMember) {
-        session.setAttribute(CommonConstants.LOGIN_MEMBER_KEY, loginMember);
-        session.setMaxInactiveInterval(CommonConstants.SESSION_TIMEOUT);
         
-        log.info("로그인 세션 생성: memberId={}, memberType={}", 
-                loginMember.getId(), loginMember.getMemberType());
+        return loginMember;
+    }
+
+    /**
+     * 사용자 ID 조회
+     */
+    public Long getCurrentUserId(HttpSession session) {
+        LoginMember loginMember = getCurrentUserInfo(session);
+        return loginMember != null ? loginMember.getId() : null;
+    }
+
+    /**
+     * 사용자 이메일 조회
+     */
+    public String getCurrentUserEmail(HttpSession session) {
+        LoginMember loginMember = getCurrentUserInfo(session);
+        return loginMember != null ? loginMember.getEmail() : null;
+    }
+
+    /**
+     * 현재 로그인한 사용자가 특정 ID의 사용자인지 확인
+     */
+    public boolean isCurrentUser(HttpSession session, Long userId) {
+        LoginMember sessionMember = (LoginMember) session.getAttribute("loginMember");
+        return sessionMember != null && sessionMember.getId().equals(userId);
+    }
+
+    /**
+     * 세션에 로그인 정보 저장
+     */
+    public void setLoginSession(HttpSession session, Long id, String email, String memberType) {
+        LoginMember loginMember = new LoginMember();
+        loginMember.setId(id);
+        loginMember.setEmail(email);
+        loginMember.setMemberType(memberType);
+        
+        session.setAttribute("loginMember", loginMember);
+        session.setMaxInactiveInterval(1800);
+        
+        log.info("로그인 세션 생성: id={}, email={}, memberType={}", id, email, memberType);
+    }
+
+    /**
+     * 로그인 여부 확인
+     */
+    public boolean isLoggedIn(HttpSession session) {
+        if (session == null) {
+            return false;
+        }
+        
+        LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
+        return loginMember != null;
     }
 
     /**
@@ -83,93 +92,54 @@ public class SessionService {
      */
     public void logout(HttpSession session) {
         if (session != null) {
-            LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
             session.invalidate();
-            
-            if (loginMember != null) {
-                log.info("로그아웃 처리 완료: memberId={}, memberType={}", 
-                        loginMember.getId(), loginMember.getMemberType());
-            }
+            log.info("로그아웃 처리 완료");
         }
     }
 
     /**
-     * 구매자 정보 조회
+     * 현재 사용자 타입 확인
      */
-    private LoginMember getBuyerInfo(Long buyerId) {
-        Optional<Buyer> buyerOpt = buyerSVC.findById(buyerId);
-        if (buyerOpt.isPresent()) {
-            Buyer buyer = buyerOpt.get();
-            return LoginMember.builder()
-                    .id(buyer.getBuyerId())
-                    .email(buyer.getEmail())
-                    .name(buyer.getName())
-                    .nickname(buyer.getNickname())
-                    .memberType(MemberType.BUYER.getCode())
-                    .build();
-        }
-        return null;
+    public String getCurrentUserType(HttpSession session) {
+        LoginMember loginMember = getCurrentUserInfo(session);
+        return loginMember != null ? loginMember.getMemberType() : null;
     }
 
     /**
-     * 판매자 정보 조회
+     * 구매자 여부 확인
      */
-    private LoginMember getSellerInfo(Long sellerId) {
-        Optional<Seller> sellerOpt = sellerSVC.findById(sellerId);
-        if (sellerOpt.isPresent()) {
-            Seller seller = sellerOpt.get();
-            return LoginMember.builder()
-                    .id(seller.getSellerId())
-                    .email(seller.getEmail())
-                    .name(seller.getName())
-                    .nickname(seller.getShopName())
-                    .memberType(MemberType.SELLER.getCode())
-                    .build();
-        }
-        return null;
+    public boolean isBuyer(HttpSession session) {
+        String userType = getCurrentUserType(session);
+        return "BUYER".equals(userType);
     }
 
     /**
-     * 비밀번호 확인
+     * 판매자 여부 확인
      */
-    public Map<String, Object> verifyPassword(HttpSession session, String password) {
-        Map<String, Object> response = new HashMap<>();
+    public boolean isSeller(HttpSession session) {
+        String userType = getCurrentUserType(session);
+        return "SELLER".equals(userType);
+    }
+
+    /**
+     * 현재 로그인한 사용자의 상세 정보 조회
+     */
+    public Object getCurrentUserDetails(HttpSession session) {
+        LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
+        if (loginMember == null) {
+            return null;
+        }
         
         try {
-            LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
-            if (loginMember == null) {
-                response.put("success", false);
-                response.put("message", "로그인이 필요합니다.");
-                return response;
+            if ("BUYER".equals(loginMember.getMemberType())) {
+                return buyerSVC.findById(loginMember.getId()).orElse(null);
+            } else if ("SELLER".equals(loginMember.getMemberType())) {
+                return sellerSVC.findById(loginMember.getId()).orElse(null);
             }
-            
-            if (password == null || password.trim().isEmpty()) {
-                response.put("success", false);
-                response.put("message", "비밀번호를 입력해주세요.");
-                return response;
-            }
-            
-            boolean isValid = false;
-            
-            if (CommonConstants.MEMBER_TYPE_BUYER.equals(loginMember.getMemberType())) {
-                isValid = buyerSVC.checkPassword(loginMember.getId(), password);
-            } else if (CommonConstants.MEMBER_TYPE_SELLER.equals(loginMember.getMemberType())) {
-                isValid = sellerSVC.checkPassword(loginMember.getId(), password);
-            }
-            
-            response.put("success", isValid);
-            
-            if (!isValid) {
-                response.put("message", "비밀번호가 틀렸습니다.");
-            }
-            
-            return response;
-            
         } catch (Exception e) {
-            log.error("비밀번호 확인 중 오류 발생", e);
-            response.put("success", false);
-            response.put("message", "서버 오류가 발생했습니다.");
-            return response;
+            log.error("사용자 상세 정보 조회 실패: {}", e.getMessage());
         }
+        
+        return null;
     }
 } 

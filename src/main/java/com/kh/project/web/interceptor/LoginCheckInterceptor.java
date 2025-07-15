@@ -1,6 +1,5 @@
 package com.kh.project.web.interceptor;
 
-import com.kh.project.domain.entity.LoginMember;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -8,29 +7,32 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-/**
- * 로그인 체크 인터셉터
- */
 @Slf4j
-@Component
+@Component   // 스프링컨테이너에 빈(스프링컨테이너에서 관리하는 객체) 으로 등록
 public class LoginCheckInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String requestURI = request.getRequestURI();
-        log.info("인증 체크 인터셉터 실행: {}", requestURI);
+    //리다이렉트 Url
+    String redirectUrl = null;
 
+    log.info("handler={}", handler.getClass());
+    //요청 URI    ex) GET http://localhost:9080/products?a=1&b=2 상품관리
+
+    String requestURI = request.getRequestURI();    //   /products
+//    log.info("requestURI={}",request.getRequestURI());   // /products
+//    log.info("queryString="+request.getQueryString());   // a=1&b=2
+//    log.info("queryString="+request.getRequestURL());   // http://localhost:9080/products
+//    log.info("queryString="+request.getMethod());   // GET,POST
+
+    //세션조회
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("loginMember") == null) {
-            log.info("미인증 사용자 요청: {}", requestURI);
-            response.sendRedirect("/login");
-            return false;
-        }
 
-        LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
-        String memberType = loginMember.getMemberType();
+    // 로그인전 : 세션이 없거나 loginMember정보가 없는경우 로그인 화면으로 리다이렉트
+    if(session == null || session.getAttribute("loginMember") == null){
+      response.sendRedirect("/login");   // 302 GET http://localhost:9080/login
+    }
 
-        log.info("인증된 사용자 요청: {}, 회원타입: {}", requestURI, memberType);
         return true;
     }
 }

@@ -44,9 +44,9 @@ public enum ApiResponseCode {
   // 코드로 enum 조회
   public static ApiResponseCode of(String code) {
     return Arrays.stream(values())
-            .filter(rc -> rc.getRtcd().equals(code))
-            .findFirst()
-            .orElse(INTERNAL_SERVER_ERROR);
+        .filter(rc -> rc.getRtcd().equals(code))
+        .findFirst()
+        .orElse(INTERNAL_SERVER_ERROR);
   }
 
 } 

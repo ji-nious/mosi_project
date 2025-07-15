@@ -47,7 +47,7 @@ class SellerSVCImplTest {
         Seller seller = new Seller();
         seller.setSellerId(1L);
         seller.setEmail("seller@shop.com");
-        seller.setPassword("shoppassword");
+        seller.setPassword("ShopPass123!");
         seller.setBizRegNo("111-22-33333");
         seller.setShopName("My Awesome Shop");
         seller.setName("John Doe");
@@ -156,7 +156,7 @@ class SellerSVCImplTest {
         // given: DAO가 ?�메?�로 조회?�면, 결과가 ?�다�?empty) 가??        when(sellerDAO.findByEmail("seller@shop.com")).thenReturn(Optional.empty());
 
         // when & then: BusinessException ?�외가 발생?�는지 검�?        assertThrows(BusinessValidationException.class, () -> {
-            sellerSVC.login("seller@shop.com", "shoppassword");
+            sellerSVC.login("seller@shop.com", "ShopPass123!");
         });
 
         verify(sellerDAO).findByEmail("seller@shop.com");

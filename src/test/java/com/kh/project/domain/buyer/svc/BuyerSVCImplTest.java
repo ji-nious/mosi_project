@@ -47,7 +47,7 @@ class BuyerSVCImplTest {
         Buyer buyer = new Buyer();
         buyer.setBuyerId(1L);
         buyer.setEmail("test@buyer.com");
-        buyer.setPassword("password123");
+        buyer.setPassword("TestPass123!");
         buyer.setName("?ŒìŠ¤?¸êµ¬ë§¤ì");
         buyer.setNickname("?ŒìŠ¤??);
         buyer.setTel("010-1234-5678");

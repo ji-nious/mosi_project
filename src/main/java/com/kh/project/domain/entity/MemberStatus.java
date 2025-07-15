@@ -3,31 +3,47 @@ package com.kh.project.domain.entity;
 import lombok.Getter;
 
 /**
- * 회원 상태
+ * 회원 상태 표준화 enum
  */
 @Getter
 public enum MemberStatus {
-    ACTIVE("활성화", "활성화"),
-    INACTIVE("비활성화", "비활성화"),
-    SUSPENDED("정지", "정지"),
-    WITHDRAWN("탈퇴", "탈퇴");
-
-    private final String code;
+    WITHDRAWN(0, "탈퇴"),
+    ACTIVE(1, "활성화"), 
+    INACTIVE(2, "비활성화"),
+    SUSPENDED(3, "정지");
+    
+    private final int code;
     private final String description;
-
-    MemberStatus(String code, String description) {
+    
+    MemberStatus(int code, String description) {
         this.code = code;
         this.description = description;
     }
-
-    public static String getDescriptionByCode(String code) {
-        if (code == null) return "알 수 없음";
-
+    
+    /**
+     * 코드로 상태 찾기
+     */
+    public static MemberStatus fromCode(int code) {
         for (MemberStatus status : values()) {
-            if (status.getCode().equals(code)) {
-                return status.getDescription();
+            if (status.code == code) {
+                return status;
             }
         }
-        return "알 수 없음";
+        throw new IllegalArgumentException("유효하지 않은 상태 코드: " + code);
+    }
+    
+    /**
+     * 로그인 가능 여부
+     */
+    public boolean canLogin() {
+        return this == ACTIVE;
+    }
+    
+    /**
+     * 탈퇴 상태 여부  
+     */
+    public boolean isWithdrawn() {
+        return this == WITHDRAWN;
     }
 }
+

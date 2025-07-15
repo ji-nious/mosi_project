@@ -295,8 +295,8 @@
                 <a href="#" onclick="logout()" class="btn-outline">로그아웃</a>
             </th:block>
             <th:block th:unless="${session.loginMember != null}">
-                <a th:href="@{/common/login}" class="btn-outline">로그인</a>
-                <a th:href="@{/common/signup}" class="btn-filled">회원가입</a>
+                <a th:href="@{/common/select-login}" class="btn-outline">로그인</a>
+                <a th:href="@{/common/select-signup}" class="btn-filled">회원가입</a>
             </th:block>
         </div>
     </div>
@@ -312,8 +312,8 @@
     <div class="info-row"><span class="info-label">상호명</span><span class="info-value" th:text="${seller?.shopName ?: '정보 없음'}">싱싱농장</span></div>
     <div class="info-row"><span class="info-label">대표자 이름</span><span class="info-value" th:text="${seller?.name ?: '정보 없음'}">김농부</span></div>
     <div class="info-row">
-        <span class="info-label">가게 주소</span>
-        <span class="info-value" th:text="${seller?.shopAddress ?: '정보 없음'}">가게 주소</span>
+        <span class="info-label">사업장 주소</span>
+        <span class="info-value" th:text="${seller?.shopAddress ?: '정보 없음'}">사업장 주소</span>
     </div>
     <div class="info-row"><span class="info-label">전화번호</span><span class="info-value" th:text="${seller?.tel ?: '정보 없음'}">010-1234-5678</span></div>
 
@@ -344,7 +344,7 @@
 
 
 
-<script src="/js/common/logout.js"></script>
+<script th:src="@{/js/common/logout.js}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // Modal Elements

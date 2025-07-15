@@ -127,6 +127,12 @@
             border-color: var(--color-primary);
         }
 
+        .required-mark {
+            color: #658352;
+            font-weight: bold;
+            margin-right: 3px;
+        }
+
         .form-row input[readonly], .form-row select[disabled] {
             background-color: #f0f0f0;
             cursor: not-allowed;
@@ -215,7 +221,7 @@
             </a>
             <div class="navbar-buttons">
                 <a href="/buyer/info" class="btn-outline">내 정보</a>
-                <a href="/logout" class="btn-filled">로그아웃</a>
+                <a href="#" onclick="logout()" class="btn-filled">로그아웃</a>
             </div>
         </div>
     </header>
@@ -223,9 +229,6 @@
     <div class="edit-container">
         <h1>구매자 정보 수정</h1>
         <form th:action="@{/buyer/edit}" method="post" th:object="${buyerEditForm}" class="edit-form">
-            <!-- 이름을 hidden field로 전송 -->
-            <input type="hidden" th:field="*{name}"/>
-            
             <!-- 전역 오류 메시지 표시 -->
             <div th:if="${#fields.hasGlobalErrors()}" style="margin-bottom: 20px;">
                 <div th:each="error : ${#fields.globalErrors()}" th:text="${error}" style="color: red; text-align: center; margin: 10px; padding: 10px; background-color: #ffe6e6; border: 1px solid #ff0000; border-radius: 4px;"></div>
@@ -233,10 +236,10 @@
             
             <div class="form-row">
                 <label for="email">이메일 (수정 불가)</label>
-                <input type="email" id="email" name="email" th:value="${buyerEmail}" readonly>
+                <input type="email" id="email" th:field="*{email}" readonly>
             </div>
             <div class="form-row">
-                <label for="password">새 비밀번호</label>
+                <label for="password">비밀번호</label>
                 <input type="password" id="password" th:field="*{password}" placeholder="8~15자, 영문+숫자+특수문자" required>
                 <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
             </div>
@@ -246,8 +249,8 @@
                 <div th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
             </div>
             <div class="form-row">
-                <label for="realName">이름 (수정 불가)</label>
-                <input type="text" id="realName" name="realName" th:value="${buyerName}" readonly>
+                <label for="name">이름 (수정 불가)</label>
+                <input type="text" id="name" th:field="*{name}" readonly>
             </div>
             <div class="form-row">
                 <label for="nickname">닉네임</label>
@@ -256,7 +259,7 @@
             </div>
             <div class="form-row">
                 <label for="tel">연락처</label>
-                <input type="text" id="tel" th:field="*{tel}" maxlength="13" placeholder="02-1234-5678">
+                <input type="text" id="tel" th:field="*{tel}" maxlength="13" placeholder="010-0000-0000" required>
                 <div th:if="${#fields.hasErrors('tel')}" th:errors="*{tel}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
             </div>
             <div class="form-row">
@@ -270,7 +273,9 @@
             </div>
             <div class="form-row">
                 <label for="birth">생년월일</label>
-                <input type="date" id="birth" th:field="*{birth}">
+                <input type="date" id="birth" name="birth" 
+                       th:value="${buyerEditForm.birth}" 
+                       th:field="*{birth}">
                 <div th:if="${#fields.hasErrors('birth')}" th:errors="*{birth}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
             </div>
             <div class="form-row">
@@ -280,8 +285,11 @@
                         <input type="text" id="postcode" th:field="*{postcode}" placeholder="우편번호" readonly>
                         <button type="button" id="searchPostcodeBtn" onclick="openAddressPopup()">주소 검색</button>
                     </div>
+                    <div th:if="${#fields.hasErrors('postcode')}" th:errors="*{postcode}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
                     <input type="text" id="address" th:field="*{address}" placeholder="주소" readonly>
-                    <input type="text" id="detailAddress" th:field="*{detailAddress}" placeholder="상세주소를 입력해주세요">
+                    <div th:if="${#fields.hasErrors('address')}" th:errors="*{address}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
+                    <input type="text" id="detailAddress" th:field="*{detailAddress}" placeholder="상세주소">
+                    <div th:if="${#fields.hasErrors('detailAddress')}" th:errors="*{detailAddress}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
                 </div>
             </div>
             <div class="form-actions">
@@ -295,6 +303,18 @@
     <script>
     function openAddressPopup() {
         window.open('/common/juso-popup', 'popup', 'width=600,height=700,scrollbars=yes');
+    }
+    
+    // 로그아웃 기능
+    function logout() {
+        if (confirm('로그아웃 하시겠습니까?')) {
+            // POST 방식으로 로그아웃 요청
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/logout';
+            document.body.appendChild(form);
+            form.submit();
+        }
     }
     </script>
 </body>

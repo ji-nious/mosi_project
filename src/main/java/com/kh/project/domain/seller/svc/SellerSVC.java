@@ -1,10 +1,8 @@
 package com.kh.project.domain.seller.svc;
 
 import com.kh.project.domain.entity.Seller;
-import com.kh.project.web.common.form.MemberStatusInfo;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -13,29 +11,24 @@ import java.util.Optional;
 public interface SellerSVC {
   
   /**
-   * 회원가입
+   * 판매자 저장
+   */
+  Seller save(Seller seller);
+  
+  /**
+   * 스마트 회원가입 (탈퇴 회원도 바로 재가입 가능)
    */
   Seller join(Seller seller);
   
   /**
-   * 로그인
-   */
-  Seller login(String email, String password);
-  
-  /**
-   * 정보 조회
+   * ID로 판매자 조회
    */
   Optional<Seller> findById(Long sellerId);
   
   /**
-   * 정보 수정
+   * 이메일로 판매자 조회
    */
-  int update(Long sellerId, Seller seller);
-  
-  /**
-   * 회원 탈퇴
-   */
-  int withdraw(Long sellerId, String reason);
+  Optional<Seller> findByEmail(String email);
 
   /**
    * 이메일 중복 체크
@@ -58,57 +51,37 @@ public interface SellerSVC {
   boolean existsByName(String name);
 
   /**
-   * 사업장 주소 중복 체크
+   * 사업자등록번호로 판매자 조회
    */
-  boolean existsByShopAddress(String shopAddress);
+  Optional<Seller> findByBizRegNo(String bizRegNo);
 
   /**
-   * 비밀번호 확인
+   * 판매자 정보 수정
    */
-  boolean checkPassword(Long sellerId, String password);
-
-  /**
-   * 로그인 가능 여부 확인
-   */
-  boolean canLogin(Seller seller);
+  int update(Long sellerId, Seller seller);
   
   /**
-   * 탈퇴 여부 확인
+   * 판매자 탈퇴
    */
-  boolean isWithdrawn(Seller seller);
-  
-  /**
-   * 회원 등급 정보 조회
-   */
-  Map<String, String> getGubunInfo(Seller seller);
-  
-  /**
-   * 회원 상태 정보 조회
-   */
-  Map<String, String> getStatusInfo(Seller seller);
-  
-  /**
-   * 상점 정보 조회
-   */
-  Map<String, String> getShopInfo(Seller seller);
+  int withdrawWithReason(Long sellerId, String reason);
   
   /**
    * 탈퇴 회원 목록 조회
    */
-  List<Seller> getWithdrawnMembers();
+  List<Seller> findWithdrawnMembers();
 
   /**
-   * 사업자등록번호 검증
+   * 전체 판매자 목록 조회
    */
-  boolean validateBizRegNo(String bizRegNo);
+  List<Seller> findAll();
 
   /**
-   * 서비스 이용현황 조회
+   * 탈퇴 회원 재활성화
    */
-  MemberStatusInfo getServiceUsage(Long sellerId);
+  int reactivate(String email, String password);
   
   /**
-   * 탈퇴 가능 여부 판단
+   * 탈퇴 회원 재가입
    */
-  boolean canWithdraw(Long sellerId);
+  int rejoin(Seller seller);
 }

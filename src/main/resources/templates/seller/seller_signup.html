@@ -148,6 +148,12 @@
         outline: none;
     }
 
+    .required-mark {
+        color: #658352;
+        font-weight: bold;
+        margin-right: 3px;
+    }
+
     .postcode-group {
         display: flex;
         gap: 10px;
@@ -207,7 +213,10 @@
         color: var(--color-danger);
         font-size: 0.8rem;
         margin-top: 6px;
-        min-height: 1.2em;
+    }
+
+    .error-msg:empty {
+        display: none;
     }
 
     .error-message, .success-message {
@@ -219,9 +228,9 @@
     }
 
     .error-message {
-        background-color: #ffebee;
-        color: #c62828;
-        border: 1px solid #ef5350;
+        background-color: #FFF4E6;
+        color: #8B5A00;
+        border: 1px solid #D69E2E;
     }
 
     .success-message {
@@ -284,8 +293,8 @@
         </a>
         <!-- 로그인 상태에 따른 네비게이션 버튼 -->
         <div class="navbar-buttons" th:if="${session.loginMember == null}">
-         <a th:href="@{/login}" class="btn-outline">로그인</a>
-         <a th:href="@{/signup}" class="btn-filled">회원가입</a>
+         <a th:href="@{/common/select-login}" class="btn-outline">로그인</a>
+         <a th:href="@{/common/select-signup}" class="btn-filled">회원가입</a>
         </div>
         <div class="navbar-buttons" th:if="${session.loginMember != null}">
           <span class="welcome-message" th:text="${userNickname} + '님, 환영합니다.'"></span>
@@ -368,19 +377,23 @@
           <div class="form-row">
              <label for="postcode">사업장 주소</label>
              <div class="input-col">
+                 <div th:if="${#fields.hasErrors('postcode')}" th:errors="*{postcode}" class="error-msg"></div>
                  <div class="postcode-group">
                      <input type="text" id="postcode" th:field="*{postcode}" placeholder="우편번호" readonly>
                      <button type="button" id="searchPostcodeBtn" onclick="openAddressPopup()">주소 검색</button>
                  </div>
                  <input type="text" id="address" th:field="*{address}" placeholder="주소" readonly>
-                 <input type="text" id="detailAddress" th:field="*{detailAddress}" placeholder="상세주소를 입력해주세요">
-                 <div th:if="${#fields.hasErrors('address')}" th:errors="*{address}" class="error-msg"></div>
+                 <input type="text" id="detailAddress" th:field="*{detailAddress}" placeholder="상세주소">
+                 <div th:if="${#fields.hasErrors('detailAddress')}" th:errors="*{detailAddress}" class="error-msg"></div>
              </div>
          </div>
 
                  <button type="submit" class="signup-btn">회원가입</button>
      </form>
   </div>
+
+<script th:src="@{/js/common/logout.js}"></script>
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
  <!-- 주소 검색을 위한 스크립트 -->
  <script>

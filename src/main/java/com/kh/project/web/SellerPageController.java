@@ -1,38 +1,29 @@
 package com.kh.project.web;
 
-import com.kh.project.domain.entity.Seller;
-import com.kh.project.domain.entity.Buyer;
-import com.kh.project.domain.seller.svc.SellerSVC;
-import com.kh.project.domain.buyer.svc.BuyerSVC;
-import com.kh.project.util.AuthUtils;
-import com.kh.project.util.CommonConstants;
-import com.kh.project.domain.entity.LoginMember;
 import com.kh.project.domain.SessionService;
+import com.kh.project.domain.buyer.svc.BuyerSVC;
+import com.kh.project.domain.entity.Buyer;
+import com.kh.project.domain.entity.LoginMember;
+import com.kh.project.domain.entity.MemberType;
+import com.kh.project.domain.entity.Seller;
+import com.kh.project.domain.seller.svc.SellerSVC;
+import com.kh.project.util.SellerStatusHelper;
 import com.kh.project.web.common.form.LoginForm;
-import com.kh.project.web.common.form.SellerSignupForm;
 import com.kh.project.web.common.form.SellerEditForm;
-import com.kh.project.web.common.form.MemberStatusInfo;
+import com.kh.project.web.common.form.SellerSignupForm;
 import com.kh.project.web.exception.BusinessValidationException;
-
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.validation.BindingResult;
-import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Map;
 import java.util.Optional;
-import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * 판매자 페이지 컨트롤러
@@ -47,164 +38,143 @@ public class SellerPageController {
   private final BuyerSVC buyerSVC;
   private final SessionService sessionService;
 
+  private static final String MEMBER_TYPE_BUYER = MemberType.BUYER.getCode();
+  private static final String MEMBER_TYPE_SELLER = MemberType.SELLER.getCode();
+  private static final Integer STATUS_ACTIVE = 1;
+  private static final String REDIRECT_SELLER_LOGIN = "redirect:/seller/login";
+
   @GetMapping("/login")
   public String sellerLogin(HttpSession session, Model model) {
     log.info("판매자 로그인 페이지 요청");
     
-    // 로그인 사용자 정보 조회 (홈페이지와 동일한 로직)
-    LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
-    if (loginMember != null) {
-      try {
-        if ("BUYER".equals(loginMember.getMemberType())) {
-          Optional<Buyer> buyerOpt = buyerSVC.findById(loginMember.getId());
-          if (buyerOpt.isPresent()) {
-            Buyer buyer = buyerOpt.get();
-            model.addAttribute("userNickname", buyer.getNickname());
-            model.addAttribute("userName", buyer.getName());
-          }
-        } else if ("SELLER".equals(loginMember.getMemberType())) {
-          Optional<Seller> sellerOpt = sellerSVC.findById(loginMember.getId());
-          if (sellerOpt.isPresent()) {
-            Seller seller = sellerOpt.get();
-            model.addAttribute("userNickname", seller.getShopName()); // 판매자는 상호명을 닉네임으로 사용
-            model.addAttribute("userName", seller.getName());
-          }
-        }
-      } catch (Exception e) {
-        log.error("사용자 정보 조회 실패: {}", e.getMessage());
-      }
-    }
-    
+    addUserInfoToModel(session, model);
     model.addAttribute("loginForm", new LoginForm());
     return "seller/seller_login";
   }
   
   @PostMapping("/login")
-  public String sellerLogin(@Valid @ModelAttribute LoginForm loginForm,
-                           BindingResult bindingResult,
-                           HttpSession session,
-                           RedirectAttributes redirectAttributes) {
-    log.info("판매자 로그인 처리: email={}", loginForm.getEmail());
+  public String login(@Validated @ModelAttribute LoginForm form,
+                      BindingResult bindingResult,
+                      HttpSession session,
+                      RedirectAttributes redirectAttributes) {
+        
+    log.info("판매자 로그인 요청: {}", form.getEmail());
     
-    // 1. 유효성 검사 오류
     if (bindingResult.hasErrors()) {
       return "seller/seller_login";
     }
     
     try {
-      // 2. 로그인 처리
-      Seller seller = sellerSVC.login(loginForm.getEmail(), loginForm.getPassword());
+      Optional<Seller> sellerOpt = sellerSVC.findByEmail(form.getEmail());
+      if (sellerOpt.isEmpty()) {
+        redirectAttributes.addFlashAttribute("error", "이메일 또는 비밀번호가 올바르지 않습니다.");
+        return REDIRECT_SELLER_LOGIN;
+      }
       
-      // 3. 세션 생성
-      LoginMember loginMember = LoginMember.seller(seller.getSellerId(), seller.getEmail());
-      session.setAttribute("loginMember", loginMember);
-      session.setMaxInactiveInterval(1800);
+      Seller seller = sellerOpt.get();
+      if (!seller.canLogin() || !seller.getPassword().equals(form.getPassword())) {
+        redirectAttributes.addFlashAttribute("error", "이메일 또는 비밀번호가 올바르지 않습니다.");
+        return REDIRECT_SELLER_LOGIN;
+      }
+
+      sessionService.setLoginSession(session, seller.getSellerId(), seller.getEmail(), MEMBER_TYPE_SELLER);
       
-      // 4. 성공 메시지와 리디렉션 (판매자는 대시보드로)
-      redirectAttributes.addFlashAttribute("message", "로그인에 성공했습니다.");
-      log.info("판매자 로그인 성공: sellerId={}", seller.getSellerId());
+      redirectAttributes.addFlashAttribute("success", "로그인이 완료되었습니다. 환영합니다!");
+      log.info("판매자 로그인 성공: {}", seller.getEmail());
       return "redirect:/seller/dashboard";
       
-    } catch (BusinessValidationException e) {
-      log.warn("판매자 로그인 실패: email={}, message={}", loginForm.getEmail(), e.getMessage());
-      // 탈퇴한 회원인 경우 특별한 메시지 제공
-      if ("이미 탈퇴한 회원입니다.".equals(e.getMessage())) {
-        redirectAttributes.addFlashAttribute("error", "탈퇴한 회원입니다. 재가입을 원하시면 동일한 정보로 회원가입을 진행해주세요.");
-      } else {
-        redirectAttributes.addFlashAttribute("error", e.getMessage());
-      }
-      return "redirect:/seller/login";
     } catch (Exception e) {
-      // 5. 로그인 실패
-      log.error("판매자 로그인 실패: email={}, error={}", loginForm.getEmail(), e.getMessage());
+      log.error("판매자 로그인 실패: email={}, error={}", form.getEmail(), e.getMessage());
       redirectAttributes.addFlashAttribute("error", "이메일 또는 비밀번호가 올바르지 않습니다.");
-      return "redirect:/seller/login";
+      return REDIRECT_SELLER_LOGIN;
     }
   }
-  
-  @GetMapping({"/signup", "/join"})
+
+  @GetMapping("/signup")
   public String sellerSignup(HttpSession session, Model model) {
     log.info("판매자 회원가입 페이지 요청");
     
-    // 로그인 사용자 정보 조회 (홈페이지와 동일한 로직)
-    LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
-    if (loginMember != null) {
-      try {
-        if ("BUYER".equals(loginMember.getMemberType())) {
-          Optional<Buyer> buyerOpt = buyerSVC.findById(loginMember.getId());
-          if (buyerOpt.isPresent()) {
-            Buyer buyer = buyerOpt.get();
-            model.addAttribute("userNickname", buyer.getNickname());
-            model.addAttribute("userName", buyer.getName());
-          }
-        } else if ("SELLER".equals(loginMember.getMemberType())) {
-          Optional<Seller> sellerOpt = sellerSVC.findById(loginMember.getId());
-          if (sellerOpt.isPresent()) {
-            Seller seller = sellerOpt.get();
-            model.addAttribute("userNickname", seller.getShopName()); // 판매자는 상호명을 닉네임으로 사용
-            model.addAttribute("userName", seller.getName());
-          }
-        }
-      } catch (Exception e) {
-        log.error("사용자 정보 조회 실패: {}", e.getMessage());
-      }
-    }
-    
+    addUserInfoToModel(session, model);
     model.addAttribute("sellerSignupForm", new SellerSignupForm());
     return "seller/seller_signup";
   }
   
-  @PostMapping({"/signup", "/join"})
-  public String sellerSignup(@Valid @ModelAttribute SellerSignupForm signupForm,
+  @PostMapping("/signup")
+  public String sellerSignup(@Validated @ModelAttribute SellerSignupForm signupForm,
                             BindingResult bindingResult,
                             HttpSession session,
-                            RedirectAttributes redirectAttributes,
-                            Model model) {
-    log.info("판매자 회원가입 처리: email={}", signupForm.getEmail());
+                            Model model,
+                            RedirectAttributes redirectAttributes) {
     
-    // 1. 기본 유효성 검사 오류
+    log.info("판매자 회원가입 요청: {}", signupForm.getEmail());
+    
     if (bindingResult.hasErrors()) {
-      log.warn("판매자 회원가입 유효성 검사 실패: {}", bindingResult.getAllErrors());
+      log.warn("판매자 회원가입 폼 검증 실패: {}", bindingResult.getAllErrors());
+      addUserInfoToModel(session, model);
       return "seller/seller_signup";
     }
     
-    // 2. 비밀번호 확인 검증
-    if (!signupForm.isPasswordMatching()) {
-      bindingResult.rejectValue("passwordConfirm", "error.passwordConfirm", "비밀번호가 일치하지 않습니다.");
+    // 중복 체크 - 에러 시 폼 데이터 유지를 위해 바로 뷰 반환
+    if (sellerSVC.existsByEmail(signupForm.getEmail())) {
+      log.warn("이메일 중복: email={}", signupForm.getEmail());
+      model.addAttribute("error", "이미 등록된 이메일입니다. 탈퇴 후 재가입은 불가능합니다.");
+      addUserInfoToModel(session, model);
+      return "seller/seller_signup";
+    }
+
+    if (sellerSVC.existsByBizRegNo(signupForm.getBusinessNumber())) {
+      log.warn("사업자등록번호 중복 (재가입 불가): bizRegNo={}", signupForm.getBusinessNumber());
+      model.addAttribute("error", "이미 등록된 사업자등록번호입니다. 탈퇴 후 재가입은 불가능합니다.");
+      addUserInfoToModel(session, model);
+      return "seller/seller_signup";
+    }
+
+    if (sellerSVC.existsByShopName(signupForm.getStoreName())) {
+      log.warn("상호명 중복: shopName={}", signupForm.getStoreName());
+      model.addAttribute("error", "이미 사용중인 상호명입니다.");
+      addUserInfoToModel(session, model);
+      return "seller/seller_signup";
+    }
+
+    if (sellerSVC.existsByName(signupForm.getName())) {
+      log.warn("대표자명 중복: name={}", signupForm.getName());
+      model.addAttribute("error", "이미 등록된 대표자명입니다.");
+      addUserInfoToModel(session, model);
       return "seller/seller_signup";
     }
     
     try {
-      // 3. 회원가입 처리
+      // 폼 데이터를 엔티티로 변환
       Seller seller = new Seller();
       seller.setEmail(signupForm.getEmail());
       seller.setPassword(signupForm.getPassword());
+      seller.setName(signupForm.getName());
       seller.setBizRegNo(signupForm.getBusinessNumber());
       seller.setShopName(signupForm.getStoreName());
-      seller.setName(signupForm.getName());
       seller.setShopAddress(signupForm.getFullAddress());
       seller.setTel(signupForm.getTel());
-      // Seller 엔티티에는 birth 필드가 없으므로 제거
-      // if (signupForm.getBirth() != null) {
-      //   seller.setBirth(signupForm.getBirth());
-      // }
+      seller.setStatus(STATUS_ACTIVE);
       
+      // 회원가입 처리
       Seller savedSeller = sellerSVC.join(seller);
       
-      // 4. 성공 처리 (모달 페이지로 리다이렉트)
-      log.info("판매자 회원가입 성공: sellerId={}", savedSeller.getSellerId());
-      return "redirect:/common/signup-complete";
+      // 자동 로그인 처리
+      sessionService.setLoginSession(session, savedSeller.getSellerId(), savedSeller.getEmail(), MEMBER_TYPE_SELLER);
+      
+      redirectAttributes.addFlashAttribute("success", "회원가입이 완료되었습니다. 환영합니다!");
+      redirectAttributes.addFlashAttribute("memberType", MEMBER_TYPE_SELLER);
+      redirectAttributes.addFlashAttribute("showSignupModal", true);
+      log.info("판매자 회원가입 성공: email={}, sellerId={}", savedSeller.getEmail(), savedSeller.getSellerId());
+      return "redirect:/";
       
     } catch (BusinessValidationException e) {
-      // 6. 회원가입 실패
       log.error("판매자 회원가입 실패: email={}, error={}", signupForm.getEmail(), e.getMessage());
       
-      // 이메일 중복 등의 경우 필드 에러로 처리
       if (e.getMessage().contains("이메일") || e.getMessage().contains("email")) {
         bindingResult.rejectValue("email", "error.email", e.getMessage());
       } else if (e.getMessage().contains("사업자등록번호")) {
         bindingResult.rejectValue("businessNumber", "error.businessNumber", e.getMessage());
-      } else if (e.getMessage().contains("상점명") || e.getMessage().contains("상호명")) {
+      } else if (e.getMessage().contains("상호명")) {
         bindingResult.rejectValue("storeName", "error.storeName", e.getMessage());
       } else if (e.getMessage().contains("대표자명")) {
         bindingResult.rejectValue("name", "error.name", e.getMessage());
@@ -214,6 +184,7 @@ public class SellerPageController {
         bindingResult.reject("error.signup", "회원가입 중 오류가 발생했습니다: " + e.getMessage());
       }
       
+      addUserInfoToModel(session, model);
       return "seller/seller_signup";
     }
   }
@@ -225,7 +196,7 @@ public class SellerPageController {
     Seller seller = getAuthenticatedSeller(session);
     if (seller == null) {
       redirectAttributes.addFlashAttribute("message", "로그인이 필요합니다.");
-      return "redirect:/seller/login";
+      return REDIRECT_SELLER_LOGIN;
     }
 
     addSellerInfoToModel(model, seller);
@@ -233,197 +204,259 @@ public class SellerPageController {
   }
   
   @GetMapping("/edit")
-  public String sellerEdit(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-    log.info("판매자 정보 수정 페이지 요청");
-    
-    Seller seller = getAuthenticatedSeller(session);
-    if (seller == null) {
-      redirectAttributes.addFlashAttribute("message", "로그인이 필요합니다.");
-      return "redirect:/seller/login";
+  public String editForm(HttpSession session, Model model) {
+    if (!isSellerLoggedIn(session)) {
+      return REDIRECT_SELLER_LOGIN;
     }
     
-    // 기존 정보로 폼 초기화
-    SellerEditForm editForm = new SellerEditForm();
-    editForm.setTel(seller.getTel());
+    LoginMember loginMember = sessionService.getCurrentUserInfo(session);
+    Optional<Seller> sellerOpt = sellerSVC.findById(loginMember.getId());
+    if (sellerOpt.isEmpty()) {
+      return REDIRECT_SELLER_LOGIN;
+    }
+
+    Seller seller = sellerOpt.get();
+    addSellerInfoToModel(model, seller);
     
-    // 기존 가게 주소 파싱 및 설정
-    if (seller.getShopAddress() != null && !seller.getShopAddress().trim().isEmpty()) {
-      String fullAddress = seller.getShopAddress();
-      // (12345) 도로명주소 상세주소 형태로 저장된 주소 파싱
-      if (fullAddress.startsWith("(") && fullAddress.contains(")")) {
-        int endIdx = fullAddress.indexOf(")");
-        String postcode = fullAddress.substring(1, endIdx).trim();
-        String remainingAddress = fullAddress.substring(endIdx + 1).trim();
-        
-        editForm.setPostcode(postcode);
-        
-        // 더 정확한 주소 분리: 마지막 닫는 괄호를 찾아서 도로명주소와 상세주소 분리
-        int lastParenIdx = remainingAddress.lastIndexOf(")");
-        if (lastParenIdx > 0) {
-          // 괄호가 있는 경우: 괄호까지가 도로명주소, 그 이후가 상세주소
-          String roadAddress = remainingAddress.substring(0, lastParenIdx + 1).trim();
-          String detailAddress = remainingAddress.substring(lastParenIdx + 1).trim();
-          
-          editForm.setAddress(roadAddress);
-          if (!detailAddress.isEmpty()) {
-            editForm.setDetailAddress(detailAddress);
-          }
+    // 기존 주소 데이터를 분리 처리
+    String postcode = null;
+    String address = null;
+    String detailAddress = null;
+    
+    String fullAddress = seller.getShopAddress();
+    if (fullAddress != null) {
+      String[] addressParts = fullAddress.split("\\|");
+      if (addressParts.length >= 2) {
+        postcode = addressParts[0].trim();
+        String[] mainDetailParts = addressParts[1].split(" ", 2);
+        if (mainDetailParts.length >= 2) {
+          address = mainDetailParts[0].trim();
+          detailAddress = mainDetailParts[1].trim();
         } else {
-          // 괄호가 없는 경우: 전체를 도로명주소로 설정
-          editForm.setAddress(remainingAddress);
+          address = addressParts[1].trim();
         }
       } else {
-        // 단순 주소인 경우 그대로 설정
-        editForm.setAddress(fullAddress);
+        address = fullAddress;
       }
     }
     
+    SellerEditForm editForm = new SellerEditForm();
+    editForm.setPassword(seller.getPassword());
+    editForm.setTel(seller.getTel());
+    editForm.setPostcode(postcode);
+    editForm.setAddress(address);
+    editForm.setDetailAddress(detailAddress);
+    
     model.addAttribute("sellerEditForm", editForm);
-    addSellerInfoToModel(model, seller);
+    model.addAttribute("seller", seller);
+    
     return "seller/seller_edit";
   }
   
   @PostMapping("/edit")
-  public String sellerEdit(@Valid @ModelAttribute SellerEditForm editForm,
+  public String editSeller(@Validated @ModelAttribute SellerEditForm editForm,
                           BindingResult bindingResult,
                           HttpSession session,
-                          RedirectAttributes redirectAttributes,
-                          Model model) {
+                          Model model,
+                          RedirectAttributes redirectAttributes) {
     log.info("판매자 정보 수정 처리");
     
-    Seller seller = getAuthenticatedSeller(session);
-    if (seller == null) {
+    if (!isSellerLoggedIn(session)) {
       redirectAttributes.addFlashAttribute("message", "로그인이 필요합니다.");
-      return "redirect:/seller/login";
+      return REDIRECT_SELLER_LOGIN;
     }
     
-    // 1. 기본 유효성 검사
+    LoginMember loginMember = sessionService.getCurrentUserInfo(session);
+    Optional<Seller> sellerOpt = sellerSVC.findById(loginMember.getId());
+    if (sellerOpt.isEmpty()) {
+      redirectAttributes.addFlashAttribute("message", "회원 정보를 찾을 수 없습니다.");
+      return REDIRECT_SELLER_LOGIN;
+    }
+    
+    Seller seller = sellerOpt.get();
+    
     if (bindingResult.hasErrors()) {
+      log.warn("수정 폼 검증 실패: {}", bindingResult.getAllErrors());
       addSellerInfoToModel(model, seller);
+      model.addAttribute("seller", seller);
+      model.addAttribute("sellerEditForm", editForm);
       return "seller/seller_edit";
     }
     
-    // 2. 비밀번호 확인 검증
     if (!editForm.isPasswordMatching()) {
       bindingResult.rejectValue("passwordConfirm", "error.passwordConfirm", "비밀번호가 일치하지 않습니다.");
       addSellerInfoToModel(model, seller);
+      model.addAttribute("seller", seller);
+      model.addAttribute("sellerEditForm", editForm);
       return "seller/seller_edit";
     }
     
     try {
-      // 3. 정보 업데이트 (읽기전용 필드 제외)
-      seller.setPassword(editForm.getPassword()); // 비밀번호는 필수 입력이므로 항상 업데이트
+      seller.setPassword(editForm.getPassword());
       seller.setTel(editForm.getTel());
       if (editForm.getFullAddress() != null) {
         seller.setShopAddress(editForm.getFullAddress());
       }
       
-      sellerSVC.update(seller.getSellerId(), seller);
+      int updatedRows = sellerSVC.update(seller.getSellerId(), seller);
       
-      redirectAttributes.addFlashAttribute("message", "정보가 성공적으로 수정되었습니다.");
-      return "redirect:/seller/info";
+      if (updatedRows > 0) {
+        log.info("판매자 정보 수정 성공: sellerId={}", seller.getSellerId());
+        redirectAttributes.addFlashAttribute("message", "정보가 성공적으로 수정되었습니다.");
+        return "redirect:/seller/info";
+      } else {
+        log.warn("판매자 정보 수정 실패: sellerId={}", seller.getSellerId());
+        redirectAttributes.addFlashAttribute("error", "정보 수정에 실패했습니다.");
+        return "redirect:/seller/edit";
+      }
       
+    } catch (BusinessValidationException e) {
+      log.warn("판매자 정보 수정 실패: {}", e.getMessage());
+      
+      if (e.getMessage().contains("상호명")) {
+        bindingResult.rejectValue("shopName", "error.shopName", e.getMessage());
+      } else {
+        model.addAttribute("error", e.getMessage());
+      }
+      
+      addSellerInfoToModel(model, seller);
+      model.addAttribute("seller", seller);
+      model.addAttribute("sellerEditForm", editForm);
+      return "seller/seller_edit";
     } catch (Exception e) {
       log.error("판매자 정보 수정 실패: sellerId={}, error={}", seller.getSellerId(), e.getMessage());
-      bindingResult.reject("error.edit", "정보 수정 중 오류가 발생했습니다: " + e.getMessage());
+      model.addAttribute("error", "정보 수정 중 오류가 발생했습니다: " + e.getMessage());
       addSellerInfoToModel(model, seller);
+      model.addAttribute("seller", seller);
+      model.addAttribute("sellerEditForm", editForm);
       return "seller/seller_edit";
     }
   }
-  
-  @GetMapping("/withdraw")
-  public String sellerWithdraw(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-    log.info("판매자 탈퇴 페이지 요청");
 
-    LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
-    if (loginMember == null) {
-      redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
-      return "redirect:/seller/login";
+  @GetMapping("/withdraw")
+  public String withdrawForm(HttpSession session, Model model) {
+    if (!isSellerLoggedIn(session)) {
+      return REDIRECT_SELLER_LOGIN;
     }
     
-    // 이 페이지는 단순히 폼을 보여주는 역할만 함
-    return "seller/seller_withdraw";
+    LoginMember loginMember = sessionService.getCurrentUserInfo(session);
+    Optional<Seller> sellerOpt = sellerSVC.findById(loginMember.getId());
+    if (sellerOpt.isPresent()) {
+      Seller seller = sellerOpt.get();
+      model.addAttribute("seller", seller);
+      
+      addUserInfoToModel(session, model);
+      return "seller/seller_withdraw";
+    }
+    
+    return REDIRECT_SELLER_LOGIN;
   }
 
-  // 판매자 탈퇴 1단계: 비밀번호 확인 및 탈퇴 사유 입력
   @PostMapping("/withdraw-status")
-  public String sellerWithdrawStatus(HttpSession session,
-                                    RedirectAttributes redirectAttributes,
+  public String sellerWithdrawStatus(@RequestParam("reason") String reason,
                                     @RequestParam("password") String password,
-                                    @RequestParam("reason") String reason,
-                                    Model model) {
-    log.info("판매자 탈퇴 1단계 처리 요청");
+                                    @RequestParam(value = "feedback", required = false) String feedback,
+                                    HttpSession session,
+                                    Model model,
+                                    RedirectAttributes redirectAttributes) {
+    log.info("판매자 탈퇴 1단계 처리 요청: reason={}", reason);
 
-    LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
-    if (loginMember == null) {
+    if (!isSellerLoggedIn(session)) {
       redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
-      return "redirect:/seller/login";
+      return REDIRECT_SELLER_LOGIN;
     }
+    
+    LoginMember loginMember = sessionService.getCurrentUserInfo(session);
 
     try {
-      // 1. 비밀번호 확인
-      if (!sellerSVC.checkPassword(loginMember.getId(), password)) {
-        redirectAttributes.addFlashAttribute("error", "비밀번호가 올바르지 않습니다.");
-        return "redirect:/seller/withdraw";
-      }
-
-      // 2. 서비스 이용 현황 조회
-      MemberStatusInfo statusInfo = sellerSVC.getServiceUsage(loginMember.getId());
+      log.info("비밀번호 검증 시작: sellerId={}, 입력비밀번호길이={}", 
+               loginMember.getId(), password != null ? password.length() : 0);
       
-      // 3. 판매자 정보 조회
+      // 회원 정보 조회
       Optional<Seller> sellerOpt = sellerSVC.findById(loginMember.getId());
       if (sellerOpt.isEmpty()) {
         redirectAttributes.addFlashAttribute("error", "회원 정보를 찾을 수 없습니다.");
-        return "redirect:/seller/login";
+        return REDIRECT_SELLER_LOGIN;
       }
       
       Seller seller = sellerOpt.get();
       
-      // 4. 모델에 데이터 추가
-      model.addAttribute("memberStatus", statusInfo);
+      // 비밀번호 검증
+      boolean passwordValid = seller.getPassword().equals(password);
+      log.info("비밀번호 검증 결과: {}", passwordValid);
+      
+      if (!passwordValid) {
+        log.warn("비밀번호 검증 실패: sellerId={}", loginMember.getId());
+        redirectAttributes.addFlashAttribute("error", "비밀번호가 올바르지 않습니다.");
+        return "redirect:/seller/withdraw";
+      }
+      
+      // 탈퇴 가능 여부 확인
+      boolean canWithdraw = checkSellerCanWithdraw(seller);
+      Map<String, Object> sellerStatus = getSellerServiceStatus(seller);
+      
+      // 모델에 데이터 설정
+      model.addAttribute("canWithdraw", canWithdraw);
+      model.addAttribute("sellerStatus", sellerStatus);
       model.addAttribute("reason", reason);
+      model.addAttribute("feedback", feedback);
       model.addAttribute("sellerId", seller.getSellerId());
       model.addAttribute("email", seller.getEmail());
       model.addAttribute("name", seller.getName());
       model.addAttribute("shopName", seller.getShopName());
       
-      log.info("판매자 탈퇴 1단계 완료: sellerId={}, canWithdraw={}", loginMember.getId(), statusInfo.isCanWithdraw());
+      if (!canWithdraw) {
+        model.addAttribute("withdrawBlockReasons", sellerStatus.get("blockReasons"));
+      }
+      
+      log.info("판매자 탈퇴 1단계 완료: sellerId={}, canWithdraw={}", loginMember.getId(), canWithdraw);
       return "seller/seller_withdraw_status";
 
     } catch (Exception e) {
       log.error("판매자 탈퇴 1단계 처리 중 오류 발생: sellerId={}, error={}", loginMember.getId(), e.getMessage());
-      redirectAttributes.addFlashAttribute("error", "처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      redirectAttributes.addFlashAttribute("error", "탈퇴 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
       return "redirect:/seller/withdraw";
     }
   }
   
-  // 판매자 탈퇴 2단계: 최종 탈퇴 처리
   @PostMapping("/withdraw-final")
   public String sellerWithdrawFinal(HttpSession session,
                                    RedirectAttributes redirectAttributes,
                                    @RequestParam("reason") String reason) {
     log.info("판매자 탈퇴 2단계 처리 요청");
 
-    LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
-    if (loginMember == null) {
+    if (!isSellerLoggedIn(session)) {
       redirectAttributes.addFlashAttribute("error", "로그인이 필요합니다.");
-      return "redirect:/seller/login";
+      return REDIRECT_SELLER_LOGIN;
     }
+    
+    LoginMember loginMember = sessionService.getCurrentUserInfo(session);
 
     try {
-      // 1. 탈퇴 가능 여부 재확인
-      boolean canWithdraw = sellerSVC.canWithdraw(loginMember.getId());
+      Optional<Seller> sellerOpt = sellerSVC.findById(loginMember.getId());
+      if (sellerOpt.isEmpty()) {
+        redirectAttributes.addFlashAttribute("error", "회원 정보를 찾을 수 없습니다.");
+        return REDIRECT_SELLER_LOGIN;
+      }
+      
+      Seller seller = sellerOpt.get();
+      boolean canWithdraw = checkSellerCanWithdraw(seller);
 
       if (canWithdraw) {
-        // 2. 탈퇴 처리
-        sellerSVC.withdraw(loginMember.getId(), reason);
-        session.invalidate(); // 세션 무효화
-        redirectAttributes.addFlashAttribute("message", "회원 탈퇴가 정상적으로 처리되었습니다.");
-        log.info("판매자 탈퇴 성공: sellerId={}", loginMember.getId());
-        return "redirect:/";
+        int result = sellerSVC.withdrawWithReason(loginMember.getId(), reason);
+        
+        if (result > 0) {
+          sessionService.logout(session);
+          log.info("판매자 탈퇴 성공: sellerId={}", loginMember.getId());
+          // 탈퇴 완료 후 바로 메인화면으로 이동 (모달은 seller_withdraw_status.html에서 처리)
+          return "redirect:/";
+        } else {
+          redirectAttributes.addFlashAttribute("error", "탈퇴 처리에 실패했습니다.");
+          return "redirect:/seller/withdraw";
+        }
       } else {
-        // 3. 탈퇴 불가 처리
-        redirectAttributes.addFlashAttribute("error", "현재 탈퇴할 수 없는 상태입니다. 다시 확인해주세요.");
+        Map<String, Object> sellerStatus = getSellerServiceStatus(seller);
+        redirectAttributes.addFlashAttribute("error", "현재 탈퇴할 수 없는 상태입니다: " + sellerStatus.get("blockReasons"));
         log.warn("판매자 탈퇴 실패 (탈퇴 불가): sellerId={}", loginMember.getId());
         return "redirect:/seller/withdraw";
       }
@@ -434,133 +467,122 @@ public class SellerPageController {
       return "redirect:/seller/withdraw";
     }
   }
+
+  @GetMapping("/withdraw-status")
+  public String withdrawStatus() {
+    log.info("판매자 탈퇴 상태 페이지 호출");
+    return "seller/seller_withdraw_status";
+  }
   
   @GetMapping("/info")
-  public String sellerInfo(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+  public String info(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
     log.info("판매자 정보 조회 페이지 요청");
     
-    Seller seller = getAuthenticatedSeller(session);
-    if (seller == null) {
+    if (!isSellerLoggedIn(session)) {
       redirectAttributes.addFlashAttribute("message", "로그인이 필요합니다.");
-      return "redirect:/seller/login";
+      return REDIRECT_SELLER_LOGIN;
     }
     
-    addSellerInfoToModel(model, seller);
+    LoginMember loginMember = sessionService.getCurrentUserInfo(session);
+    Optional<Seller> sellerOpt = sellerSVC.findById(loginMember.getId());
+    if (sellerOpt.isEmpty()) {
+      return REDIRECT_SELLER_LOGIN;
+    }
+
+    Seller seller = sellerOpt.get();
+    model.addAttribute("seller", seller);
+    
+    addUserInfoToModel(session, model);
     return "seller/seller_info";
   }
   
   @PostMapping("/verify-password")
   @ResponseBody
   public Map<String, Object> verifyPassword(@RequestBody Map<String, String> request, HttpSession session) {
-    String password = request.get("password");
-    return sessionService.verifyPassword(session, password);
-  }
-  
-  // ============ 호환성 유지 메서드들 ============
-  
-  @GetMapping("/{id}")
-  public String detail(@PathVariable("id") Long id, Model model, HttpSession session, 
-                      RedirectAttributes redirectAttributes) {
-    log.info("판매자 상세 정보 페이지 요청: ID={}", id);
+    log.info("판매자 비밀번호 확인 요청");
     
-    try {
-      LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
-      if (loginMember == null) {
-        redirectAttributes.addFlashAttribute("message", "로그인이 필요합니다.");
-        return "redirect:/seller/login";
-      }
-      
-      if (!loginMember.getId().equals(id)) {
-        redirectAttributes.addFlashAttribute("message", "본인의 정보만 접근할 수 있습니다.");
-        return "redirect:/seller/info";
-      }
-      
-      Optional<Seller> sellerOpt = sellerSVC.findById(id);
-      if (sellerOpt.isPresent()) {
-        addSellerInfoToModel(model, sellerOpt.get());
-        return "seller/detailForm";
-      } else {
-        redirectAttributes.addFlashAttribute("message", "존재하지 않는 판매자입니다.");
-        return "redirect:/seller/login";
-      }
-      
-    } catch (Exception e) {
-      log.error("판매자 정보 조회 중 오류 발생: ID={}", id, e);
-      redirectAttributes.addFlashAttribute("message", "서버 오류가 발생했습니다.");
-      return "redirect:/seller/info";
+    if (!isSellerLoggedIn(session)) {
+      log.warn("판매자가 아닌 사용자가 비밀번호 확인 시도");
+      return Map.of("success", false, "message", "로그인이 필요합니다.");
     }
-  }
-  
-  @GetMapping("/{id}/edit")
-  public String editForm(@PathVariable("id") Long id, Model model, HttpSession session,
-                        RedirectAttributes redirectAttributes) {
-    log.info("판매자 수정 폼 페이지 요청: ID={}", id);
     
+    LoginMember loginMember = sessionService.getCurrentUserInfo(session);
+    String password = request.get("password");
+    if (password == null || password.trim().isEmpty()) {
+      return Map.of("success", false, "message", "비밀번호를 입력해주세요.");
+    }
+
     try {
-      LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
-      if (loginMember == null) {
-        redirectAttributes.addFlashAttribute("message", "로그인이 필요합니다.");
-        return "redirect:/seller/login";
-      }
+      Optional<Seller> sellerOpt = sellerSVC.findById(loginMember.getId());
+      boolean isValid = sellerOpt.isPresent() && sellerOpt.get().getPassword().equals(password);
       
-      if (!loginMember.getId().equals(id)) {
-        redirectAttributes.addFlashAttribute("message", "본인의 정보만 접근할 수 있습니다.");
-        return "redirect:/seller/info";
-      }
-      
-      Optional<Seller> sellerOpt = sellerSVC.findById(id);
-      if (sellerOpt.isPresent()) {
-        addSellerInfoToModel(model, sellerOpt.get());
-        return "seller/updateForm";
+      if (isValid) {
+        log.info("판매자 비밀번호 확인 성공: sellerId={}", loginMember.getId());
+        return Map.of("success", true);
       } else {
-        redirectAttributes.addFlashAttribute("message", "존재하지 않는 판매자입니다.");
-        return "redirect:/seller/login";
+        log.warn("판매자 비밀번호 확인 실패: sellerId={}", loginMember.getId());
+        return Map.of("success", false, "message", "비밀번호가 틀렸습니다.");
       }
       
     } catch (Exception e) {
-      log.error("판매자 수정 폼 조회 중 오류 발생: ID={}", id, e);
-      redirectAttributes.addFlashAttribute("message", "서버 오류가 발생했습니다.");
-      return "redirect:/seller/info";
+      log.error("판매자 비밀번호 확인 오류: sellerId={}, error={}", loginMember.getId(), e.getMessage());
+      return Map.of("success", false, "message", "서버 오류가 발생했습니다.");
     }
   }
 
-  // ============ 유틸리티 메서드 (단순화) ============
+  // 유틸리티 메서드들
 
   private void addSellerInfoToModel(Model model, Seller seller) {
-    // 기본 판매자 정보
     model.addAttribute("seller", seller);
     model.addAttribute("sellerId", seller.getSellerId());
-    
-    // 사용자 닉네임 (환영 메시지용)
-    model.addAttribute("userNickname", seller.getShopName()); // 판매자는 상호명을 닉네임으로 사용
+    model.addAttribute("userNickname", seller.getShopName());
     model.addAttribute("userName", seller.getName());
 
-    // 등급 정보 (코드 + 한글명)
-    Map<String, String> gubunInfo = sellerSVC.getGubunInfo(seller);
+    Map<String, String> gubunInfo = Map.of("code", MEMBER_TYPE_SELLER, "name", MemberType.SELLER.getDescription());
     model.addAttribute("gubunInfo", gubunInfo);
 
-    // 상태 정보 (코드 + 한글명)
-    Map<String, String> statusInfo = sellerSVC.getStatusInfo(seller);
+    Map<String, Object> statusInfo = Map.of(
+        "code", seller.getStatus(), 
+        "name", seller.getStatusDisplay()
+    );
     model.addAttribute("statusInfo", statusInfo);
 
-    // 부가 정보
-    model.addAttribute("canLogin", sellerSVC.canLogin(seller));
-    model.addAttribute("isWithdrawn", sellerSVC.isWithdrawn(seller));
+    model.addAttribute("canLogin", seller.canLogin());
+    model.addAttribute("isWithdrawn", seller.getWithdrawnAt() != null);
 
     log.debug("모델에 판매자 정보 추가 완료: ID={}, 등급={}, 상태={}", 
              seller.getSellerId(), gubunInfo.get("name"), statusInfo.get("name"));
+  }
+  
+  private void addUserInfoToModel(HttpSession session, Model model) {
+    LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
+    if (loginMember != null) {
+      try {
+        if (MEMBER_TYPE_BUYER.equals(loginMember.getMemberType())) {
+          Optional<Buyer> buyerOpt = buyerSVC.findById(loginMember.getId());
+          if (buyerOpt.isPresent()) {
+            Buyer buyer = buyerOpt.get();
+            model.addAttribute("userNickname", buyer.getNickname());
+            model.addAttribute("userName", buyer.getName());
+          }
+        } else if (MEMBER_TYPE_SELLER.equals(loginMember.getMemberType())) {
+          Optional<Seller> sellerOpt = sellerSVC.findById(loginMember.getId());
+          if (sellerOpt.isPresent()) {
+            Seller seller = sellerOpt.get();
+            model.addAttribute("userNickname", seller.getShopName());
+            model.addAttribute("userName", seller.getName());
+          }
+        }
+      } catch (Exception e) {
+        log.error("사용자 정보 조회 실패: {}", e.getMessage());
+      }
+    }
   }
 
   private Seller getAuthenticatedSeller(HttpSession session) {
     try {
       LoginMember loginMember = (LoginMember) session.getAttribute("loginMember");
-      if (loginMember == null) {
-        log.warn("세션에 로그인 정보가 없습니다.");
-        return null;
-      }
-      
-      if (!"SELLER".equals(loginMember.getMemberType())) {
-        log.warn("판매자 세션이 아닙니다: {}", loginMember.getMemberType());
+      if (loginMember == null || !MEMBER_TYPE_SELLER.equals(loginMember.getMemberType())) {
         return null;
       }
       
@@ -568,7 +590,7 @@ public class SellerPageController {
       if (sellerOpt.isPresent()) {
         Seller seller = sellerOpt.get();
         
-        if (!sellerSVC.canLogin(seller)) {
+        if (!seller.canLogin()) {
           log.warn("로그인할 수 없는 상태의 판매자: ID={}", loginMember.getId());
           return null;
         }
@@ -585,5 +607,57 @@ public class SellerPageController {
       log.error("판매자 인증 중 오류 발생", e);
       return null;
     }
+  }
+  
+  private boolean isSellerLoggedIn(HttpSession session) {
+    LoginMember loginMember = sessionService.getCurrentUserInfo(session);
+    return loginMember != null && MEMBER_TYPE_SELLER.equals(loginMember.getMemberType());
+  }
+
+  /**
+   * 판매자 탈퇴 가능 여부 검증
+   */
+  private boolean checkSellerCanWithdraw(Seller seller) {
+    return SellerStatusHelper.canWithdraw(seller);
+  }
+  
+  /**
+   * 판매자 서비스 이용 현황 조회
+   */
+  private Map<String, Object> getSellerServiceStatus(Seller seller) {
+    // 실제 서비스 이용현황 조회 (현재는 더미 데이터, 향후 실제 DB 조회로 대체)
+    int totalProducts = 0;    // 등록된 상품 수
+    int activeProducts = 0;   // 활성 상품 수
+    int activeOrders = 0;     // 활성 주문 수
+    int shippingOrders = 0;   // 배송 중인 주문 수
+    int pendingAmount = 0;    // 정산 대기 금액
+    
+    // 서비스 이용 중인 항목이 있는지 체크
+    boolean hasActiveService = (totalProducts > 0 || activeProducts > 0 || 
+                               activeOrders > 0 || shippingOrders > 0 || pendingAmount > 0);
+    
+    // 기본 상태 체크 + 서비스 이용현황 체크
+    boolean basicCanWithdraw = SellerStatusHelper.canWithdraw(seller);
+    boolean canWithdraw = basicCanWithdraw && !hasActiveService;
+    
+    String blockReasons;
+    if (!basicCanWithdraw) {
+      blockReasons = "계정 상태가 탈퇴 불가 상태입니다.";
+    } else if (hasActiveService) {
+      blockReasons = "진행 중인 상품/주문/정산이 있어 탈퇴할 수 없습니다.";
+    } else {
+      blockReasons = "없음";
+    }
+    
+    return Map.of(
+        "serviceUsage", hasActiveService ? 1 : 0,
+        "canWithdraw", canWithdraw,
+        "blockReasons", blockReasons,
+        "totalProducts", totalProducts,
+        "activeProducts", activeProducts,
+        "activeOrders", activeOrders,
+        "shippingOrders", shippingOrders,
+        "pendingAmount", pendingAmount
+    );
   }
 }

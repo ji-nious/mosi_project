@@ -1,58 +1,77 @@
 package com.kh.project.web.common.form;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import java.time.LocalDate;
+import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.util.Date;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class BuyerEditForm {
   
-  // 새 비밀번호 (필수)
-  @NotBlank(message = "새 비밀번호를 입력해주세요.")
-  @Size(min = 4, message = "새 비밀번호는 최소 4자 이상이어야 합니다.")
+  // 이메일 (읽기 전용으로 표시용)
+  @Email(message = "올바른 이메일 형식이 아닙니다.")
+  @Size(max = 50, message = "이메일은 50자 이내여야 합니다.")
+  private String email;
+  
+  // 비밀번호 (필수)
+  @NotBlank(message = "비밀번호를 입력해주세요.")
+  @Size(min = 8, max = 15, message = "")
+  @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,15}$", 
+           message = "비밀번호는 영문, 숫자, 특수문자를 모두 포함한 8~15자여야 합니다.")
   private String password;
   
   @NotBlank(message = "비밀번호 확인을 입력해주세요.")
-  @Size(min = 4, message = "비밀번호 확인은 최소 4자 이상이어야 합니다.")
+  @Size(min = 8, max = 15, message = "")
   private String passwordConfirm;
   
   // 이름 (필수)
   @NotBlank(message = "이름을 입력해주세요.")
-  @Size(max = 30, message = "이름은 30자 이내여야 합니다.")
+  @Size(max = 15, message = "이름은 15자 이내여야 합니다.")
   private String name;
   
   // 닉네임 (필수)
   @NotBlank(message = "닉네임을 입력해주세요.")
-  @Size(max = 30, message = "닉네임은 30자 이내여야 합니다.")
+  @Size(max = 8, message = "닉네임은 8자 이내여야 합니다.")
   private String nickname;
   
   // 전화번호
-  @Pattern(regexp = "^0\\d{1,2}-\\d{3,4}-\\d{4}$", message = "전화번호 형식: 지역번호-0000-0000")
+  @NotBlank(message = "전화번호를 입력해주세요.")
+  @Pattern(regexp = "^010-\\d{4}-\\d{4}$", message = "전화번호 형식: 010-0000-0000")
   private String tel;
   
   // 성별
   private String gender;
   
-  // 주소
-  private String postcode;
+  // 주소 (선택사항)
+  private String postcode;  // 화면 입력용 (문자열)
   private String address;
   private String detailAddress;
   
   // 생년월일
-  private LocalDate birth;
+  @DateTimeFormat(pattern = "yyyy-MM-dd")
+  private Date birth;
   
-  // 생년월일 검증 메서드
+  // 생년월일 유효성 검증
   public boolean isValidBirth() {
-    if (birth == null) return true; // null은 허용
-    return birth.isBefore(LocalDate.now()); // 오늘 이전 날짜만 허용
+    if (birth == null) {
+      return true; // null은 허용 (선택사항)
+    }
+    return birth.before(new Date()); // 현재 날짜 이전이어야 함
   }
   
-  // 새 비밀번호 확인 검증
+  // 비밀번호 확인 검증
   public boolean isPasswordMatching() {
     if (password == null || passwordConfirm == null) {
-      return false; // 둘 중 하나라도 null이면 불일치
+      return false;
     }
     return password.equals(passwordConfirm);
   }

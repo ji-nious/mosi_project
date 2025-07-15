@@ -13,7 +13,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
+import java.util.List;
 
 /**
  * 보안 설정
@@ -46,7 +46,8 @@ public class SecurityConfig {
             .requestMatchers(
                 "/login", "/signup",
                 "/common/select_login", "/common/select-login",
-                "/common/select_signup", "/common/signup-complete",
+                "/common/select_signup", "/common/select-signup", "/common/signup-complete",
+                "/withdraw-complete",
                 "/common/juso-popup", "/error/**"
             ).permitAll()
             .requestMatchers("/buyer/**").permitAll()
@@ -55,7 +56,7 @@ public class SecurityConfig {
             .anyRequest().authenticated() 
         )
         .formLogin(form -> form
-            .loginPage("/common/select_login") 
+            .loginPage("/error/alert") 
             .permitAll()
         )
         .logout(logout -> logout
@@ -77,9 +78,9 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-    configuration.setAllowedMethods(Arrays.asList("HEAD", "POST", "GET", "DELETE", "PUT"));
-    configuration.setAllowedHeaders(Arrays.asList("*"));
+    configuration.setAllowedOriginPatterns(List.of("*"));
+    configuration.setAllowedMethods(List.of("HEAD", "POST", "GET", "DELETE", "PUT"));
+    configuration.setAllowedHeaders(List.of("*"));
     configuration.setAllowCredentials(true);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

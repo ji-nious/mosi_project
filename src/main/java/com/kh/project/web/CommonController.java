@@ -1,11 +1,7 @@
 package com.kh.project.web;
 
-import com.kh.project.domain.buyer.svc.BuyerSVC;
-import com.kh.project.domain.seller.svc.SellerSVC;
-import com.kh.project.domain.entity.Buyer;
-import com.kh.project.domain.entity.Seller;
-import com.kh.project.util.CommonConstants;
 import com.kh.project.domain.entity.LoginMember;
+import com.kh.project.domain.SessionService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,114 +9,196 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.Optional;
 
 /**
  * 공통 컨트롤러
  */
 @Slf4j
 @Controller
+@RequestMapping("/")
 @RequiredArgsConstructor
 public class CommonController {
   
-  private final BuyerSVC buyerSVC;
-  private final SellerSVC sellerSVC;
+    private final SessionService sessionService;
 
-  /**
-   * 메인 페이지
-   */
-  @GetMapping("/")
-  public String home(HttpSession session, Model model) {
-    log.info("메인 페이지 요청");
-    
-    // 로그인 사용자 정보 조회
-    LoginMember loginMember = (LoginMember) session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
-    if (loginMember != null) {
-      try {
-        if (CommonConstants.MEMBER_TYPE_BUYER.equals(loginMember.getMemberType())) {
-          Optional<Buyer> buyerOpt = buyerSVC.findById(loginMember.getId());
-          if (buyerOpt.isPresent()) {
-            Buyer buyer = buyerOpt.get();
-            model.addAttribute("userNickname", buyer.getNickname());
-            model.addAttribute("userName", buyer.getName());
-          }
-        } else if (CommonConstants.MEMBER_TYPE_SELLER.equals(loginMember.getMemberType())) {
-          Optional<Seller> sellerOpt = sellerSVC.findById(loginMember.getId());
-          if (sellerOpt.isPresent()) {
-            Seller seller = sellerOpt.get();
-            model.addAttribute("userNickname", seller.getShopName()); // 판매자는 상호명을 닉네임으로 사용
-            model.addAttribute("userName", seller.getName());
-          }
+    /**
+     * 홈페이지 - 루트 경로 (메인 화면)
+     */
+    @GetMapping("/")
+    public String home(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        // 이미 로그인된 사용자 체크
+        LoginMember loginMember = sessionService.getCurrentUserInfo(session);
+        
+        // 성공 메시지가 있는 경우 (회원가입, 로그인 완료 등) 메시지를 보여준 후 리다이렉트
+        Object successMessage = model.asMap().get("success");
+        Object showSignupModal = model.asMap().get("showSignupModal");
+        Object showWithdrawModal = model.asMap().get("showWithdrawModal");
+        Object memberType = model.asMap().get("memberType");
+        
+        // 탈퇴 완료 모달 표시 (로그인 상태와 무관)
+        if (showWithdrawModal != null && (Boolean) showWithdrawModal) {
+            model.addAttribute("showWithdrawModal", true);
         }
-      } catch (Exception e) {
-        log.error("사용자 정보 조회 실패: {}", e.getMessage());
-      }
-    }
-    
-    return "home";
-  }
-
-  /**
-   * 공통 로그인 선택 페이지 (구매자/판매자 선택)
-   */
-  @GetMapping({"/login", "/common/select_login", "/common/select-login"})
-  public String loginSelect() {
-    log.info("로그인 유형 선택 페이지 요청");
-    return "common/select_login";
-  }
-
-  /**
-   * 회원가입 유형 선택 페이지 (구매자/판매자 선택)
-   */
-  @GetMapping({"/signup", "/common/select_signup"})
-  public String signupSelect() {
-    log.info("회원가입 유형 선택 페이지 요청");
-    return "common/select_signup";
-  }
-
-  /**
-   * 로그아웃 처리 (GET/POST 모두 지원)
-   */
-  @RequestMapping(value = "/logout", method = {RequestMethod.GET, RequestMethod.POST})
-  public String logout(HttpSession session, RedirectAttributes redirectAttributes) {
-    try {
-      if (session != null) {
-        Object loginMember = session.getAttribute(CommonConstants.LOGIN_MEMBER_KEY);
-        session.invalidate();
-
+        
+        if (successMessage != null && loginMember != null) {
+            // 회원가입 완료 시 모달 표시
+            if (showSignupModal != null && (Boolean) showSignupModal) {
+                model.addAttribute("showSignupModal", true);
+                if ("BUYER".equals(loginMember.getMemberType())) {
+                    model.addAttribute("targetUrl", "/buyer/info");
+                } else if ("SELLER".equals(loginMember.getMemberType())) {
+                    model.addAttribute("targetUrl", "/seller/dashboard");
+                }
+            } else {
+                // 로그인 완료 시 기존 리다이렉트 처리
+                if ("BUYER".equals(loginMember.getMemberType())) {
+                    log.info("구매자 로그인 완료 후 자동 리다이렉트: {}", loginMember.getId());
+                    return "redirect:/buyer/info";
+                } else if ("SELLER".equals(loginMember.getMemberType())) {
+                    log.info("판매자 로그인 완료 후 자동 리다이렉트: {}", loginMember.getId());
+                    return "redirect:/seller/dashboard";
+                }
+            }
+        }
+        
+        // 로그인 상태에 따른 메시지 설정
         if (loginMember != null) {
-          log.info("로그아웃 처리 완료 - 세션 무효화");
-          redirectAttributes.addFlashAttribute("message", "로그아웃되었습니다.");
-        } else {
-          log.info("이미 로그아웃된 상태");
-          redirectAttributes.addFlashAttribute("message", "이미 로그아웃된 상태입니다.");
+            if ("BUYER".equals(loginMember.getMemberType())) {
+                model.addAttribute("welcomeMessage", "안녕하세요, 구매자님!");
+                model.addAttribute("dashboardUrl", "/buyer/info");
+            } else if ("SELLER".equals(loginMember.getMemberType())) {
+                model.addAttribute("welcomeMessage", "안녕하세요, 판매자님!");
+                model.addAttribute("dashboardUrl", "/seller/dashboard");
+            }
         }
-      }
-
-      return "redirect:/";
-
-    } catch (Exception e) {
-      log.error("로그아웃 처리 중 오류 발생", e);
-      redirectAttributes.addFlashAttribute("message", "서버 오류가 발생했습니다.");
-      return "redirect:/";
+        
+        return "home";
     }
-  }
 
-  /**
-   * 회원가입 완료 모달 페이지
-   */
-  @GetMapping("/common/signup-complete")
-  public String signupComplete() {
-    log.info("회원가입 완료 페이지 요청");
-    return "common/signup_complete";
-  }
+    /**
+     * 로그인 선택 페이지
+     */
+    @GetMapping("/login")
+    public String selectLogin() {
+        log.info("로그인 선택 페이지 호출");
+        return "common/select_login";
+    }
 
-  @GetMapping("/common/juso-popup")
-  public String jusoPopup() {
-    log.info("주소 검색 팝업 요청");
-    return "common/juso_popup";
-  }
+    /**
+     * 로그인 선택 페이지 (추가 경로)
+     */
+    @GetMapping("/common/select-login")
+    public String selectLoginCommon() {
+        log.info("로그인 선택 페이지 호출 (/common/select-login)");
+        return "common/select_login";
+    }
+
+    /**
+     * 로그인 선택 페이지 (언더스코어 경로)
+     */
+    @GetMapping("/common/select_login")
+    public String selectLoginCommonUnderscore() {
+        log.info("로그인 선택 페이지 호출 (/common/select_login)");
+        return "common/select_login";
+    }
+
+    /**
+     * 회원가입 선택 페이지
+     */
+    @GetMapping("/signup")
+    public String selectSignup() {
+        log.info("회원가입 선택 페이지 호출");
+        return "common/select_signup";
+    }
+
+    /**
+     * 회원가입 선택 페이지 (추가 경로)
+     */
+    @GetMapping("/common/select-signup")
+    public String selectSignupCommon() {
+        log.info("회원가입 선택 페이지 호출 (/common/select-signup)");
+        return "common/select_signup";
+    }
+
+    /**
+     * 회원가입 선택 페이지 (언더스코어 경로)
+     */
+    @GetMapping("/common/select_signup")
+    public String selectSignupCommonUnderscore() {
+        log.info("회원가입 선택 페이지 호출 (/common/select_signup)");
+        return "common/select_signup";
+    }
+
+    /**
+     * 로그아웃 처리
+     */
+    @GetMapping("/logout")
+    public String logout(HttpSession session, RedirectAttributes redirectAttributes) {
+        log.info("로그아웃 처리 시작");
+        
+        LoginMember loginMember = sessionService.getCurrentUserInfo(session);
+        if (loginMember != null) {
+            log.info("로그아웃 처리: id={}, type={}", loginMember.getId(), loginMember.getMemberType());
+        }
+        
+        sessionService.logout(session);
+        
+        redirectAttributes.addFlashAttribute("success", "로그아웃 되었습니다.");
+        return "redirect:/";
+    }
+
+    /**
+     * 회원가입 완료 페이지
+     */
+    @GetMapping("/signup-complete")
+    public String signupComplete() {
+        log.info("회원가입 완료 페이지 호출");
+        return "common/signup_complete";
+    }
+
+    /**
+     * 탈퇴 완료 페이지
+     */
+    @GetMapping("/withdraw-complete")
+    public String withdrawComplete() {
+        log.info("탈퇴 완료 페이지 호출");
+        return "common/withdraw_complete";
+    }
+
+    /**
+     * 에러 알림 페이지 (Spring Security 로그인 페이지 대신 사용)
+     */
+    @GetMapping("/error/alert")
+    public String errorAlert() {
+        log.info("에러 알림 페이지 호출");
+        return "error/alert";
+    }
+
+    /**
+     * 주소 검색 팝업 페이지
+     */
+    @GetMapping("/juso-popup")
+    public String jusoPopup() {
+        log.info("주소 검색 팝업 페이지 호출");
+        return "common/juso_popup";
+    }
+
+    /**
+     * 주소 검색 팝업 페이지 (common 경로)
+     */
+    @GetMapping("/common/juso-popup")
+    public String jusoPopupCommon() {
+        log.info("주소 검색 팝업 페이지 호출 (/common/juso-popup)");
+        return "common/juso_popup";
+    }
+
+    /**
+     * 에러 페이지
+     */
+    @GetMapping("/error")
+    public String error() {
+        log.info("에러 페이지 호출");
+        return "error/error";
+    }
 }

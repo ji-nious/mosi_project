@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>구매자 회원 탈퇴</title>
+  <title>판매자 회원 탈퇴</title>
   <link rel="stylesheet" th:href="@{/css/style.css}">
   <style>
     * {
@@ -51,6 +51,16 @@
       padding: 40px;
     }
     
+    .error-alert {
+      color: #D8000C;
+      background-color: #FFD2D2;
+      border: 1px solid #D8000C;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
     .section {
       margin-bottom: 40px;
     }
@@ -60,6 +70,12 @@
       font-weight: 600;
       color: #333;
       margin-bottom: 15px;
+    }
+    
+    .required-mark {
+      color: #658352;
+      font-weight: 700;
+      margin-right: 3px;
     }
     
     .notice-section {
@@ -92,13 +108,19 @@
       margin-bottom: 30px;
     }
     
-    .password-input {
+        .password-input {
       width: 100%;
       padding: 15px;
-      border: 2px solid #e9ecef;
+      border: 2px solid #658352;
       border-radius: 8px;
       font-size: 1rem;
       transition: all 0.3s ease;
+    }
+
+    .password-input:hover {
+      border-color: #658352;
+      background: #f0f4ed;
+      box-shadow: 0 0 0 3px rgba(101, 131, 82, 0.1);
     }
     
     .password-input:focus {
@@ -302,6 +324,9 @@
 
   <!-- 컨텐츠 -->
   <div class="content">
+    <!-- 에러 메시지 표시 -->
+    <div th:if="${error}" class="error-alert" th:text="${error}"></div>
+    
     <form id="withdrawForm" th:action="@{/buyer/withdraw-status}" method="post">
       
       <!-- 탈퇴 안내 섹션 -->
@@ -316,9 +341,9 @@
         
         <ol class="notice-list">
           <li>회원 탈퇴 시 고객님의 개인정보는 「개인정보보호법」 및 「전자상거래 등에서의 소비자보호에 관한 법률」에 따라 처리됩니다.</li>
-          <li>탈퇴 시 고객님께서 보유하셨던 적립금 및 쿠폰은 모두 삭제되며 복구할 수 없습니다.</li>
+          <li>탈퇴 시 고객님께서 등록하신 모든 상품 정보 및 판매 내역은 즉시 삭제됩니다.</li>
           <li>회원 탈퇴 후 0개월간 재가입이 불가능합니다.</li>
-          <li>진행 중인 주문이 있는 경우 완료 후 탈퇴 처리됩니다. 탈퇴 시 주문 및 배송 조회가 제한됩니다.</li>
+          <li>미완료된 주문 및 정산이 있는 경우 완료 후 탈퇴 처리됩니다. 탈퇴 시 모든 판매 활동이 즉시 중단됩니다.</li>
           <li>탈퇴 후 고객 문의 및 서비스 이용에 제한이 있을 수 있습니다.</li>
         </ol>
       </div>
@@ -335,33 +360,33 @@
       <div class="section reason-section">
         <div class="section-title">무엇이 불편하셨나요?</div>
         <div class="reason-grid">
-          <div class="reason-item" data-value="service_nonuse">
+          <div class="reason-item" data-value="business_closure">
             <div class="reason-checkbox"></div>
-            <div class="reason-text">서비스 이용 중단</div>
+            <div class="reason-text">사업 종료</div>
           </div>
-          <div class="reason-item" data-value="delivery_issue">
+          <div class="reason-item" data-value="low_sales">
             <div class="reason-checkbox"></div>
-            <div class="reason-text">배송 불만</div>
+            <div class="reason-text">판매 실적 부진</div>
           </div>
-          <div class="reason-item" data-value="privacy_concern">
+          <div class="reason-item" data-value="commission_concern">
             <div class="reason-checkbox"></div>
-            <div class="reason-text">개인정보 보호 우려</div>
+            <div class="reason-text">수수료 부담</div>
           </div>
-          <div class="reason-item" data-value="product_dissatisfaction">
+          <div class="reason-item" data-value="operational_difficulty">
             <div class="reason-checkbox"></div>
-            <div class="reason-text">상품 가격 불만</div>
+            <div class="reason-text">운영상의 어려움</div>
           </div>
-          <div class="reason-item" data-value="customer_service">
+          <div class="reason-item" data-value="service_dissatisfaction">
             <div class="reason-checkbox"></div>
-            <div class="reason-text">교환/환불/반품 불만</div>
+            <div class="reason-text">서비스 불만족</div>
           </div>
-          <div class="reason-item" data-value="system_errors">
+          <div class="reason-item" data-value="system_issues">
             <div class="reason-checkbox"></div>
             <div class="reason-text">시스템 오류 빈발</div>
           </div>
           <div class="reason-item" data-value="competitor_migration">
             <div class="reason-checkbox"></div>
-            <div class="reason-text">타 서비스 이전</div>
+            <div class="reason-text">타 플랫폼 이전</div>
           </div>
           <div class="reason-item" data-value="other">
             <div class="reason-checkbox"></div>
@@ -381,15 +406,13 @@
       <!-- 버튼 그룹 -->
       <div class="button-group">
         <button type="button" class="btn btn-cancel" onclick="history.back()">취소</button>
-        <button type="submit" class="btn btn-submit" id="submitBtn" disabled>탈퇴</button>
+                  <button type="submit" class="btn btn-submit" id="submitBtn" disabled>다음 단계</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- 에러/성공 메시지 표시 -->
-<div th:if="${error}" style="position: fixed; top: 20px; right: 20px; background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; border: 1px solid #f5c6cb; z-index: 1000;" th:text="${error}"></div>
-<div th:if="${message}" style="position: fixed; top: 20px; right: 20px; background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; border: 1px solid #c3e6cb; z-index: 1000;" th:text="${message}"></div>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

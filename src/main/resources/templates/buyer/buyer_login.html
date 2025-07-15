@@ -116,6 +116,12 @@
             color: var(--color-text);
         }
 
+        .required-mark {
+            color: #658352;
+            font-weight: bold;
+            margin-right: 3px;
+        }
+
         .form-control {
             width: 100%;
             padding: 12px 16px;
@@ -199,16 +205,50 @@
                 <label for="email">이메일</label>
                 <input type="email" th:field="*{email}" class="form-control" placeholder="이메일 주소" required>
                 <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error-text"></div>
+                <div id="emailError" class="error-text" style="display: none;">이메일 형식으로 입력하세요.</div>
             </div>
             <div class="form-group">
                 <label for="password">비밀번호</label>
-                <input type="password" th:field="*{password}" class="form-control" placeholder="비밀번호" required>
+                <input type="password" th:field="*{password}" class="form-control" placeholder="8~15자, 영문/숫자/특수문자 포함" required>
                 <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="error-text"></div>
             </div>
             <button type="submit" class="login-button">로그인</button>
         </form>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const emailInput = document.querySelector('input[name="email"]');
+            const emailError = document.getElementById('emailError');
+            const form = document.querySelector('.login-form');
+            
+            // 이메일 형식 검증 함수
+            function validateEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+            
+            // 이메일 입력 시 실시간 검증
+            emailInput.addEventListener('input', function() {
+                if (this.value.length > 0 && !validateEmail(this.value)) {
+                    emailError.style.display = 'block';
+                } else {
+                    emailError.style.display = 'none';
+                }
+            });
+            
 
+            
+            // 폼 제출 시 검증
+            form.addEventListener('submit', function(e) {
+                // 이메일 검증
+                if (!validateEmail(emailInput.value)) {
+                    e.preventDefault();
+                    emailError.style.display = 'block';
+                    emailInput.focus();
+                }
+            });
+        });
+    </script>
 </body>
 </html>

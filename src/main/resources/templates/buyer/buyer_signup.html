@@ -148,6 +148,12 @@
             outline: none;
         }
 
+        .required-mark {
+            color: #658352;
+            font-weight: bold;
+            margin-right: 3px;
+        }
+
         .postcode-group {
             display: flex;
             gap: 10px;
@@ -207,7 +213,10 @@
             color: var(--color-danger);
             font-size: 0.8rem;
             margin-top: 6px;
-            min-height: 1.2em;
+        }
+
+        .error-msg:empty {
+            display: none;
         }
 
         .error-message, .success-message {
@@ -219,9 +228,9 @@
         }
 
         .error-message {
-            background-color: #ffebee;
-            color: #c62828;
-            border: 1px solid #ef5350;
+            background-color: #FFF4E6;
+            color: #8B5A00;
+            border: 1px solid #D69E2E;
         }
 
         .success-message {
@@ -245,8 +254,8 @@
             </a>
             <!-- 로그인 상태에 따른 네비게이션 버튼 -->
             <div class="navbar-buttons" th:if="${session.loginMember == null}">
-                <a th:href="@{/login}" class="btn-outline">로그인</a>
-                <a th:href="@{/signup}" class="btn-filled">회원가입</a>
+                <a th:href="@{/common/select-login}" class="btn-outline">로그인</a>
+                <a th:href="@{/common/select-signup}" class="btn-filled">회원가입</a>
             </div>
             <div class="navbar-buttons" th:if="${session.loginMember != null}">
                 <span class="welcome-message" th:text="${userNickname} + '님, 환영합니다.'"></span>
@@ -303,10 +312,10 @@
             </div>
 
             <div class="form-row">
-                <label for="password2">비밀번호 확인</label>
+                <label for="passwordConfirm">비밀번호 확인</label>
                 <div class="input-col">
-                    <input type="password" id="password2" name="password2" required placeholder="비밀번호를 다시 한번 입력해주세요" />
-                    <div class="error-msg" id="error-password2"></div>
+                    <input type="password" th:field="*{passwordConfirm}" required placeholder="비밀번호를 다시 한번 입력해주세요" />
+                    <div th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}" class="error-msg"></div>
                 </div>
             </div>
 
@@ -314,7 +323,7 @@
                 <label for="tel">전화번호</label>
                 <div class="input-col">
                     <input type="text" th:field="*{tel}" maxlength="13" placeholder="010-1234-5678" required />
-                    <div class="error-msg" id="error-tel"></div>
+                    <div th:if="${#fields.hasErrors('tel')}" th:errors="*{tel}" class="error-msg"></div>
                 </div>
             </div>
 
@@ -341,13 +350,14 @@
             <div class="form-row">
                 <label for="postcode">주소</label>
                 <div class="input-col">
+                    <div th:if="${#fields.hasErrors('postcode')}" th:errors="*{postcode}" class="error-msg"></div>
                     <div class="postcode-group">
                         <input type="text" id="postcode" th:field="*{postcode}" placeholder="우편번호" readonly>
                         <button type="button" id="searchPostcodeBtn" onclick="openAddressPopup()">주소 검색</button>
                     </div>
                     <input type="text" id="address" th:field="*{address}" placeholder="주소" readonly>
                     <input type="text" id="detailAddress" th:field="*{detailAddress}" placeholder="상세주소를 입력해주세요">
-                    <div class="error-msg" id="error-address"></div>
+                    <div th:if="${#fields.hasErrors('detailAddress')}" th:errors="*{detailAddress}" class="error-msg"></div>
                 </div>
             </div>
 
