@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <!-- 공통 headFragment: title, 메타, CSS 링크 등 -->
+  <th:block th:fragment="headFragment(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">기본 타이틀</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+  </th:block>
+</head>
+<body>
+<!-- 공통 navbarFragment: 상단 내비게이션 -->
+<div th:fragment="navbarFragment">
+  <nav class="navbar">
+    <ul class="nav-list">
+      <li><a th:href="@{/}">홈</a></li>
+      <li><a th:href="@{/seller/login}">판매자 로그인</a></li>
+      <li><a th:href="@{/buyer/login}">구매자 로그인</a></li>
+      <li><a th:href="@{/product/list}">상품 목록</a></li>
+      <!-- 필요 시 더 추가 -->
+    </ul>
+  </nav>
+</div>
+</body>
+</html>

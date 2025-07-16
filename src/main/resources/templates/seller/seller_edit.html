@@ -1,231 +1,205 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>판매자 정보 수정</title>
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Inter:wght@400;600&display=swap');
         :root {
-            --dl-color-theme-primary1: #658352;
-            --dl-color-theme-primary2: #94A687;
-            --dl-color-theme-neutral-dark: #1E2203;
-            --dl-color-theme-neutral-light: #FBF9EF;
-            --dl-color-theme-secondary1: #E9E7DE;
-            --dl-color-theme-secondary2: #F5F4ED;
-            --dl-layout-size-maxwidth: 1400px;
+            --color-primary: #658352;
+            --color-white: #ffffff;
+            --color-background: #FBF9EF;
+            --color-text: #1E2203;
+            --color-danger: #e74c3c;
+            --layout-max-width: 1400px;
         }
         body {
             margin: 0;
             font-family: 'Inter', 'Cabin', sans-serif;
-            background-color: var(--dl-color-theme-neutral-light);
-            color: var(--dl-color-theme-neutral-dark);
+            background-color: var(--color-background);
+            color: var(--color-text);
+            padding-top: 80px; /* For fixed navbar */
         }
-        /* Navbar */
-        .navbar8-container1 {
-            top: 0; width: 100%; display: flex; z-index: 1000; position: sticky;
-            justify-content: center; background: var(--dl-color-theme-neutral-light);
+        /* --- Navbar Styles --- */
+        .navbar-container {
+            top: 0; left: 0; width: 100%; display: flex; z-index: 1000; position: fixed;
+            justify-content: center; background: var(--color-white);
             box-shadow: 0 2px 12px 0 rgba(0,0,0,0.06);
         }
-        .navbar8-navbar-interactive {
-            width: 100%; display: flex; max-width: var(--dl-layout-size-maxwidth);
-            align-items: center; padding: 24px 48px; justify-content: space-between;
+        .navbar {
+            width: 100%; display: flex; max-width: var(--layout-max-width);
+            align-items: center; padding: 16px 48px; justify-content: space-between;
         }
-        .navbar8-image1 { height: 3rem; border-radius: 8px; }
-        .navbar8-buttons1 { gap: 32px; display: flex; align-items: center; }
-        .thq-button-filled, .thq-button-outline {
-            display: flex; align-items: center; font-weight: bold; padding: 10px 32px;
+        .navbar-logo-img { height: 3rem; border-radius: 8px; }
+        .navbar-buttons { gap: 16px; display: flex; align-items: center; }
+        .btn-filled, .btn-outline {
+            display: flex; align-items: center; font-weight: bold; padding: 10px 24px;
             border-radius: 24px; font-size: 1rem; text-decoration: none;
-            transition: background .2s, color .2s; cursor: pointer;
+            transition: all .2s; cursor: pointer; border: 1px solid var(--color-primary);
         }
-        .thq-button-filled {
-            color: var(--dl-color-theme-secondary1); border: 1px solid var(--dl-color-theme-primary1);
-            background: var(--dl-color-theme-primary1);
-        }
-        .thq-button-outline {
-            color: var(--dl-color-theme-primary1); border: 1px solid var(--dl-color-theme-primary1);
-            background: transparent;
-        }
+        .btn-filled { color: var(--color-white); background: var(--color-primary); }
+        .btn-filled:hover { opacity: 0.9; }
+        .btn-outline { color: var(--color-primary); background: transparent; }
+        .btn-outline:hover { background: rgba(101, 131, 82, 0.1); }
+
         h2 {
             font-family: 'Cabin', sans-serif; font-weight: 700;
-            color: #658352; text-align: center;
+            color: var(--color-primary); text-align: center; font-size: 2.2rem;
+            margin-bottom: 30px;
         }
         form {
-            background-color: white; padding: 30px; border-radius: 20px;
+            background-color: white; padding: 40px 50px; border-radius: 20px;
             box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-            width: fit-content; margin: 40px auto;
+            width: 100%; max-width: 600px; margin: 40px auto;
+            box-sizing: border-box;
         }
         .form-row {
-            display: flex; align-items: flex-start; gap: 10px; margin-bottom: 20px;
+            display: flex; align-items: flex-start; gap: 16px; margin-bottom: 18px;
         }
         label {
-            width: 140px; font-weight: bold; margin-top: 10px; flex-shrink: 0;
+            width: 140px; font-weight: bold; padding-top: 10px; flex-shrink: 0;
+            font-size: 0.95rem; text-align: left;
         }
         .input-col {
-            flex: 1; display: flex; flex-direction: column; width: 360px;
+            flex: 1; display: flex; flex-direction: column;
         }
         input, textarea {
-            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;
-            font-size: 1rem; box-sizing: border-box;
+            width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #ccc;
+            font-size: 1rem; box-sizing: border-box; transition: border-color 0.2s;
         }
-        input:focus, textarea:focus { border-color: #658352; outline: none; }
+        input:focus, textarea:focus { border-color: var(--color-primary); outline: none; }
         input[readonly] { background-color: #f0f0f0; cursor: not-allowed; }
         .error-msg {
-            color: red; font-size: 0.85rem; min-height: 1.2em; padding-top: 4px;
+            color: var(--color-danger); font-size: 0.8rem; min-height: 1.2em; margin-top: 6px;
         }
-        .postcode-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+        .address-search-container {
+            display: flex; gap: 10px; margin-bottom: 10px;
         }
-
-        #postcode { 
-            background-color: #f8f9fa; 
+        #btn-postcode {
+            padding: 10px 16px; font-size: 0.9rem; font-weight: bold;
+            border-radius: 8px; border: 1px solid var(--color-primary);
+            background-color: transparent; color: var(--color-primary);
+            cursor: pointer; flex-shrink: 0; transition: all 0.2s;
         }
-
-        #searchPostcodeBtn {
-            padding: 10px 16px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            border-radius: 8px;
-            border: 1px solid #658352;
-            background-color: transparent;
-            color: #658352;
-            cursor: pointer;
-            flex-shrink: 0;
-            transition: all 0.2s;
+        #btn-postcode:hover { background-color: rgba(101, 131, 82, 0.1); }
+        .form-actions {
+            display: flex; justify-content: flex-end; gap: 12px;
+            margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;
         }
-
-        #searchPostcodeBtn:hover {
-            background-color: #658352;
-            color: #fff;
+        .form-actions a, .form-actions button {
+            width: auto; padding: 12px 28px; font-size: 1rem; font-weight: bold;
+            border-radius: 24px; border: 1px solid var(--color-primary); cursor: pointer;
+            text-decoration: none;
         }
-
-        #address, #detailAddress { 
-            margin-bottom: 10px; 
-        }
-
-        #address { 
-            background-color: #f8f9fa; 
-        }
-        .form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; }
-        .form-actions button {
-            width: 120px; padding: 12px 0; font-size: 1rem; font-weight: bold;
-            border-radius: 24px; border: 1px solid #658352; cursor: pointer;
-        }
-        #update-btn { background-color: #658352; color: white; }
-        #cancel-btn { background-color: transparent; color: #658352; }
-        
-        /* 필수 입력 별표 스타일링 */
-        .required-mark {
-            color: #658352;
-            font-weight: bold;
-            margin-right: 5px;
-        }
+        #update-btn { background-color: var(--color-primary); color: white; }
+        #cancel-btn { background-color: transparent; color: var(--color-primary); }
     </style>
 </head>
 <body>
 <!-- Navbar -->
-<header class="navbar8-container1">
-    <div class="navbar8-navbar-interactive">
-        <a th:href="@{/seller/dashboard}">
-            <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="로고" class="navbar8-image1"/>
+<header class="navbar-container">
+    <div class="navbar">
+        <a th:href="@{/}">
+            <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="로고" class="navbar-logo-img"/>
         </a>
-        <div class="navbar8-buttons1">
-            <button onclick="logout()" class="thq-button-outline">로그아웃</button>
-            <button onclick="location.href='/seller/dashboard'" class="thq-button-filled">대시보드</button>
+        <div class="navbar-buttons">
+            <a th:href="@{/logout}" class="btn-outline">로그아웃</a>
+            <a th:href="@{/seller/dashboard}" class="btn-filled">대시보드</a>
         </div>
     </div>
 </header>
 
 <!-- 판매자 정보 수정 폼 -->
-<form th:action="@{/seller/edit}" method="post" th:object="${sellerEditForm}">
+<form th:action="@{/seller/edit}" th:object="${seller}" method="post">
     <h2>판매자 정보 수정</h2>
-
-    <!-- 전역 오류 메시지 표시 -->
-    <div th:if="${#fields.hasGlobalErrors()}">
-        <div class="error-msg" th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>
-    </div>
 
     <div class="form-row">
         <label for="email">이메일</label>
         <div class="input-col">
-            <input type="email" id="email" name="email" th:value="${seller.email}" readonly>
+            <input type="email" th:field="*{email}" readonly>
         </div>
     </div>
 
     <div class="form-row">
         <label for="password">새 비밀번호</label>
         <div class="input-col">
-            <input type="password" id="password" th:field="*{password}" placeholder="8~15자, 영문+숫자+특수문자" required>
+            <input type="password" th:field="*{password}" placeholder="변경 시에만 8~15자, 영문+숫자+특수문자">
             <div class="error-msg" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
         </div>
     </div>
-    
+
+<!--    <div class="form-row">-->
+<!--        <label for="password2">새 비밀번호 확인</label>-->
+<!--        <div class="input-col">-->
+<!--            <input type="password" name="password2" id="password2" placeholder="비밀번호 다시 입력">-->
+<!--            <div class="error-msg" th:if="${#fields.hasErrors('password2')}" th:errors="*{password2}"></div>-->
+<!--        </div>-->
+<!--    </div>-->
+
     <div class="form-row">
-        <label for="passwordConfirm">새 비밀번호 확인</label>
+        <label for="bizRegNo">사업자등록번호</label>
         <div class="input-col">
-            <input type="password" id="passwordConfirm" th:field="*{passwordConfirm}" placeholder="비밀번호 다시 입력" required>
-            <div class="error-msg" th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}"></div>
+            <input type="text" th:field="*{bizRegNo}" readonly>
         </div>
     </div>
 
-        <div class="form-row">
+    <div class="form-row">
+        <label for="shopName">상호명</label>
+        <div class="input-col">
+            <input type="text" th:field="*{shopName}" required>
+            <div class="error-msg" th:if="${#fields.hasErrors('shopName')}" th:errors="*{shopName}"></div>
+        </div>
+    </div>
+
+    <div class="form-row">
         <label for="name">대표자 이름</label>
         <div class="input-col">
-            <input type="text" id="name" name="name" th:value="${seller.name}" readonly>
+            <input type="text" th:field="*{name}" required>
+            <div class="error-msg" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
         </div>
     </div>
 
     <div class="form-row">
-        <label for="storeName">상호명</label>
+        <label for="postNumber">가게 주소</label>
         <div class="input-col">
-            <input type="text" id="storeName" name="storeName" th:value="${seller.shopName}" readonly>
-        </div>
-    </div>
-
-    <div class="form-row">
-        <label for="bizreg">사업자등록번호</label>
-        <div class="input-col">
-            <input type="text" id="bizreg" name="bizreg" th:value="${seller.bizRegNo}" readonly>
+            <div class="address-search-container">
+                <input type="text" th:field="*{postNumber}" placeholder="우편번호" readonly required>
+                <button type="button" id="btn-postNumber" class="address-search-btn">주소 검색</button>
+            </div>
+            <input type="text" th:field="*{address}" placeholder="주소" readonly required style="margin-bottom: 10px;">
+            <input type="text" th:field="*{detailAddress}" placeholder="상세주소를 입력해주세요." required>
+            <div class="error-msg" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+            <div class="error-msg" th:if="${#fields.hasErrors('detailAddress')}" th:errors="*{detailAddress}"></div>
         </div>
     </div>
 
     <div class="form-row">
         <label for="tel">전화번호</label>
         <div class="input-col">
-            <input type="text" id="tel" th:field="*{tel}" maxlength="15" placeholder="예: 02-1234-5678" required>
+            <input type="text" th:field="*{tel}" maxlength="13" required>
             <div class="error-msg" th:if="${#fields.hasErrors('tel')}" th:errors="*{tel}"></div>
         </div>
     </div>
 
-    <div class="form-row">
-        <label for="postcode">사업장 주소</label>
-        <div class="input-col">
-            <div class="postcode-group">
-                <input type="text" id="postcode" th:field="*{postcode}" placeholder="우편번호" readonly required>
-                <button type="button" id="searchPostcodeBtn" onclick="openAddressPopup()">주소 검색</button>
-            </div>
-            <div th:if="${#fields.hasErrors('postcode')}" th:errors="*{postcode}" class="error-msg"></div>
-            <input type="text" id="address" th:field="*{address}" placeholder="주소" readonly required>
-            <div th:if="${#fields.hasErrors('address')}" th:errors="*{address}" class="error-msg"></div>
-            <input type="text" id="detailAddress" th:field="*{detailAddress}" placeholder="상세주소를 입력해주세요" required>
-            <div th:if="${#fields.hasErrors('detailAddress')}" th:errors="*{detailAddress}" class="error-msg"></div>
-        </div>
-    </div>
-
     <div class="form-actions">
-        <button type="button" id="cancel-btn" onclick="location.href='/seller/info'">취소</button>
+        <a id="cancel-btn" th:href="@{/seller/info}">취소</a>
         <button type="submit" id="update-btn">수정하기</button>
     </div>
 </form>
 
-<script th:src="@{/js/common/logout.js}"></script>
 <script>
-function openAddressPopup() {
-    window.open('/common/juso-popup', 'popup', 'width=600,height=700,scrollbars=yes');
-}
+    // Daum Postcode API
+    document.getElementById('btn-postcode').addEventListener('click', function() {
+        new daum.Postcode({
+            oncomplete: function(data) {
+                document.getElementById('postcode').value = data.zonecode;
+                document.getElementById('address').value = data.roadAddress;
+                document.getElementById('detailAddress').focus();
+            }
+        }).open();
+    });
 </script>
 
 </body>
