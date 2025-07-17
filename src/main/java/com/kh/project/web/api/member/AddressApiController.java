@@ -1,4 +1,4 @@
-package com.kh.project.web.api;
+package com.kh.project.web.api.member;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;

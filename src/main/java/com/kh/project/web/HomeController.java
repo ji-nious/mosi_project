@@ -1,6 +1,7 @@
 package com.kh.project.web;
 
 import com.kh.project.domain.entity.LoginMember;
+import com.kh.project.domain.entity.MemberType;
 import com.kh.project.domain.SessionService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -11,16 +12,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * 공통 컨트롤러
- */
 @Slf4j
 @Controller
 @RequestMapping("/")
 @RequiredArgsConstructor
-public class CommonController {
-  
+public class HomeController {
+
     private final SessionService sessionService;
+
+    // Enum 기반 상수 사용 - MemberType 일관성 수정
+    private static final String MEMBER_TYPE_BUYER = MemberType.BUYER.getCode();
+    private static final String MEMBER_TYPE_SELLER = MemberType.SELLER.getCode();
 
     /**
      * 홈페이지 - 루트 경로 (메인 화면)
@@ -29,50 +31,41 @@ public class CommonController {
     public String home(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         // 이미 로그인된 사용자 체크
         LoginMember loginMember = sessionService.getCurrentUserInfo(session);
-        
-        // 성공 메시지가 있는 경우 (회원가입, 로그인 완료 등) 메시지를 보여준 후 리다이렉트
+
+        // 성공 메시지가 있는 경우 (로그인 완료 등) 메시지를 보여준 후 리다이렉트
         Object successMessage = model.asMap().get("success");
-        Object showSignupModal = model.asMap().get("showSignupModal");
+        Object showLoginModal = model.asMap().get("showLoginModal");
         Object showWithdrawModal = model.asMap().get("showWithdrawModal");
-        Object memberType = model.asMap().get("memberType");
-        
+
         // 탈퇴 완료 모달 표시 (로그인 상태와 무관)
         if (showWithdrawModal != null && (Boolean) showWithdrawModal) {
             model.addAttribute("showWithdrawModal", true);
         }
-        
-        if (successMessage != null && loginMember != null) {
-            // 회원가입 완료 시 모달 표시
-            if (showSignupModal != null && (Boolean) showSignupModal) {
-                model.addAttribute("showSignupModal", true);
-                if ("BUYER".equals(loginMember.getMemberType())) {
-                    model.addAttribute("targetUrl", "/buyer/info");
-                } else if ("SELLER".equals(loginMember.getMemberType())) {
-                    model.addAttribute("targetUrl", "/seller/dashboard");
-                }
+
+        if (successMessage != null) {
+            if (showLoginModal != null && (Boolean) showLoginModal && loginMember != null) {
+                // 로그인 완료 시 모달 표시 (success 메시지는 설정하지 않음)
+                model.addAttribute("showLoginModal", true);
+                model.addAttribute("loginMessage", successMessage);
+                log.info("로그인 완료 모달 표시: {}", successMessage);
             } else {
-                // 로그인 완료 시 기존 리다이렉트 처리
-                if ("BUYER".equals(loginMember.getMemberType())) {
-                    log.info("구매자 로그인 완료 후 자동 리다이렉트: {}", loginMember.getId());
-                    return "redirect:/buyer/info";
-                } else if ("SELLER".equals(loginMember.getMemberType())) {
-                    log.info("판매자 로그인 완료 후 자동 리다이렉트: {}", loginMember.getId());
-                    return "redirect:/seller/dashboard";
-                }
+                // 기타 성공 메시지 표시 (로그인 모달이 없을 때만)
+                model.addAttribute("success", successMessage);
+                log.info("성공 메시지 표시: {}", successMessage);
             }
         }
-        
+
         // 로그인 상태에 따른 메시지 설정
         if (loginMember != null) {
-            if ("BUYER".equals(loginMember.getMemberType())) {
+            if (MEMBER_TYPE_BUYER.equals(loginMember.getMemberType())) {
                 model.addAttribute("welcomeMessage", "안녕하세요, 구매자님!");
                 model.addAttribute("dashboardUrl", "/buyer/info");
-            } else if ("SELLER".equals(loginMember.getMemberType())) {
+            } else if (MEMBER_TYPE_SELLER.equals(loginMember.getMemberType())) {
                 model.addAttribute("welcomeMessage", "안녕하세요, 판매자님!");
                 model.addAttribute("dashboardUrl", "/seller/dashboard");
             }
         }
-        
+
         return "home";
     }
 
@@ -113,7 +106,7 @@ public class CommonController {
     }
 
     /**
-     * 회원가입 선택 페이지 (추가 경로)
+     * 회원가입 선택 페이지
      */
     @GetMapping("/common/select-signup")
     public String selectSignupCommon() {
@@ -136,14 +129,14 @@ public class CommonController {
     @GetMapping("/logout")
     public String logout(HttpSession session, RedirectAttributes redirectAttributes) {
         log.info("로그아웃 처리 시작");
-        
+
         LoginMember loginMember = sessionService.getCurrentUserInfo(session);
         if (loginMember != null) {
             log.info("로그아웃 처리: id={}, type={}", loginMember.getId(), loginMember.getMemberType());
         }
-        
+
         sessionService.logout(session);
-        
+
         redirectAttributes.addFlashAttribute("success", "로그아웃 되었습니다.");
         return "redirect:/";
     }
@@ -154,6 +147,7 @@ public class CommonController {
     @GetMapping("/signup-complete")
     public String signupComplete() {
         log.info("회원가입 완료 페이지 호출");
+        log.info("common/signup_complete 템플릿 반환");
         return "common/signup_complete";
     }
 
@@ -167,7 +161,7 @@ public class CommonController {
     }
 
     /**
-     * 에러 알림 페이지 (Spring Security 로그인 페이지 대신 사용)
+     * 에러 알림 페이지
      */
     @GetMapping("/error/alert")
     public String errorAlert() {
@@ -193,12 +187,12 @@ public class CommonController {
         return "common/juso_popup";
     }
 
-    /**
-     * 에러 페이지
-     */
+    // Spring Boot 기본 에러 처리를 사용하도록 함
+    /*
     @GetMapping("/error")
     public String error() {
         log.info("에러 페이지 호출");
         return "error/error";
     }
+    */
 }

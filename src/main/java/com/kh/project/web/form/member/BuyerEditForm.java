@@ -1,6 +1,5 @@
 package com.kh.project.web.common.form;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -9,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+
 import java.util.Date;
 
 @Data
@@ -16,10 +16,8 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BuyerEditForm {
-  
-  // 이메일 (읽기 전용으로 표시용)
-  @Email(message = "올바른 이메일 형식이 아닙니다.")
-  @Size(max = 50, message = "이메일은 50자 이내여야 합니다.")
+
+  // 이메일 (읽기 전용)
   private String email;
   
   // 비밀번호 (필수)

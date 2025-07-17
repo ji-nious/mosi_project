@@ -303,9 +303,9 @@
     <h2>판매자 센터</h2>
          <div class="actions">
        <!-- 판매글 목록 버튼 -->
-       <button onclick="location.href='/seller/products'">판매글 목록</button>
+       <button th:onclick="|location.href='/seller/list/${dashboardInfo.sellerId}'|">판매글 목록</button>
        <!-- 판매글 등록 버튼 -->
-       <button onclick="location.href='/seller/products/new'">판매글 등록</button>
+       <button th:onclick="|location.href='/seller/add/${dashboardInfo.sellerId}'|">판매글 등록</button>
      </div>
   </div>
 

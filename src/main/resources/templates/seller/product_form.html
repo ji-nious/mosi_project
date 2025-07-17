@@ -90,16 +90,14 @@
 <h2 class="page-title" th:text="${product == null ? '새 상품 등록' : '상품 정보 수정'}"></h2>
 
 <div class="form-container">
-  <form id="productForm" th:action="@{/seller/{sid}/add(sid=${sid})}" th:object="${product}" method="post">
-    <button type="submit">상품 등록</button>
-  </form>
-    <input type="hidden" th:field="*{id}" />
+  <form id="productForm" th:action="@{/seller/add/{sid}(sid=${sid})}" th:object="${product}" method="post">
+    <input type="hidden" th:field="*{productId}" />
 
     <div class="form-section">
       <h3>기본 정보</h3>
       <div class="form-group">
         <label for="productName">상품 이름</label>
-        <input type="text" id="productName" th:field="*{name}" placeholder="예: 유기농 햇감자" required>
+        <input type="text" id="productName" th:field="*{productName}" placeholder="예: 유기농 햇감자" required>
       </div>
       <div class="form-group">
         <label for="title">고객에게 보여줄 제목</label>
@@ -110,8 +108,8 @@
         <textarea id="content" th:field="*{content}" placeholder="상품에 대한 상세한 설명을 입력하세요." required></textarea>
       </div>
       <div class="form-group">
-        <label for="CountryOfOrigin">원산지</label>
-        <input type="text" id="CountryOfOrigin" th:field="*{CountryOfOrigin}" placeholder="예: 대한민국 강원도" required>
+        <label for="countryOfOrigin">원산지</label>
+        <input type="text" id="countryOfOrigin" th:field="*{countryOfOrigin}" placeholder="예: 대한민국 강원도" required>
       </div>
     </div>
 
@@ -148,11 +146,7 @@
       <h3>이미지 등록</h3>
       <div class="form-group">
         <label for="thumbnail">섬네일 사진 URL</label>
-        <input type="url" id="thumbnail" th:field="*{thumbnailUrl}" placeholder="대표 이미지 URL을 입력하세요">
-      </div>
-      <div class="form-group">
-        <label for="productImages">제품 사진 URL (쉼표(,)로 구분)</label>
-        <input type="text" id="productImages" th:field="*{imageUrls}" placeholder="추가 이미지 URL을 쉼표로 구분하여 입력하세요">
+        <input type="url" id="thumbnail" th:field="*{thumbnail}" placeholder="대표 이미지 URL을 입력하세요">
       </div>
     </div>
 
@@ -160,20 +154,20 @@
       <h3>배송 정보</h3>
       <div class="form-group">
         <label for="shippingFee">배송비 (원)</label>
-        <input type="number" id="shippingFee" th:field="*{shippingFee}" placeholder="무료배송 시 0 입력" required>
+        <input type="number" id="shippingFee" th:field="*{deliveryFee}" placeholder="무료배송 시 0 입력" required>
       </div>
       <div class="form-group">
         <label for="shippingMethod">배송 방법</label>
-        <textarea id="shippingMethod" th:field="*{shippingMethod}" rows="3" placeholder="예: CJ대한통운 (평일 오후 2시 이전 주문 시 당일 출고)"></textarea>
+        <textarea id="shippingMethod" th:field="*{deliveryMethod}" rows="3" placeholder="예: CJ대한통운 (평일 오후 2시 이전 주문 시 당일 출고)"></textarea>
       </div>
       <div class="form-group">
         <label for="shippingInfo">배송 안내</label>
-        <textarea id="shippingInfo" th:field="*{shippingInfo}" rows="3" placeholder="예: 제주 및 도서산간 지역은 추가 배송비가 발생할 수 있습니다."></textarea>
+        <textarea id="shippingInfo" th:field="*{deliveryInformation}" rows="3" placeholder="예: 제주 및 도서산간 지역은 추가 배송비가 발생할 수 있습니다."></textarea>
       </div>
     </div>
 
     <div class="form-actions">
-      <button type="button" class="cancel-btn" th:onclick="|location.href='@{/seller/products}'|">취소</button>
+      <button type="button" class="cancel-btn" th:onclick="|location.href='@{/seller/list/{sid}(sid=${sid})}'|">취소</button>
       <button type="submit" class="submit-btn">등록</button>
     </div>
   </form>

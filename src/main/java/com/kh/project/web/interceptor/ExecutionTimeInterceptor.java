@@ -24,7 +24,7 @@ public class ExecutionTimeInterceptor implements HandlerInterceptor {
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;   // ms  : 1/1000 초
 
-        if (handler instanceof HandlerMethod) {
+        if(handler instanceof HandlerMethod) {
             HandlerMethod handlerMethod = (HandlerMethod) handler;
             String className = handlerMethod.getBeanType().getSimpleName();  //컨트롤러 이름 추출
             String methodName = handlerMethod.getMethod().getName();        // 컨트롤러내의 메소드 추출
@@ -33,7 +33,8 @@ public class ExecutionTimeInterceptor implements HandlerInterceptor {
             StringBuffer requestURL = request.getRequestURL();      // 요청 url
 
             //소요시간 로그 출력
-            log.info("{}-{} : {}.{}() = {}ms", requestMethod, requestURL.toString(), className, methodName, duration);
+            log.info("{}-{} : {}.{}() = {}ms",requestMethod, requestURL.toString(), className, methodName, duration );
         }
+
     }
-} 
+}

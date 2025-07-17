@@ -3,7 +3,7 @@ package com.kh.project.domain.entity;
 import lombok.Getter;
 
 /**
- * 서비스 이용현황 enum
+ * 서비스 이용현황
  */
 @Getter
 public enum ServiceUsage {

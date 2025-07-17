@@ -147,7 +147,7 @@
   <h2 class="page-title">상품 목록</h2>
 
   <div class="list-container">
-    <form id="productActionForm" th:action="@{/seller/products/delete-selected}" method="post">
+    <form id="productActionForm" th:action="@{/seller/products/delete}" method="post">
       <div class="list-header">
         <div style="display:flex; gap:12px;">
           <a th:href="@{/seller/{sid}/add(sid=${sellerId})}" class="action-btn add-btn">상품 등록</a>
@@ -177,18 +177,18 @@
             - stat: 반복 상태 변수 (stat.count: 1부터 시작하는 인덱스)
         */-->
         <tr th:each="product, stat : ${products}">
-          <td><input type="checkbox" name="productIds" th:value="${product.id}" /></td>
+          <td><input type="checkbox" name="productIds" th:value="${product.productId}" /></td>
           <td th:text="${stat.count}">1</td>
           <td class="title">
-            <a th:href="@{/seller/products/{id}(id=${product.id})}" th:text="${product.title}">게시글 제목</a>
+            <a th:href="@{/seller/product/{pid}(pid=${product.productId})}" th:text="${product.title}">게시글 제목</a>
           </td>
           <td th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + '원'">18,000원</td>
           <td th:text="${product.quantity} + '개'">50개</td>
           <td>
-            <span class="status-tag" th:classappend="${product.status.name()}" th:text="${product.status.displayName}">판매중</span>
+            <span class="status-tag" th:classappend="${product.status}" th:text="${product.status}">판매중</span>
           </td>
-          <td th:text="${#temporals.format(product.createdAt, 'yyyy/MM/dd')}">2024/05/21</td>
-          <td><a th:href="@{/seller/products/{id}/edit(id=${product.id})}" class="edit-btn">수정</a></td>
+          <td th:text="${#temporals.format(product.cdate, 'yyyy/MM/dd')}">2024/05/21</td>
+          <td><a th:href="@{/seller/product/{pid}/edit(pid=${product.productId})}" class="edit-btn">수정</a></td>
         </tr>
         </tbody>
       </table>

@@ -2,8 +2,7 @@ package com.kh.project.domain.buyer.svc;
 
 import com.kh.project.domain.buyer.dao.BuyerDAO;
 import com.kh.project.domain.entity.Buyer;
-import com.kh.project.web.common.form.MemberStatusInfo;
-import com.kh.project.web.exception.BusinessValidationException;
+import com.kh.project.web.exception.BusinessException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -94,7 +93,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.join(testBuyer))
-                .isInstanceOf(BusinessValidationException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("?��? ?�용중인 ?�메?�입?�다");
 
             verify(buyerDAO).findByEmail(testBuyer.getEmail());
@@ -110,7 +109,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.join(testBuyer))
-                .isInstanceOf(BusinessValidationException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("?��? ?�용중인 ?�네?�입?�다");
 
             verify(buyerDAO).findByEmail(testBuyer.getEmail());
@@ -128,7 +127,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.join(testBuyer))
-                .isInstanceOf(BusinessValidationException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("계정 ?�활?�화???�패?�습?�다");
 
             verify(buyerDAO).rejoin(any(Buyer.class));
@@ -169,7 +168,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.login(email, "password"))
-                .isInstanceOf(BusinessValidationException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(buyerDAO).findByEmail(email);
         }
@@ -185,7 +184,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.login(email, "wrongPassword"))
-                .isInstanceOf(BusinessValidationException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(buyerDAO).findByEmail(email);
         }
@@ -200,7 +199,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.login(email, "password"))
-                .isInstanceOf(BusinessValidationException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(buyerDAO).findByEmail(email);
         }
@@ -216,7 +215,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.login(email, "password123"))
-                .isInstanceOf(BusinessValidationException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(buyerDAO).findByEmail(email);
         }
@@ -263,7 +262,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.update(buyerId, updateBuyer))
-                .isInstanceOf(BusinessValidationException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("?��? ?�용중인 ?�네?�입?�다");
 
             verify(buyerDAO).findById(buyerId);
@@ -330,7 +329,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.withdraw(buyerId, reason))
-                .isInstanceOf(BusinessValidationException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("구매?��? 찾을 ???�습?�다");
 
             verify(buyerDAO).findById(buyerId);
@@ -349,7 +348,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.withdraw(buyerId, reason))
-                .isInstanceOf(BusinessValidationException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("구매???�퇴 처리???�패?�습?�다");
 
             verify(buyerDAO).findById(buyerId);
@@ -470,7 +469,7 @@ class BuyerSVCImplJunitMockitoTest {
 
             // when & then
             assertThatThrownBy(() -> buyerSVC.getServiceUsage(buyerId))
-                .isInstanceOf(BusinessValidationException.class);
+                .isInstanceOf(BusinessException.class);
 
             verify(buyerDAO).findById(buyerId);
         }

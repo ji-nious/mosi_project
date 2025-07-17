@@ -291,7 +291,7 @@
         <div class="navbar-buttons">
              <th:block th:if="${session.loginMember != null}">
                 <a th:href="@{/seller/dashboard}" class="btn-filled">대시보드</a>
-                <a th:href="@{/seller/products}" class="btn-filled">판매글 목록</a>
+                <a th:href="@{/seller/list/{sellerId}(sellerId=${seller.sellerId})}" class="btn-filled">판매글 목록</a>
                 <a href="#" onclick="logout()" class="btn-outline">로그아웃</a>
             </th:block>
             <th:block th:unless="${session.loginMember != null}">

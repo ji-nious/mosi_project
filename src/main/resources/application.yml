@@ -35,4 +35,5 @@ logging:
 
 juso:
   api:
-    confmKey: U01TX0FVVEgyMDI1MDcxMDE0MzMzNTExNTkzMTE=
+    confmKey: "U01TX0FVVEgyMDI1MDcxMDE0MzMzNTExNTkzMTE="
+    url: "https://business.juso.go.kr/addrlink/addrLinkApi.do"

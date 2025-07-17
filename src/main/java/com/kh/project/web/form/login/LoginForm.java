@@ -1,4 +1,4 @@
-package com.kh.project.web.common.form;
+package com.kh.project.web.form.login;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

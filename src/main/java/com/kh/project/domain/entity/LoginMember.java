@@ -41,7 +41,7 @@ public class LoginMember {
         return LoginMember.builder()
                 .id(buyerId)
                 .email(email)
-                .memberType("BUYER")
+                .memberType(MemberType.BUYER.getCode())
                 .build();
     }
 
@@ -52,7 +52,7 @@ public class LoginMember {
         return LoginMember.builder()
                 .id(sellerId)
                 .email(email)
-                .memberType("SELLER")
+                .memberType(MemberType.SELLER.getCode())
                 .build();
     }
 }

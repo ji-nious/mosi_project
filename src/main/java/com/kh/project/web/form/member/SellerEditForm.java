@@ -1,6 +1,7 @@
 package com.kh.project.web.common.form;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SellerEditForm {
   
+  // 이메일 (읽기 전용)
+  private String email;
+  
   // 비밀번호
   @NotBlank(message = "비밀번호를 입력해주세요.")
   @Size(min = 8, max = 15, message = "")
@@ -25,19 +29,28 @@ public class SellerEditForm {
   @Size(min = 8, max = 15, message = "")
   private String passwordConfirm;
   
+  // 사업자등록번호 (읽기 전용)
+  private String bizRegNo;
+  
+  // 상호명
   @NotBlank(message = "상호명을 입력해주세요.")
   @Size(max = 33, message = "상호명은 33자 이내여야 합니다.")
   private String shopName;
   
+  // 대표자명
   @NotBlank(message = "대표자명을 입력해주세요.")  
   @Size(max = 10, message = "대표자명은 10자 이내여야 합니다.")
   private String name;
   
+  // 우편번호
+  @NotNull(message = "우편번호를 입력해주세요.")
+  private Integer postNumber;
+  
   // 주소
-  @NotBlank(message = "우편번호를 입력해주세요.")
-  private String postcode;
   @NotBlank(message = "주소를 입력해주세요.")
-  private String address;
+  private String shopAddress;
+  
+  // 상세주소
   @NotBlank(message = "상세주소를 입력해주세요.")
   private String detailAddress;
   
@@ -56,10 +69,10 @@ public class SellerEditForm {
   
   // 주소 통합 메서드
   public String getFullAddress() {
-    if (postcode != null && address != null) {
-      return String.format("(%s) %s %s", postcode, address, 
+    if (postNumber != null && shopAddress != null) {
+      return String.format("(%s) %s %s", postNumber, shopAddress, 
              detailAddress != null ? detailAddress : "").trim();
     }
-    return address;
+    return shopAddress;
   }
 } 

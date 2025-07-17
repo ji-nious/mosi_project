@@ -112,7 +112,7 @@
 </header>
 
 <!-- 판매자 정보 수정 폼 -->
-<form th:action="@{/seller/edit}" th:object="${seller}" method="post">
+<form th:action="@{/seller/edit}" th:object="${sellerEditForm}" method="post">
     <h2>판매자 정보 수정</h2>
 
     <div class="form-row">
@@ -165,12 +165,13 @@
         <label for="postNumber">가게 주소</label>
         <div class="input-col">
             <div class="address-search-container">
-                <input type="text" th:field="*{postNumber}" placeholder="우편번호" readonly required>
-                <button type="button" id="btn-postNumber" class="address-search-btn">주소 검색</button>
+                <input type="text" id="postNumber" th:field="*{postNumber}" placeholder="우편번호" required>
+                <button type="button" id="btn-postcode">주소 검색</button>
             </div>
-            <input type="text" th:field="*{address}" placeholder="주소" readonly required style="margin-bottom: 10px;">
-            <input type="text" th:field="*{detailAddress}" placeholder="상세주소를 입력해주세요." required>
-            <div class="error-msg" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+            <input type="text" id="shopAddress" th:field="*{shopAddress}" placeholder="주소" required style="margin-bottom: 10px;">
+            <input type="text" id="detailAddress" th:field="*{detailAddress}" placeholder="상세주소를 입력해주세요." required>
+            <div class="error-msg" th:if="${#fields.hasErrors('postNumber')}" th:errors="*{postNumber}"></div>
+            <div class="error-msg" th:if="${#fields.hasErrors('shopAddress')}" th:errors="*{shopAddress}"></div>
             <div class="error-msg" th:if="${#fields.hasErrors('detailAddress')}" th:errors="*{detailAddress}"></div>
         </div>
     </div>
@@ -194,8 +195,8 @@
     document.getElementById('btn-postcode').addEventListener('click', function() {
         new daum.Postcode({
             oncomplete: function(data) {
-                document.getElementById('postcode').value = data.zonecode;
-                document.getElementById('address').value = data.roadAddress;
+                document.getElementById('postNumber').value = data.zonecode;
+                document.getElementById('shopAddress').value = data.roadAddress;
                 document.getElementById('detailAddress').focus();
             }
         }).open();
