@@ -149,14 +149,15 @@ public class SellerDAOImpl implements SellerDAO {
     }
 
     /**
-     * 사업자번호 중복 체크 (모든 상태)
+     * 사업자번호 중복 체크 (활성 회원만) - DB 복합 UNIQUE 제약조건 (biz_reg_no, status)에 맞게 수정
      */
     @Override
     public boolean existsByBizRegNo(String bizRegNo) {
-        String sql = "SELECT COUNT(*) FROM SELLER WHERE BIZ_REG_NO = :bizRegNo";
+        String sql = "SELECT COUNT(*) FROM SELLER WHERE BIZ_REG_NO = :bizRegNo AND STATUS != :withdrawnStatus";
 
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("bizRegNo", bizRegNo);
+        params.addValue("withdrawnStatus", STATUS_WITHDRAWN);
 
         Integer count = template.queryForObject(sql, params, Integer.class);
         return count != null && count > 0;

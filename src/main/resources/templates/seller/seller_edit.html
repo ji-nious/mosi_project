@@ -52,7 +52,7 @@
         form {
             background-color: white; padding: 40px 50px; border-radius: 20px;
             box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-            width: 100%; max-width: 600px; margin: 40px auto;
+            width: 100%; max-width: 750px; margin: 40px auto;
             box-sizing: border-box;
         }
         .form-row {
@@ -101,7 +101,7 @@
 <!-- Navbar -->
 <header class="navbar-container">
     <div class="navbar">
-        <a th:href="@{/}">
+        <a th:href="@{/home}">
             <img th:src="@{/images/free-icon-sprout-7101338.png}" alt="로고" class="navbar-logo-img"/>
         </a>
         <div class="navbar-buttons">
@@ -154,7 +154,7 @@
     </div>
 
     <div class="form-row">
-        <label for="name">대표자 이름</label>
+                    <label for="name">대표자명</label>
         <div class="input-col">
             <input type="text" th:field="*{name}" required>
             <div class="error-msg" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
@@ -162,7 +162,15 @@
     </div>
 
     <div class="form-row">
-        <label for="postNumber">가게 주소</label>
+        <label for="tel">전화번호</label>
+        <div class="input-col">
+            <input type="text" th:field="*{tel}" maxlength="13" required>
+            <div class="error-msg" th:if="${#fields.hasErrors('tel')}" th:errors="*{tel}"></div>
+        </div>
+    </div>
+
+    <div class="form-row">
+                    <label for="postNumber">사업장 주소</label>
         <div class="input-col">
             <div class="address-search-container">
                 <input type="text" id="postNumber" th:field="*{postNumber}" placeholder="우편번호" required>
@@ -173,14 +181,6 @@
             <div class="error-msg" th:if="${#fields.hasErrors('postNumber')}" th:errors="*{postNumber}"></div>
             <div class="error-msg" th:if="${#fields.hasErrors('shopAddress')}" th:errors="*{shopAddress}"></div>
             <div class="error-msg" th:if="${#fields.hasErrors('detailAddress')}" th:errors="*{detailAddress}"></div>
-        </div>
-    </div>
-
-    <div class="form-row">
-        <label for="tel">전화번호</label>
-        <div class="input-col">
-            <input type="text" th:field="*{tel}" maxlength="13" required>
-            <div class="error-msg" th:if="${#fields.hasErrors('tel')}" th:errors="*{tel}"></div>
         </div>
     </div>
 

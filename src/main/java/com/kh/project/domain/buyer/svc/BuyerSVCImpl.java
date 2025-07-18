@@ -1,6 +1,7 @@
 package com.kh.project.domain.buyer.svc;
 
 import com.kh.project.domain.buyer.dao.BuyerDAO;
+import com.kh.project.domain.seller.dao.SellerDAO;
 import com.kh.project.domain.entity.Buyer;
 import com.kh.project.domain.entity.MemberGubun;
 import com.kh.project.domain.entity.MemberStatus;
@@ -20,6 +21,7 @@ import java.util.Optional;
 public class BuyerSVCImpl implements BuyerSVC {
 
     private final BuyerDAO buyerDAO;
+    private final SellerDAO sellerDAO;
 
     @Override
     public Buyer save(Buyer buyer) {
@@ -92,7 +94,7 @@ public class BuyerSVCImpl implements BuyerSVC {
     @Override
     public boolean existsByEmail(String email) {
         log.debug("이메일 중복 체크: email={}", email);
-        return buyerDAO.existsByEmail(email);
+        return buyerDAO.existsByEmail(email) || sellerDAO.existsByEmail(email);
     }
 
     @Override
@@ -279,7 +281,7 @@ public class BuyerSVCImpl implements BuyerSVC {
             return "알 수 없음";
         }
         try {
-            return MemberStatus.fromCode(buyer.getStatus()).getDescription();
+            return MemberStatus.fromCode(buyer.getStatus()).getCode();
         } catch (IllegalArgumentException e) {
             return "알 수 없음";
         }

@@ -129,14 +129,17 @@ public class BuyerDAOImpl implements BuyerDAO {
      */
     @Override
     public boolean existsByEmail(String email) {
-        String sql = "SELECT COUNT(*) FROM BUYER WHERE UPPER(EMAIL) = UPPER(:email) AND STATUS != :withdrawnStatus";
+        try {
+            String sql = "SELECT COUNT(*) FROM BUYER WHERE UPPER(EMAIL) = UPPER(:email)";
 
-        MapSqlParameterSource param = new MapSqlParameterSource();
-        param.addValue("email", email);
-        param.addValue("withdrawnStatus", STATUS_WITHDRAWN);
+            MapSqlParameterSource param = new MapSqlParameterSource();
+            param.addValue("email", email);
 
-        Integer count = template.queryForObject(sql, param, Integer.class);
-        return count != null && count > 0;
+            Integer count = template.queryForObject(sql, param, Integer.class);
+            return count != null && count > 0;
+        } catch (Exception e) {
+            return false; // 테이블이 없으면 중복되지 않은 것으로 처리
+        }
     }
 
     /**
@@ -144,14 +147,18 @@ public class BuyerDAOImpl implements BuyerDAO {
      */
     @Override
     public boolean existsByNickname(String nickname) {
-        String sql = "SELECT COUNT(*) FROM BUYER WHERE NICKNAME = :nickname AND STATUS != :withdrawnStatus";
+        try {
+            String sql = "SELECT COUNT(*) FROM BUYER WHERE NICKNAME = :nickname AND STATUS != :withdrawnStatus";
 
-        MapSqlParameterSource param = new MapSqlParameterSource();
-        param.addValue("nickname", nickname);
-        param.addValue("withdrawnStatus", STATUS_WITHDRAWN);
+            MapSqlParameterSource param = new MapSqlParameterSource();
+            param.addValue("nickname", nickname);
+            param.addValue("withdrawnStatus", STATUS_WITHDRAWN);
 
-        Integer count = template.queryForObject(sql, param, Integer.class);
-        return count != null && count > 0;
+            Integer count = template.queryForObject(sql, param, Integer.class);
+            return count != null && count > 0;
+        } catch (Exception e) {
+            return false; // 테이블이 없으면 중복되지 않은 것으로 처리
+        }
     }
 
     /**

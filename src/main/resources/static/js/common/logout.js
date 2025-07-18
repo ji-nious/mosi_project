@@ -27,7 +27,7 @@ function logout() {
           alert("로그아웃 되었습니다.");
         }
         setTimeout(() => {
-          window.location.href = "/";
+          window.location.href = "/home";
         }, 1000);
       }
     })

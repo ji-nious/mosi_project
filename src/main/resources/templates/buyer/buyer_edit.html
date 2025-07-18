@@ -17,16 +17,11 @@
         }
 
         body {
+            margin: 0;
             font-family: 'Inter', 'Cabin', sans-serif;
             background-color: var(--color-background);
             color: var(--color-text);
-            margin: 0;
-            padding: 120px 20px 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
+            padding-top: 80px; /* For fixed navbar */
         }
 
         /* --- Navbar Styles --- */
@@ -80,51 +75,61 @@
         }
         .btn-outline:hover { background: rgba(101, 131, 82, 0.1); }
         
-        .edit-container {
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
-        }
-
-        .edit-container h1 {
-            font-size: 2.5rem;
-            color: var(--color-primary);
+        h2 {
+            font-family: 'Cabin', sans-serif; 
+            font-weight: 700;
+            color: var(--color-primary); 
+            text-align: center; 
+            font-size: 2.2rem;
             margin-bottom: 30px;
         }
 
-        .edit-form {
-            background-color: var(--color-white);
-            padding: 40px 50px;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-            text-align: left;
+        form {
+            background-color: white; 
+            padding: 40px 50px; 
+            border-radius: 20px;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+            width: 100%; 
+            max-width: 750px; 
+            margin: 40px auto;
+            box-sizing: border-box;
         }
 
         .form-row {
-            margin-bottom: 20px;
+            display: flex; 
+            align-items: flex-start; 
+            gap: 16px; 
+            margin-bottom: 18px;
         }
 
-        .form-row label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #333;
+        label {
+            width: 140px; 
+            font-weight: bold; 
+            padding-top: 10px; 
+            flex-shrink: 0;
+            font-size: 0.95rem; 
+            text-align: left;
         }
 
-        .form-row input, .form-row select {
-            width: 100%;
-            padding: 12px;
-            font-size: 1rem;
-            border: 1px solid var(--color-border);
-            border-radius: 8px;
-            box-sizing: border-box;
+        .input-col {
+            flex: 1; 
+            display: flex; 
+            flex-direction: column;
+        }
+
+        input, select {
+            width: 100%; 
+            padding: 10px 12px; 
+            border-radius: 8px; 
+            border: 1px solid #ccc;
+            font-size: 1rem; 
+            box-sizing: border-box; 
             transition: border-color 0.2s;
         }
         
-        .form-row input:focus, .form-row select:focus {
-            outline: none;
-            border-color: var(--color-primary);
+        input:focus, select:focus { 
+            border-color: var(--color-primary); 
+            outline: none; 
         }
 
         .required-mark {
@@ -133,9 +138,16 @@
             margin-right: 3px;
         }
 
-        .form-row input[readonly], .form-row select[disabled] {
-            background-color: #f0f0f0;
-            cursor: not-allowed;
+        input[readonly] { 
+            background-color: #f0f0f0; 
+            cursor: not-allowed; 
+        }
+        
+        .error-msg {
+            color: var(--color-danger); 
+            font-size: 0.8rem; 
+            min-height: 1.2em; 
+            margin-top: 6px;
         }
 
         .input-col {
@@ -211,24 +223,75 @@
         }
         .cancel-btn:hover { background-color: #f0f0f0; }
 
+        /* 중복확인 버튼 그룹 스타일 */
+        .input-button-group {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+
+        .input-button-group input {
+            flex: 1;
+        }
+
+        .input-button-group button {
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-radius: 8px;
+            border: 1px solid var(--color-primary);
+            background-color: transparent;
+            color: var(--color-primary);
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .input-button-group button:hover:not(:disabled) {
+            background-color: var(--color-primary);
+            color: var(--color-white);
+        }
+
+        .input-button-group button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 중복확인 메시지 스타일 */
+        .check-msg {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-size: 14px;
+            font-weight: 500;
+            min-height: 0;
+        }
+
+        .check-msg.success {
+            color: var(--color-primary);
+        }
+
+        .check-msg.error {
+            color: #dc3545;
+        }
+
     </style>
 </head>
 <body>
     <header class="navbar-container">
         <div class="navbar">
-            <a href="/">
+            <a href="/home">
                 <img src="/images/free-icon-sprout-7101338.png" alt="로고" class="navbar-logo-img"/>
             </a>
             <div class="navbar-buttons">
-                <a href="/buyer/info" class="btn-outline">내 정보</a>
+                <a href="/buyer/info" class="btn-outline">마이페이지</a>
                 <a href="#" onclick="logout()" class="btn-filled">로그아웃</a>
             </div>
         </div>
     </header>
 
-    <div class="edit-container">
-        <h1>구매자 정보 수정</h1>
-        <form th:action="@{/buyer/edit}" method="post" th:object="${buyerEditForm}" class="edit-form">
+        <h2>구매자 정보 수정</h2>
+        <form th:action="@{/buyer/edit}" method="post" th:object="${buyerEditForm}">
             <!-- 전역 오류 메시지 표시 -->
             <div th:if="${#fields.hasGlobalErrors()}" style="margin-bottom: 20px;">
                 <div th:each="error : ${#fields.globalErrors()}" th:text="${error}" style="color: red; text-align: center; margin: 10px; padding: 10px; background-color: #ffe6e6; border: 1px solid #ff0000; border-radius: 4px;"></div>
@@ -245,16 +308,25 @@
             </div>
             <div class="form-row">
                 <label for="passwordConfirm">비밀번호 확인</label>
-                <input type="password" id="passwordConfirm" th:field="*{passwordConfirm}" placeholder="비밀번호를 다시 입력하세요" required>
+                <div class="input-button-group">
+                    <input type="password" id="passwordConfirm" th:field="*{passwordConfirm}" placeholder="비밀번호를 다시 입력하세요" required>
+                    <button type="button" id="checkPasswordBtn" onclick="checkPasswordMatch()">비밀번호 확인</button>
+                </div>
+                <div id="password-check-msg" class="check-msg"></div>
                 <div th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
             </div>
             <div class="form-row">
-                <label for="name">이름 (수정 불가)</label>
-                <input type="text" id="name" th:field="*{name}" readonly>
+                <label for="name">이름</label>
+                <input type="text" id="name" th:field="*{name}" required>
+                <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
             </div>
             <div class="form-row">
                 <label for="nickname">닉네임</label>
-                <input type="text" id="nickname" th:field="*{nickname}" required>
+                <div class="input-button-group">
+                    <input type="text" id="nickname" th:field="*{nickname}" placeholder="닉네임을 입력해주세요" required>
+                    <button type="button" id="checkNicknameBtn" onclick="checkNicknameDuplicate()">중복확인</button>
+                </div>
+                <div id="nickname-check-msg" class="check-msg"></div>
                 <div th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}" style="color: red; font-size: 0.9rem; margin-top: 5px;"></div>
             </div>
             <div class="form-row">
@@ -296,13 +368,139 @@
                 <button type="submit" class="save-btn">저장</button>
             </div>
         </form>
-    </div>
 
     <!-- 주소 검색을 위한 스크립트 -->
     <script>
     function openAddressPopup() {
         window.open('/common/juso-popup', 'popup', 'width=600,height=700,scrollbars=yes');
     }
+    
+    // 비밀번호 일치 확인
+    async function checkPasswordMatch() {
+        const passwordInput = document.querySelector('input[name="password"]');
+        const passwordConfirmInput = document.querySelector('input[name="passwordConfirm"]');
+        const messageDiv = document.getElementById('password-check-msg');
+        const checkBtn = document.getElementById('checkPasswordBtn');
+
+        const password = passwordInput.value.trim();
+        const passwordConfirm = passwordConfirmInput.value.trim();
+
+        // 입력값 검증
+        if (!passwordConfirm) {
+            messageDiv.textContent = '비밀번호 확인을 입력해주세요.';
+            messageDiv.className = 'check-msg error';
+            return;
+        }
+
+        try {
+            checkBtn.disabled = true;
+            checkBtn.textContent = '확인중...';
+
+            // 비밀번호 일치 여부 확인
+            if (password === passwordConfirm) {
+                messageDiv.textContent = '비밀번호가 일치합니다.';
+                messageDiv.className = 'check-msg success';
+            } else {
+                messageDiv.textContent = '비밀번호가 일치하지 않습니다.';
+                messageDiv.className = 'check-msg error';
+            }
+        } finally {
+            checkBtn.disabled = false;
+            checkBtn.textContent = '비밀번호 확인';
+        }
+    }
+
+    // 닉네임 중복확인
+    async function checkNicknameDuplicate() {
+        const nicknameInput = document.querySelector('input[name="nickname"]');
+        const messageDiv = document.getElementById('nickname-check-msg');
+        const checkBtn = document.getElementById('checkNicknameBtn');
+        
+        const nicknameValue = nicknameInput.value.trim();
+        
+        // 입력값 검증
+        if (!nicknameValue) {
+            messageDiv.textContent = '닉네임을 입력해주세요.';
+            messageDiv.className = 'check-msg error';
+            return;
+        }
+
+        // 닉네임 형식 검증 (2~10자, 한글/영문/숫자)
+        const nicknameRegex = /^[가-힣a-zA-Z0-9]{2,10}$/;
+        if (!nicknameRegex.test(nicknameValue)) {
+            messageDiv.textContent = '닉네임은 2~10자로 입력해주세요.';
+            messageDiv.className = 'check-msg error';
+            return;
+        }
+
+        try {
+            checkBtn.disabled = true;
+            checkBtn.textContent = '확인중...';
+
+            const response = await fetch(`/api/buyers/nicknames/${encodeURIComponent(nicknameValue)}/availability`);
+            const result = await response.json();
+
+            if (result.header.rtcd === 'S00') {
+                if (result.body.available) {
+                    messageDiv.textContent = '사용 가능한 닉네임입니다.';
+                    messageDiv.className = 'check-msg success';
+                } else {
+                    messageDiv.textContent = '이미 사용중인 닉네임입니다.';
+                    messageDiv.className = 'check-msg error';
+                }
+            } else {
+                messageDiv.textContent = '중복확인 중 오류가 발생했습니다.';
+                messageDiv.className = 'check-msg error';
+            }
+        } catch (error) {
+            messageDiv.textContent = '서버 오류가 발생했습니다.';
+            messageDiv.className = 'check-msg error';
+        } finally {
+            checkBtn.disabled = false;
+            checkBtn.textContent = '중복확인';
+        }
+    }
+
+    // 이벤트 리스너 추가
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordInput = document.querySelector('input[name="password"]');
+        const passwordConfirmInput = document.querySelector('input[name="passwordConfirm"]');
+        const nicknameInput = document.querySelector('input[name="nickname"]');
+        
+        // 비밀번호 입력 시 확인 메시지 초기화
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function() {
+                document.getElementById('password-check-msg').textContent = '';
+            });
+        }
+        
+        if (passwordConfirmInput) {
+            passwordConfirmInput.addEventListener('input', function() {
+                document.getElementById('password-check-msg').textContent = '';
+            });
+            
+            passwordConfirmInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    checkPasswordMatch();
+                }
+            });
+        }
+
+        // 닉네임 입력 시 확인 메시지 초기화  
+        if (nicknameInput) {
+            nicknameInput.addEventListener('input', function() {
+                document.getElementById('nickname-check-msg').textContent = '';
+            });
+            
+            nicknameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    checkNicknameDuplicate();
+                }
+            });
+        }
+    });
     
     // 로그아웃 기능
     function logout() {

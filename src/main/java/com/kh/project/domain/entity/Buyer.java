@@ -17,7 +17,7 @@ public class Buyer {
   private String tel;
   private String gender;
   private Date birth;
-  private Integer postNumber;
+  private String postNumber;
   private String address;
   private MemberGubun memberGubun;
   private byte[] pic;
@@ -32,7 +32,7 @@ public class Buyer {
    */
   public Buyer() {
     this.memberGubun = MemberGubun.NEW;
-    this.status = "활성화";
+    this.status = MemberStatus.ACTIVE.getCode();  // "ACTIVE"
   }
 
   /**

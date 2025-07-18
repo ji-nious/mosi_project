@@ -18,7 +18,7 @@ public class Seller {
   private String shopAddress;
   private String tel;
   private byte[] pic;
-  private Integer postNumber;
+  private String postNumber;
   private String status;
 
   // 공통 필드
@@ -31,7 +31,7 @@ public class Seller {
    * 기본 생성자에서 기본값 설정
    */
   public Seller() {
-    this.status = "활성화";
+    this.status = MemberStatus.ACTIVE.getCode();  // "ACTIVE"
   }
 
   /**

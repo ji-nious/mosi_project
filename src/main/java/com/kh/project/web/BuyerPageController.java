@@ -4,7 +4,7 @@ import com.kh.project.domain.SessionService;
 import com.kh.project.domain.buyer.svc.BuyerSVC;
 import com.kh.project.domain.buyer.svc.BuyerSVCImpl;
 import com.kh.project.domain.entity.*;
-import com.kh.project.web.common.form.BuyerEditForm;
+import com.kh.project.web.form.member.BuyerEditForm;
 import com.kh.project.web.form.login.LoginForm;
 import com.kh.project.web.form.member.BuyerSignupForm;
 import jakarta.servlet.http.HttpSession;
@@ -52,6 +52,18 @@ public class BuyerPageController {
         // "(우편번호) 주소" 형태에서 우편번호 부분만 제거
         String address = fullAddress.replaceFirst("^\\(\\d+\\)\\s*", "").trim();
         
+        // 마지막 공백을 기준으로 기본주소와 상세주소 분리
+        // "경기도 포천시 내촌면 금강로 3083-19 1" -> ["경기도 포천시 내촌면 금강로 3083-19", "1"]
+        int lastSpaceIndex = address.lastIndexOf(' ');
+        if (lastSpaceIndex > 0) {
+            String basicAddress = address.substring(0, lastSpaceIndex).trim();
+            String detailAddress = address.substring(lastSpaceIndex + 1).trim();
+            // 상세주소가 숫자나 짧은 문자열인 경우만 분리 (건물명, 호수 등)
+            if (detailAddress.length() <= 10 && !detailAddress.isEmpty()) {
+                return new String[]{basicAddress, detailAddress};
+            }
+        }
+        
         return new String[]{address, ""};
     }
 
@@ -88,22 +100,15 @@ public class BuyerPageController {
 
         log.info("구매자 회원가입 처리 시작: email={}", signupForm.getEmail());
 
-        // 1. 기본 Bean Validation 검증
+        // 1. Bean Validation 검증 (비밀번호 일치 검증 포함)
         if (bindingResult.hasErrors()) {
-            log.warn("회원가입 폼 기본 검증 실패: {}", bindingResult.getAllErrors());
+            log.warn("회원가입 폼 검증 실패: {}", bindingResult.getAllErrors());
             model.addAttribute("errorMessage", "입력한 정보를 다시 확인해주세요.");
             return "buyer/buyer_signup";
         }
 
-        // 2. 비밀번호 확인 검증
-        if (!signupForm.isPasswordMatch()) {
-            bindingResult.rejectValue("passwordConfirm", "password.mismatch",
-                "비밀번호가 일치하지 않습니다.");
-            return "buyer/buyer_signup";
-        }
-
         try {
-            // 3. 이메일 중복 검사
+            // 2. 이메일 중복 검사
             if (buyerSVC.existsByEmail(signupForm.getEmail())) {
                 log.warn("이메일 중복: email={}", signupForm.getEmail());
                 bindingResult.rejectValue("email", "email.duplicate",
@@ -111,7 +116,7 @@ public class BuyerPageController {
                 return "buyer/buyer_signup";
             }
 
-            // 4. 닉네임 중복 검사
+            // 3. 닉네임 중복 검사
             if (buyerSVC.existsByNickname(signupForm.getNickname())) {
                 log.warn("닉네임 중복: nickname={}", signupForm.getNickname());
                 bindingResult.rejectValue("nickname", "nickname.duplicate",
@@ -119,7 +124,7 @@ public class BuyerPageController {
                 return "buyer/buyer_signup";
             }
 
-            // 5. 회원가입 처리
+            // 4. 회원가입 처리
             Buyer buyer = new Buyer();
             buyer.setEmail(signupForm.getEmail());
             buyer.setPassword(passwordEncoder.encode(signupForm.getPassword()));
@@ -129,11 +134,7 @@ public class BuyerPageController {
             buyer.setGender(signupForm.getGender());
             buyer.setBirth(signupForm.getBirth());
             if (signupForm.getPostcode() != null && !signupForm.getPostcode().trim().isEmpty()) {
-                try {
-                    buyer.setPostNumber(Integer.parseInt(signupForm.getPostcode()));
-                } catch (NumberFormatException e) {
-                    log.warn("우편번호 형식 오류: {}", signupForm.getPostcode());
-                }
+                buyer.setPostNumber(signupForm.getPostcode());
             }
             buyer.setAddress(signupForm.getFullAddress());
             buyer.setMemberGubun(MemberGubun.NEW);
@@ -144,7 +145,7 @@ public class BuyerPageController {
             log.info("구매자 회원가입 성공: buyerId={}, email={}",
                 savedBuyer.getBuyerId(), savedBuyer.getEmail());
 
-            // 6. 자동 로그인 처리
+            // 5. 자동 로그인 처리
             sessionService.setLoginSession(session, savedBuyer.getBuyerId(),
                 savedBuyer.getEmail(), MEMBER_TYPE_BUYER, savedBuyer.getNickname());
 
@@ -200,8 +201,8 @@ public class BuyerPageController {
             // 1. 이메일로 구매자 조회
             Optional<Buyer> buyerOpt = buyerSVC.findByEmail(loginForm.getEmail());
             if (buyerOpt.isEmpty()) {
-                bindingResult.rejectValue("email", "email.notfound",
-                    "이메일이 올바르지 않습니다.");
+                bindingResult.rejectValue("email", "email.notregistered",
+                    "입력하신 이메일은 가입되지 않은 계정입니다. 회원가입 후 이용해주세요.");
                 return "buyer/buyer_login";
             }
 
@@ -235,7 +236,7 @@ public class BuyerPageController {
                 "로그인이 완료되었습니다. 환영합니다!");
             redirectAttributes.addFlashAttribute("showLoginModal", true);
 
-            return "redirect:/";
+            return "redirect:/home";
 
         } catch (Exception e) {
             log.error("구매자 로그인 실패: email={}, error={}",
@@ -264,17 +265,16 @@ public class BuyerPageController {
         // 기존 buyer 정보로 edit form 생성 
         String[] addressParts = parseAddress(buyer.getAddress());
         
-        BuyerEditForm editForm = BuyerEditForm.builder()
-            .email(buyer.getEmail())
-            .name(buyer.getName())
-            .nickname(buyer.getNickname())
-            .tel(buyer.getTel())
-            .gender(buyer.getGender())
-            .birth(buyer.getBirth())
-            .postcode(buyer.getPostNumber() != null ? buyer.getPostNumber().toString() : "")
-            .address(addressParts[0])
-            .detailAddress("")
-            .build();
+        BuyerEditForm editForm = new BuyerEditForm();
+        editForm.setEmail(buyer.getEmail());
+        editForm.setName(buyer.getName());
+        editForm.setNickname(buyer.getNickname());
+        editForm.setTel(buyer.getTel());
+        editForm.setGender(buyer.getGender());
+        editForm.setBirth(buyer.getBirth());
+        editForm.setPostcode(buyer.getPostNumber() != null ? buyer.getPostNumber() : "");
+        editForm.setAddress(addressParts[0]);
+        editForm.setDetailAddress(addressParts[1]);
 
         model.addAttribute("buyerEditForm", editForm);
         model.addAttribute("buyer", buyer);
@@ -303,6 +303,17 @@ public class BuyerPageController {
 
         try {
             log.info("수정 폼 데이터: {}", editForm);
+            // 간단하게 업데이트 (일단 기본 정보만)
+            Buyer buyer = new Buyer();
+            buyer.setName(editForm.getName());
+            buyer.setNickname(editForm.getNickname());
+            buyer.setTel(editForm.getTel());
+            buyer.setGender(editForm.getGender());
+            buyer.setBirth(editForm.getBirth());
+            buyer.setPassword(passwordEncoder.encode(editForm.getPassword()));
+            buyer.setPostNumber(editForm.getPostcode());
+            buyer.setAddress(editForm.getAddress() + (editForm.getDetailAddress() != null && !editForm.getDetailAddress().isEmpty() ? " " + editForm.getDetailAddress() : ""));
+            buyerSVC.update(loginMember.getId(), buyer);
             redirectAttributes.addFlashAttribute("message", "정보가 성공적으로 수정되었습니다.");
             return "redirect:/buyer/info";
         } catch (Exception e) {
@@ -377,9 +388,9 @@ public class BuyerPageController {
                 }
                 model.addAttribute("birthFormatted", birthFormatted);
 
-                // 주소 파싱해서 분리된 형태로 모델에 추가
-                String[] addressParts = parseAddress(buyer.getAddress());
-                model.addAttribute("parsedAddress", addressParts[0]);
+                // 우편번호와 주소 분리 표시  
+                model.addAttribute("postcode", buyer.getPostNumber() != null ? buyer.getPostNumber() : "");
+                model.addAttribute("parsedAddress", buyer.getAddress() != null ? buyer.getAddress() : "");
                 model.addAttribute("parsedDetailAddress", "");
 
                 BuyerSVCImpl buyerService = getBuyerService();
@@ -498,7 +509,7 @@ public class BuyerPageController {
                 if (result > 0) {
                     sessionService.logout(session);
                     log.info("구매자 탈퇴 성공: buyerId={}", loginMember.getId());
-                    return "redirect:/";
+                    return "redirect:/home";
                 } else {
                     redirectAttributes.addFlashAttribute("error", "탈퇴 처리에 실패했습니다.");
                     return "redirect:/buyer/withdraw";

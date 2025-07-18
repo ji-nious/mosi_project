@@ -1,11 +1,12 @@
 package com.kh.project.domain.seller.svc;
 
-import com.kh.project.domain.entity.Seller;
+import com.kh.project.domain.buyer.dao.BuyerDAO;
 import com.kh.project.domain.entity.MemberStatus;
+import com.kh.project.domain.entity.Seller;
 import com.kh.project.domain.entity.ServiceUsage;
 import com.kh.project.domain.seller.dao.SellerDAO;
 import com.kh.project.web.exception.BusinessException;
-import com.kh.project.web.common.form.SellerEditForm;
+import com.kh.project.web.form.member.SellerEditForm;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.util.Optional;
 public class SellerSVCImpl implements SellerSVC {
 
     private final SellerDAO sellerDAO;
+    private final BuyerDAO buyerDAO;
 
     // ============= 인터페이스 구현 메서드들 =============
 
@@ -38,10 +40,7 @@ public class SellerSVCImpl implements SellerSVC {
             throw new BusinessException("이미 등록된 사업자등록번호입니다. 탈퇴 후 재가입은 불가능합니다.");
         }
 
-        // 상호명 중복 체크 (활성 회원만)
-        if (sellerDAO.existsByShopName(seller.getShopName())) {
-            throw new BusinessException("이미 사용중인 상호명입니다.");
-        }
+
 
         return sellerDAO.save(seller);
     }
@@ -54,42 +53,11 @@ public class SellerSVCImpl implements SellerSVC {
         Optional<Seller> existingSellerOpt = sellerDAO.findByEmail(seller.getEmail());
 
         if (existingSellerOpt.isPresent()) {
-            Seller existingSeller = existingSellerOpt.get();
-
-            // 2. 활성 회원이면 중복 에러 - 문자열 비교로 변경
-            if (canLogin(existingSeller) || !MemberStatus.WITHDRAWN.getCode().equals(existingSeller.getStatus())) {
-                log.warn("이미 활성화된 판매자 계정: email={}", seller.getEmail());
-                throw new BusinessException("이미 등록된 이메일입니다. 탈퇴 후 재가입은 불가능합니다.");
-            }
-
-            // 3. 탈퇴 회원이면 재가입 처리
-            log.info("탈퇴 회원 재가입 처리: email={}", seller.getEmail());
-
-            // 사업자번호 중복 체크 (재가입 불가)
-            if (!seller.getBizRegNo().equals(existingSeller.getBizRegNo())) {
-                if (sellerDAO.existsByBizRegNo(seller.getBizRegNo())) {
-                    log.warn("사업자등록번호 중복 (재가입 불가): bizRegNo={}", seller.getBizRegNo());
-                    throw new BusinessException("이미 등록된 사업자등록번호입니다. 탈퇴 후 재가입은 불가능합니다.");
-                }
-            }
-
-            // 상호명 중복 체크 (활성 회원만)
-            if (sellerDAO.existsByShopName(seller.getShopName())) {
-                log.warn("상호명 중복: shopName={}", seller.getShopName());
-                throw new BusinessException("이미 사용중인 상호명입니다.");
-            }
-
-            // 재가입 처리
-            int rejoinResult = sellerDAO.rejoin(seller);
-            if (rejoinResult > 0) {
-                log.info("판매자 재가입 성공: email={}", seller.getEmail());
-                return sellerDAO.findByEmail(seller.getEmail()).orElseThrow();
-            } else {
-                log.error("판매자 재가입 실패: email={}", seller.getEmail());
-                throw new BusinessException("재가입 처리에 실패했습니다.");
-            }
+            // 2. 기존 회원이 있으면 (활성/탈퇴 상관없이) 재가입 불가
+            log.warn("이미 등록된 판매자 계정 (재가입 불가): email={}", seller.getEmail());
+            throw new BusinessException("이미 등록된 이메일입니다. 탈퇴 후 재가입은 불가능합니다.");
         } else {
-            // 4. 신규 회원가입
+            // 3. 신규 회원가입
             log.info("신규 판매자 회원가입: email={}", seller.getEmail());
             return save(seller); // 기존 save 메서드 재사용
         }
@@ -110,7 +78,7 @@ public class SellerSVCImpl implements SellerSVC {
     @Override
     public boolean existsByEmail(String email) {
         log.debug("이메일 중복 체크: email={}", email);
-        return sellerDAO.existsByEmail(email);
+        return sellerDAO.existsByEmail(email) || buyerDAO.existsByEmail(email);
     }
 
     @Override
@@ -141,13 +109,7 @@ public class SellerSVCImpl implements SellerSVC {
             if (existingSeller.isPresent()) {
                 String currentShopName = existingSeller.get().getShopName();
 
-                // 상호명이 변경되는 경우에만 중복 체크
-                if (!seller.getShopName().equals(currentShopName)) {
-                    if (sellerDAO.existsByShopName(seller.getShopName())) {
-                        log.warn("상호명 중복: shopName={}", seller.getShopName());
-                        throw new BusinessException("이미 사용중인 상호명입니다.");
-                    }
-                }
+
             }
         }
 
@@ -240,10 +202,7 @@ public class SellerSVCImpl implements SellerSVC {
         }
 
         // 상호명 중복 체크 (활성 회원만)
-        if (sellerDAO.existsByShopName(seller.getShopName())) {
-            log.warn("재가입 시 상호명 중복: shopName={}", seller.getShopName());
-            throw new BusinessException("이미 사용중인 상호명입니다.");
-        }
+
 
         int result = sellerDAO.rejoin(seller);
         if (result > 0) {
@@ -332,7 +291,7 @@ public class SellerSVCImpl implements SellerSVC {
             return "알 수 없음";
         }
         try {
-            return MemberStatus.fromCode(seller.getStatus()).getDescription();
+            return MemberStatus.fromCode(seller.getStatus()).getCode();
         } catch (IllegalArgumentException e) {
             return "알 수 없음";
         }
@@ -352,29 +311,6 @@ public class SellerSVCImpl implements SellerSVC {
     }
 
     /**
-     * 수정 폼 생성 (주소 파싱 포함)
-     */
-    public SellerEditForm createEditForm(Seller seller) {
-        if (seller == null) {
-            return null;
-        }
-
-        String[] addressParts = parseAddress(seller.getShopAddress());
-
-        return SellerEditForm.builder()
-            .email(seller.getEmail())
-            .password("") // 수정 시에는 빈 값
-            .bizRegNo(seller.getBizRegNo())
-            .shopName(seller.getShopName())
-            .name(seller.getName())
-            .postNumber(seller.getPostNumber())
-            .shopAddress(seller.getShopAddress())
-            .detailAddress(addressParts[1])
-            .tel(seller.getTel())
-            .build();
-    }
-
-    /**
      * 수정 폼에서 Seller 엔티티로 업데이트
      */
     public void updateSellerFromForm(Seller seller, SellerEditForm form) {
@@ -389,7 +325,7 @@ public class SellerSVCImpl implements SellerSVC {
 
         // 주소 정보 결합
         String fullAddress = buildFullAddress(
-            form.getPostNumber() != null ? form.getPostNumber().toString() : null,
+            form.getPostNumber(),
             form.getShopAddress(),
             form.getDetailAddress()
         );

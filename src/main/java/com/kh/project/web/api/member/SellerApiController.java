@@ -9,6 +9,7 @@ import com.kh.project.domain.seller.svc.SellerSVCImpl;
 import com.kh.project.web.common.response.ApiResponse;
 import com.kh.project.web.exception.UserException;
 import com.kh.project.web.form.login.LoginForm;
+import com.kh.project.web.form.member.SellerSignupForm;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,7 @@ public class SellerApiController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<Object>> signup(
-        @Valid @RequestBody com.kh.project.web.common.form.SellerSignupForm signupForm,
+        @Valid @RequestBody SellerSignupForm signupForm,
         HttpSession session) {
 
         log.info("판매자 회원가입 요청: {}", signupForm.getEmail());
@@ -94,7 +95,7 @@ public class SellerApiController {
         // 1. 이메일로 판매자 조회
         Optional<Seller> sellerOpt = sellerSVC.findByEmail(form.getEmail());
         if (sellerOpt.isEmpty()) {
-            throw new UserException.LoginFailed("이메일이 올바르지 않습니다.");
+            throw new UserException.LoginFailed("입력하신 이메일은 가입되지 않은 계정입니다. 회원가입 후 이용해주세요.");
         }
 
         Seller seller = sellerOpt.get();
@@ -358,9 +359,49 @@ public class SellerApiController {
         return ResponseEntity.ok(ApiResponse.success("탈퇴 가능합니다.", null));
     }
 
+    /**
+     * 이메일 중복 확인
+     */
+    @GetMapping("/emails/{email}/availability")
+    public ResponseEntity<ApiResponse<Object>> checkEmailAvailability(
+        @PathVariable("email") String email) {
+
+        log.info("이메일 중복 확인: email={}", email);
+
+        boolean exists = sellerSVC.existsByEmail(email);
+
+        String message = exists ? "이미 등록된 이메일입니다. 탈퇴 후 재가입은 불가능합니다." : "사용 가능한 이메일입니다.";
+        Map<String, Object> data = Map.of(
+            "email", email,
+            "available", !exists
+        );
+
+        return ResponseEntity.ok(ApiResponse.success(message, data));
+    }
+
+    /**
+     * 사업자등록번호 중복 확인
+     */
+    @GetMapping("/business-numbers/{businessNumber}/availability")
+    public ResponseEntity<ApiResponse<Object>> checkBusinessNumberAvailability(
+        @PathVariable("businessNumber") String businessNumber) {
+
+        log.info("사업자등록번호 중복 확인: businessNumber={}", businessNumber);
+
+        boolean exists = sellerSVC.existsByBizRegNo(businessNumber);
+
+        String message = exists ? "이미 등록된 사업자등록번호입니다." : "사용 가능한 사업자등록번호입니다.";
+        Map<String, Object> data = Map.of(
+            "businessNumber", businessNumber,
+            "available", !exists
+        );
+
+        return ResponseEntity.ok(ApiResponse.success(message, data));
+    }
+
     // ============ Private Helper Methods ============
 
-    private Seller convertToEntity(com.kh.project.web.common.form.SellerSignupForm form) {
+    private Seller convertToEntity(SellerSignupForm form) {
         Seller seller = new Seller();
         seller.setEmail(form.getEmail());
         seller.setName(form.getName());

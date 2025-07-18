@@ -49,9 +49,9 @@ function validateName() {
 function validateNickname() {
   const nickname = document.getElementById("nickname").value.trim();
   const error = document.getElementById("error-nickname");
-  error.textContent = /^[가-힣a-zA-Z0-9]{2,8}$/.test(nickname)
+  error.textContent = /^[가-힣a-zA-Z0-9]{2,10}$/.test(nickname)
     ? ""
-    : "닉네임은 2~8자로 입력해주세요.";
+    : "닉네임은 2~10자로 입력해주세요.";
 }
 // 이메일
 function validateEmail() {

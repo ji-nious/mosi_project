@@ -47,38 +47,142 @@
             color: var(--color-primary); text-align: center; font-size: 2.4rem;
         }
         
-        /* --- Info Display Styles --- */
-        .info-container {
-            background-color: white; padding: 40px; border-radius: 20px;
-            box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-            width: fit-content; min-width: 500px; margin: 40px auto;
+        /* --- Page Layout --- */
+        html, body {
+            width: 100%;
+            height: 100%;
+            min-width: 0;
+            min-height: 0;
+            overflow-x: auto;
         }
-        .info-row {
-            display: flex; align-items: baseline; gap: 16px; 
-            margin-bottom: 24px; padding-bottom: 12px;
-            border-bottom: 1px solid #eee;
+        body {
+            margin: 0;
+            font-family: 'Inter', 'Cabin', sans-serif;
+            background: #FBF9EF;
+            color: #1E2203;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 20px 40px;
+            box-sizing: border-box;
         }
-        .info-label {
-            width: 140px; font-weight: bold; flex-shrink: 0; color: #555;
+        .page-wrapper {
+            display: flex;
+            align-items: stretch;
+            gap: 24px;
+            width: 900px;
+            height: 700px;
+            margin: 0 auto;
+            flex-wrap: nowrap;
         }
-        .info-value { font-size: 1rem; }
-        .info-value.address { display: flex; flex-direction: column; gap: 4px; }
-        
-        /* --- Buttons --- */
-        .info-actions { 
-            display: flex; justify-content: space-between; align-items: center;
-            margin-top: 40px; padding-top: 20px;
-            border-top: 1px solid #eee;
+        .order-panel,
+        .account-container {
+            box-sizing: border-box;
+            height: 650px;
         }
-        .info-actions button {
-            padding: 12px 24px; font-size: 1rem; font-weight: bold;
-            border-radius: 24px; border: 1px solid; cursor: pointer;
+        .order-panel {
+            background: #fff;
+            padding: 20px 24px;
+            border-radius: 20px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            width: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 32px;
+        }
+        .panel-button {
+            width: 150px;
+            padding: 12px 0;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 24px;
+            border: 1px solid #658352;
+            background: #658352;
+            color: #fff;
+            cursor: pointer;
+            margin-bottom: 0;
+            transition: background 0.2s, color 0.2s;
+        }
+        .panel-button:hover {
+            background: #94A687;
+            color: #F5F4ED;
+        }
+        .account-container {
+            background: #fff;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            width: 650px;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .account-container h2 {
+            font-family: 'Cabin', sans-serif;
+            font-weight: 700;
+            color: #658352;
+            text-align: center;
+            margin-bottom: 28px;
+            font-size: 1.3rem;
+        }
+        .account-info p {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+            padding: 8px 12px;
+            border-bottom: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        .account-info p:last-child {
+            border-bottom: none;
+        }
+        .account-info strong {
+            width: 120px;
+            text-align: left;
+            font-weight: 600;
+            color: #3d4d2b;
+        }
+        .colon {
+            margin: 0 8px;
+            color: #999;
+        }
+        .account-actions {
+            margin-top: auto;
+            padding-top: 24px;
+            text-align: center;
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+        .account-actions button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 24px;
+            border: 1px solid #658352;
+            cursor: pointer;
             transition: all 0.2s;
         }
-        #edit-btn { background-color: var(--color-primary); color: white; border-color: var(--color-primary); }
-        #back-btn { background-color: transparent; color: var(--color-primary); border-color: var(--color-primary); }
-        #withdraw-btn { background-color: var(--color-primary); color: white; border-color: var(--color-primary); }
-        #withdraw-btn:hover { opacity: 0.9; }
+        #editBtn {
+            background: #658352;
+            color: white;
+        }
+        #editBtn:hover {
+            background: #5a7347;
+        }
+        #deleteBtn {
+            background: transparent;
+            color: #658352;
+        }
+        #deleteBtn:hover {
+            background: #658352;
+            color: white;
+        }
         
         /* --- Modal Styles --- */
         .modal {
@@ -149,15 +253,12 @@
             box-shadow: 0 8px 25px rgba(101, 131, 82, 0.3);
         }
         
-        .modal-content h3 {
+        .modal-content h2 {
             margin: 0 0 15px 0;
             font-family: 'Cabin', sans-serif;
             font-size: 1.6rem;
             font-weight: 700;
             letter-spacing: -0.5px;
-        }
-        
-        .modal-content .security-title {
             color: #2c3e50;
         }
         
@@ -199,13 +300,54 @@
         }
         
         .modal-actions {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 30px;
+            text-align: center;
+            margin-top: 25px;
         }
         
-        .modal-actions button {
+        .close-button {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: #aaa;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .close-button:hover,
+        .close-button:focus {
+            color: #666;
+        }
+
+        .error-msg {
+            color: #dc3545;
+            font-size: 0.9rem;
+            margin: 8px 0 20px;
+            min-height: 1.2em;
+            font-weight: 500;
+        }
+
+        #passwordInput {
+            width: 100%;
+            padding: 15px 20px;
+            margin-bottom: 8px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+        
+        #passwordInput:focus {
+            outline: none;
+            border-color: #658352;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(101, 131, 82, 0.1);
+        }
+
+        #confirmPasswordBtn {
             padding: 14px 32px;
             border-radius: 12px;
             border: none;
@@ -216,69 +358,15 @@
             min-width: 120px;
             position: relative;
             overflow: hidden;
-        }
-        
-        .modal-actions button::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-        
-        .modal-actions button:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-        
-        .modal-confirm-btn {
+            margin: 7px;
             background: linear-gradient(135deg, var(--color-primary), #5a7347);
             color: white;
             box-shadow: 0 4px 15px rgba(101, 131, 82, 0.3);
         }
-        
-        .modal-confirm-btn:hover {
+
+        #confirmPasswordBtn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(101, 131, 82, 0.4);
-        }
-        
-        .modal-cancel-btn {
-            background: white;
-            color: #6c757d;
-            border: 2px solid #e9ecef !important;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        }
-        
-        .modal-cancel-btn:hover {
-            background: #f8f9fa;
-            border-color: #dee2e6 !important;
-            color: #495057;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        #withdraw-confirm-btn {
-            background: linear-gradient(135deg, #dc3545, #c82333);
-            color: white;
-            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
-        }
-        
-        #withdraw-confirm-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
-        }
-        
-        .modal-error {
-            color: #dc3545;
-            font-size: 0.9rem;
-            margin: 8px 0 20px;
-            min-height: 1.2em;
-            font-weight: 500;
         }
     </style>
 </head>
@@ -291,7 +379,6 @@
         <div class="navbar-buttons">
              <th:block th:if="${session.loginMember != null}">
                 <a th:href="@{/seller/dashboard}" class="btn-filled">대시보드</a>
-                <a th:href="@{/seller/list/{sellerId}(sellerId=${seller.sellerId})}" class="btn-filled">판매글 목록</a>
                 <a href="#" onclick="logout()" class="btn-outline">로그아웃</a>
             </th:block>
             <th:block th:unless="${session.loginMember != null}">
@@ -302,43 +389,45 @@
     </div>
 </header>
 
-<!-- 판매자 정보 조회 -->
-<div class="info-container">
-    <h2>판매자 정보</h2>
-
-    <div class="info-row"><span class="info-label">이메일</span><span class="info-value" th:text="${seller?.email ?: '정보 없음'}">seller@example.com</span></div>
-    <div class="info-row"><span class="info-label">비밀번호</span><span class="info-value">****</span></div>
-    <div class="info-row"><span class="info-label">사업자등록번호</span><span class="info-value" th:text="${seller?.bizRegNo ?: '정보 없음'}">123-45-67890</span></div>
-    <div class="info-row"><span class="info-label">상호명</span><span class="info-value" th:text="${seller?.shopName ?: '정보 없음'}">싱싱농장</span></div>
-    <div class="info-row"><span class="info-label">대표자 이름</span><span class="info-value" th:text="${seller?.name ?: '정보 없음'}">김농부</span></div>
-    <div class="info-row">
-        <span class="info-label">사업장 주소</span>
-        <span class="info-value" th:text="${seller?.shopAddress ?: '정보 없음'}">사업장 주소</span>
+<div class="page-wrapper">
+    <div class="order-panel">
+        <button class="panel-button" onclick="location.href='/seller/info'">판매자 정보</button>
     </div>
-    <div class="info-row"><span class="info-label">전화번호</span><span class="info-value" th:text="${seller?.tel ?: '정보 없음'}">010-1234-5678</span></div>
 
-    <div class="info-actions">
-        <button type="button" id="back-btn" onclick="location.href='/seller/dashboard'">목록으로</button>
-        <button type="button" id="edit-btn">수정하기</button>
-        <button type="button" id="withdraw-btn">회원탈퇴</button>
+    <div class="account-container">
+        <h2>마이페이지 - 판매자 정보</h2>
+
+        <div id="account-info" class="account-info">
+            <p><strong>이메일</strong><span class="colon">:</span><span th:text="${seller?.email ?: '정보 없음'}">정보 없음</span></p>
+            <p><strong>사업자등록번호</strong><span class="colon">:</span><span th:text="${seller?.bizRegNo ?: '정보 없음'}">정보 없음</span></p>
+            <p><strong>상호명</strong><span class="colon">:</span><span th:text="${seller?.shopName ?: '정보 없음'}">정보 없음</span></p>
+            <p><strong>대표자명</strong><span class="colon">:</span><span th:text="${seller?.name ?: '정보 없음'}">정보 없음</span></p>
+            <p><strong>전화번호</strong><span class="colon">:</span><span th:text="${seller?.tel ?: '정보 없음'}">정보 없음</span></p>
+            <p><strong>사업장 주소</strong><span class="colon">:</span><span th:text="${seller?.shopAddress ?: '정보 없음'}">정보 없음</span></p>
+        </div>
+
+        <div class="account-actions">
+            <button id="editBtn">정보 수정</button>
+            <button id="deleteBtn">회원 탈퇴</button>
+        </div>
     </div>
 </div>
 
-<!-- Password Confirmation Modal -->
-<div id="password-modal" class="modal">
-  <div class="modal-content">
-    <div class="modal-icon security">
-      🔒
+<!-- Password Modal -->
+<div id="passwordModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <div class="modal-icon security">
+            🔒
+        </div>
+        <h2>보안 인증</h2>
+        <p>개인정보 보호를 위해 현재 비밀번호를 다시 한 번 입력해주세요.</p>
+        <input type="password" id="passwordInput" placeholder="현재 비밀번호를 입력하세요" autocomplete="current-password">
+        <div id="modalErrorMessage" class="error-msg"></div>
+        <div class="modal-actions">
+            <button id="confirmPasswordBtn">확인</button>
+        </div>
     </div>
-    <h3 class="security-title">보안 인증</h3>
-    <p>개인정보 보호를 위해 현재 비밀번호를 다시 한 번 입력해주세요.</p>
-    <input type="password" id="password-confirm-input" placeholder="현재 비밀번호를 입력하세요">
-    <div id="modal-error-message" class="modal-error"></div>
-    <div class="modal-actions">
-      <button type="button" class="modal-cancel-btn">취소</button>
-      <button type="button" class="modal-confirm-btn">확인</button>
-    </div>
-  </div>
 </div>
 
 
@@ -348,16 +437,17 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // Modal Elements
-    const passwordModal = document.getElementById('password-modal');
+    const passwordModal = document.getElementById('passwordModal');
     
     // Buttons
-    const editBtn = document.getElementById('edit-btn');
-    const withdrawBtn = document.getElementById('withdraw-btn');
-    const passwordConfirmBtn = passwordModal.querySelector('.modal-confirm-btn');
+    const editBtn = document.getElementById('editBtn');
+    const withdrawBtn = document.getElementById('deleteBtn');
+    const passwordConfirmBtn = document.getElementById('confirmPasswordBtn');
+    const closeBtn = passwordModal.querySelector('.close-button');
 
     // Input & Error
-    const passwordInput = document.getElementById('password-confirm-input');
-    const errorElement = document.getElementById('modal-error-message');
+    const passwordInput = document.getElementById('passwordInput');
+    const errorElement = document.getElementById('modalErrorMessage');
     
     let nextAction = null; // 'edit' or 'withdraw'
 
@@ -436,15 +526,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     passwordConfirmBtn.addEventListener('click', proceedWithAction);
+    closeBtn.addEventListener('click', closeModal);
     passwordInput.addEventListener('keyup', e => {
         if (e.key === 'Enter') proceedWithAction();
     });
 
     // --- General event listeners to CLOSE modals ---
-    document.querySelectorAll('.modal-cancel-btn').forEach(btn => {
-        btn.addEventListener('click', closeModal);
-    });
-
     window.addEventListener('click', (event) => {
         if (event.target == passwordModal) {
             closeModal();

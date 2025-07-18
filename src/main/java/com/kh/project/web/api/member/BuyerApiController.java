@@ -97,7 +97,7 @@ public class BuyerApiController {
     // 1. 이메일로 구매자 조회
     Optional<Buyer> buyerOpt = buyerSVC.findByEmail(form.getEmail());
     if (buyerOpt.isEmpty()) {
-      throw new UserException.LoginFailed("이메일이 올바르지 않습니다.");
+      throw new UserException.LoginFailed("입력하신 이메일은 가입되지 않은 계정입니다. 회원가입 후 이용해주세요.");
     }
 
     Buyer buyer = buyerOpt.get();
@@ -367,6 +367,7 @@ public class BuyerApiController {
     buyer.setTel(form.getTel());
     buyer.setGender(form.getGender());
     buyer.setBirth(form.getBirth());
+    buyer.setPostNumber(form.getPostcode());
     buyer.setAddress(form.getFullAddress());
     buyer.setMemberGubun(MemberGubun.NEW);
     buyer.setStatus(STATUS_ACTIVE);

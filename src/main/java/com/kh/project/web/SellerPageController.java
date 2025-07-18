@@ -7,7 +7,8 @@ import com.kh.project.domain.seller.svc.SellerSVC;
 import com.kh.project.domain.seller.svc.SellerSVCImpl;
 import com.kh.project.web.exception.BusinessException;
 import com.kh.project.web.form.login.LoginForm;
-import com.kh.project.web.common.form.SellerEditForm;
+import com.kh.project.web.form.member.SellerEditForm;
+import com.kh.project.web.form.member.SellerSignupForm;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,11 +54,13 @@ public class SellerPageController {
   public String login(@Validated @ModelAttribute LoginForm form,
                       BindingResult bindingResult,
                       HttpSession session,
+                      Model model,
                       RedirectAttributes redirectAttributes) {
 
     log.info("판매자 로그인 요청: {}", form.getEmail());
 
     if (bindingResult.hasErrors()) {
+      log.warn("로그인 폼 검증 실패: {}", bindingResult.getAllErrors());
       return "seller/seller_login";
     }
 
@@ -67,8 +70,9 @@ public class SellerPageController {
       // 1. 이메일로 판매자 조회
       Optional<Seller> sellerOpt = sellerSVC.findByEmail(form.getEmail());
       if (sellerOpt.isEmpty()) {
-        redirectAttributes.addFlashAttribute("error", "이메일이 올바르지 않습니다.");
-        return REDIRECT_SELLER_LOGIN;
+        bindingResult.rejectValue("email", "email.notregistered",
+            "입력하신 이메일은 가입되지 않은 계정입니다. 회원가입 후 이용해주세요.");
+        return "seller/seller_login";
       }
 
       Seller seller = sellerOpt.get();
@@ -76,17 +80,18 @@ public class SellerPageController {
       // 2. 로그인 가능 여부 확인 (활성 상태, 탈퇴 여부 등)
       if (!sellerService.canLogin(seller)) {
         if (sellerService.isWithdrawn(seller)) {
-          redirectAttributes.addFlashAttribute("error", "탈퇴한 회원입니다.");
+          model.addAttribute("errorMessage", "탈퇴한 회원입니다.");
         } else {
-          redirectAttributes.addFlashAttribute("error", "로그인할 수 없는 계정입니다.");
+          model.addAttribute("errorMessage", "로그인할 수 없는 계정입니다.");
         }
-        return REDIRECT_SELLER_LOGIN;
+        return "seller/seller_login";
       }
 
       // 3. 비밀번호 검증
       if (!passwordEncoder.matches(form.getPassword(), seller.getPassword())) {
-        redirectAttributes.addFlashAttribute("error", "비밀번호가 올바르지 않습니다.");
-        return REDIRECT_SELLER_LOGIN;
+        bindingResult.rejectValue("password", "password.incorrect",
+            "비밀번호가 올바르지 않습니다.");
+        return "seller/seller_login";
       }
 
       // 4. 세션 설정
@@ -99,8 +104,9 @@ public class SellerPageController {
 
     } catch (Exception e) {
       log.error("판매자 로그인 실패: email={}, error={}", form.getEmail(), e.getMessage());
-      redirectAttributes.addFlashAttribute("error", "이메일 또는 비밀번호가 올바르지 않습니다.");
-      return REDIRECT_SELLER_LOGIN;
+      model.addAttribute("errorMessage", 
+          "로그인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      return "seller/seller_login";
     }
   }
 
@@ -109,12 +115,12 @@ public class SellerPageController {
     log.info("판매자 회원가입 페이지 요청");
 
     addUserInfoToModel(session, model);
-    model.addAttribute("sellerSignupForm", new com.kh.project.web.common.form.SellerSignupForm());
+    model.addAttribute("sellerSignupForm", new SellerSignupForm());
     return "seller/seller_signup";
   }
 
   @PostMapping("/signup")
-  public String sellerSignup(@Validated @ModelAttribute com.kh.project.web.common.form.SellerSignupForm signupForm,
+  public String sellerSignup(@Validated @ModelAttribute SellerSignupForm signupForm,
                              BindingResult bindingResult,
                              HttpSession session,
                              Model model,
@@ -131,24 +137,21 @@ public class SellerPageController {
     // 중복 체크
     if (sellerSVC.existsByEmail(signupForm.getEmail())) {
       log.warn("이메일 중복: email={}", signupForm.getEmail());
-      model.addAttribute("error", "이미 등록된 이메일입니다. 탈퇴 후 재가입은 불가능합니다.");
+      bindingResult.rejectValue("email", "email.duplicate", 
+          "이미 등록된 이메일입니다. 탈퇴 후 재가입은 불가능합니다.");
       addUserInfoToModel(session, model);
       return "seller/seller_signup";
     }
 
     if (sellerSVC.existsByBizRegNo(signupForm.getBusinessNumber())) {
       log.warn("사업자등록번호 중복: bizRegNo={}", signupForm.getBusinessNumber());
-      model.addAttribute("error", "이미 등록된 사업자등록번호입니다. 탈퇴 후 재가입은 불가능합니다.");
+      bindingResult.rejectValue("businessNumber", "bizRegNo.duplicate", 
+          "이미 등록된 사업자등록번호입니다. 탈퇴 후 재가입은 불가능합니다.");
       addUserInfoToModel(session, model);
       return "seller/seller_signup";
     }
 
-    if (sellerSVC.existsByShopName(signupForm.getStoreName())) {
-      log.warn("상호명 중복: shopName={}", signupForm.getStoreName());
-      model.addAttribute("error", "이미 사용중인 상호명입니다.");
-      addUserInfoToModel(session, model);
-      return "seller/seller_signup";
-    }
+
 
     try {
       Seller seller = new Seller();
@@ -171,19 +174,10 @@ public class SellerPageController {
 
     } catch (BusinessException e) {
       log.error("판매자 회원가입 실패: email={}, error={}", signupForm.getEmail(), e.getMessage());
-
-      if (e.getMessage().contains("이메일") || e.getMessage().contains("email")) {
-        bindingResult.rejectValue("email", "error.email", e.getMessage());
-      } else if (e.getMessage().contains("사업자등록번호")) {
-        bindingResult.rejectValue("businessNumber", "error.businessNumber", e.getMessage());
-      } else if (e.getMessage().contains("상호명")) {
-        bindingResult.rejectValue("storeName", "error.storeName", e.getMessage());
-      } else if (e.getMessage().contains("대표자명")) {
-        bindingResult.rejectValue("name", "error.name", e.getMessage());
-      } else {
-        bindingResult.reject("error.signup", "회원가입 중 오류가 발생했습니다: " + e.getMessage());
-      }
-
+      
+      // 일반적인 비즈니스 예외는 전역 에러로 처리
+      bindingResult.reject("error.signup", "회원가입 중 오류가 발생했습니다: " + e.getMessage());
+      
       addUserInfoToModel(session, model);
       return "seller/seller_signup";
     }
@@ -223,9 +217,24 @@ public class SellerPageController {
     Seller seller = sellerOpt.get();
     addSellerInfoToModel(model, seller);
 
-    // Service 비즈니스 로직으로 수정 폼 생성
-    SellerSVCImpl sellerService = getSellerService();
-    SellerEditForm editForm = sellerService.createEditForm(seller);
+    // 수정 폼 생성
+    SellerEditForm editForm = new SellerEditForm();
+    editForm.setEmail(seller.getEmail());
+    editForm.setBizRegNo(seller.getBizRegNo());
+    editForm.setShopName(seller.getShopName());
+    editForm.setName(seller.getName());
+    editForm.setTel(seller.getTel());
+    
+    // 주소 정보 설정
+    if (seller.getPostNumber() != null) {
+      editForm.setPostNumber(seller.getPostNumber());
+    }
+    if (seller.getShopAddress() != null) {
+      // 전체 주소에서 우편번호 부분 제거하여 기본 주소만 추출
+      String address = seller.getShopAddress().replaceFirst("^\\(\\d+\\)\\s*", "").trim();
+      editForm.setShopAddress(address);
+    }
+    editForm.setDetailAddress(""); // 상세주소는 별도로 저장되지 않아 빈 값으로 설정
 
     model.addAttribute("sellerEditForm", editForm);
     model.addAttribute("seller", seller);
@@ -425,7 +434,7 @@ public class SellerPageController {
         if (result > 0) {
           sessionService.logout(session);
           log.info("판매자 탈퇴 성공: sellerId={}", loginMember.getId());
-          return "redirect:/";
+          return "redirect:/home";
         } else {
           redirectAttributes.addFlashAttribute("error", "탈퇴 처리에 실패했습니다.");
           return "redirect:/seller/withdraw";

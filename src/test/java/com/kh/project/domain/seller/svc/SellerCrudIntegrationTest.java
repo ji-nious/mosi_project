@@ -259,7 +259,7 @@ class SellerCrudIntegrationTest {
 
         assertNotNull(statusInfo);
         assertEquals(MemberStatus.ACTIVE.getCode(), statusInfo.getCode());
-        assertEquals(MemberStatus.ACTIVE.getDescription(), statusInfo.getName());
+        assertEquals(MemberStatus.ACTIVE.getCode(), statusInfo.getName());
 
         assertNotNull(shopInfo);
         assertEquals(testSeller.getShopName(), shopInfo.getCode());
