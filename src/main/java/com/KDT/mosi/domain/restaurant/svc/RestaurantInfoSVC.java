@@ -10,21 +10,24 @@ public interface RestaurantInfoSVC {
   Map<String, Object> getDashboardData();
 
   // 페이징 조회
-  Page<RestaurantInfoDocument> getRestaurantsPaged(int page, int size, String district, String category);
+  Page<RestaurantInfoDocument> getRestaurantsPaged(int page, int size, String search, String district, String category);
+
+  // 지도용 맛집 데이터 조회
+  List<RestaurantInfoDocument> getRestaurantsForMap();
 
   // 상세 조회
   RestaurantInfoDocument getRestaurantById(Long id);
 
-  // 관련 맛집
+  // 맛집 목록
   List<RestaurantInfoDocument> getRelatedRestaurants(String district, Long excludeId, int limit);
 
-  // 지도용 데이터
-  List<RestaurantInfoDocument> getRestaurantsForMap();
-
-  // 필터 옵션
+  // 검색 옵션
   List<String> getDistrictList();
   List<String> getCategoryList();
 
-  // 편의시설
-  List<RestaurantInfoDocument> getFacilities();
+  // 검색 기능
+  List<String> getSearchSuggestions(String query, int limit);
+  void saveSearchHistory(String sessionId, String keyword);
+  List<String> getSearchHistory(String sessionId, int limit);
+  void clearSearchHistory(String sessionId);
 }

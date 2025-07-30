@@ -3,143 +3,158 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>부산 맛집 가이드 - MO:SI</title>
+  <title>관광 정보</title>
 
-  <!-- 외부 라이브러리 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-
-  <!-- 레이아웃(헤더·푸터) -->
+  <!-- 기본 CSS -->
   <link rel="stylesheet" th:href="@{/css/layout.css}">
-  <!-- 공통 컴포넌트(UI, 사이드바 등) -->
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <link rel="stylesheet" th:href="@{/css/information/restaurants.css}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <!-- 폰트 및 아이콘 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.8/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
+
 <body>
 <div class="layout-wrapper">
-  <!-- 기존 홈페이지와 동일한 헤더 -->
   <header th:replace="~{fragments/header :: header}"></header>
-  
-  <!-- ========================= MAIN LAYOUT ========================= -->
+
   <div class="page-container">
     <main class="mypage-container">
-              <!-- ---------- 사이드바 ---------- -->
-        <aside class="sidebar">
-          <div class="sidebar-card">
-            <nav class="mypage-nav">
-              <div class="nav-title active">관광 정보</div>
-              <ul>
-                <li><a th:href="@{/information/restaurants}">맛집 정보</a></li>
-                <li><a href="#" onclick="alert('준비중입니다.')">관광지 정보</a></li>
-                <li><a href="#" onclick="alert('준비중입니다.')">장애인 정보</a></li>
-              </ul>
-            </nav>
-          </div>
-        </aside>
-      
-      <!-- ---------- 본문 영역 ---------- -->
+      <!-- ==================== 사이드바 ==================== -->
+      <aside class="sidebar">
+        <div class="sidebar-card">
+          <nav class="mypage-nav">
+            <div class="nav-title">관광 정보</div>
+            <ul>
+              <li><a href="/information" class="active">부산맛집</a></li>
+              <li><a href="#" onclick="alert('준비중입니다.')">교통약자 편의시설</a></li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- ==================== 메인 컨텐츠 ==================== -->
       <section class="content">
-        <div class="community-wrapper restaurants-content">
-
-<!-- 대시보드 -->
-<section class="dashboard">
-  <div class="dashboard-container">
-    <h1 class="dashboard-title">부산 맛집 현황 대시보드</h1>
-    <div class="dashboard-content">
-      <!-- 지도 컨테이너 -->
-      <div class="map-container">
-        <div class="map-header">
-          <div class="map-title">부산 맛집 위치 분포</div>
-          <div class="map-stats">총 447개 맛집</div>
+        <div class="content-header">
+          <h1>관광 정보</h1>
+          <p>부산의 관광정보를 찾아보세요</p>
         </div>
-        <div id="map"></div>
-      </div>
 
-      <!-- 사이드바 -->
-      <div class="sidebar">
-        <!-- 구군별 도넛 차트 -->
-        <div class="chart-container">
-          <div class="chart-title">🏙️ 구군별 분포</div>
-          <div class="donut-chart">
-            <canvas id="districtChart"></canvas>
+        <!-- 대시보드 -->
+        <section class="dashboard-section">
+          <div class="dashboard-container">
+            <h2 class="section-title">부산맛집</h2>
+
+            <!-- 필터 -->
+            <div class="filter-container">
+              <select id="districtFilter" class="filter-select">
+                <option value="">전체 지역</option>
+                <option th:each="district : ${districts}"
+                        th:value="${district}"
+                        th:text="${district}"
+                        th:selected="${district == selectedDistrict}">지역명</option>
+              </select>
+
+              <select id="categoryFilter" class="filter-select">
+                <option value="">전체 카테고리</option>
+                <option th:each="category : ${categories}"
+                        th:value="${category}"
+                        th:text="${category}"
+                        th:selected="${category == selectedCategory}">카테고리</option>
+              </select>
+
+              <button type="button" id="filterBtn" class="btn-primary">검색</button>
+            </div>
+
+            <!-- Kibana 대시보드 -->
+            <div class="dashboard-content">
+              <div class="map-container" style="grid-column: 1 / -1;">
+                <h3>부산 맛집 분석 대시보드</h3>
+                <div id="kibanaContainer">
+                  <iframe
+                      id="kibanaFrame"
+                      src="http://localhost:5601/app/dashboards#/view/5beffe3b-f70b-4976-acee-277da4d07cf2?embed=true&_g=(refreshInterval:(pause:!t,value:60000),time:(from:now-15m,to:now))&hide-filter-bar=true"
+                      width="100%"
+                      height="600"
+                      style="border: 1px solid #ddd; border-radius: 6px;">
+                  </iframe>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
 
-        <!-- 업종별 바 차트 -->
-        <div class="chart-container">
-          <div class="chart-title">🍴 주요 업종 현황</div>
-          <div class="bar-chart">
-            <canvas id="categoryChart"></canvas>
+        <!-- 맛집 목록 -->
+        <section class="restaurant-list-section">
+          <div class="section-header">
+            <h2 class="section-title">맛집 목록</h2>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- 필터 섹션 -->
-<section class="filter-section">
-  <div class="filter-container">
-    <div class="filter-group">
-      <label class="filter-label">지역</label>
-      <select class="filter-select" id="districtFilter">
-        <option value="">전체 지역</option>
-        <option value="해운대구">해운대구</option>
-        <option value="부산진구">부산진구</option>
-        <option value="중구">중구</option>
-        <option value="서구">서구</option>
-        <option value="동래구">동래구</option>
-        <option value="수영구">수영구</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label class="filter-label">업종</label>
-      <select class="filter-select" id="categoryFilter">
-        <option value="">전체 업종</option>
-        <option value="한식">한식</option>
-        <option value="일식">일식</option>
-        <option value="중식">중식</option>
-        <option value="양식">양식</option>
-        <option value="카페">카페</option>
-        <option value="치킨">치킨</option>
-      </select>
-    </div>
-    <div class="filter-buttons">
-      <button class="btn btn-primary" onclick="applyFilters()">필터 적용</button>
-      <button class="btn btn-secondary" onclick="resetFilters()">초기화</button>
-    </div>
-  </div>
-</section>
+          <!-- 맛집 카드 그리드 -->
+          <div class="restaurant-grid" id="restaurantGrid">
+            <!-- 디버깅용 메시지 -->
+            <div th:if="${restaurants.content.size() == 0}" class="debug-message">
+              <p style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 8px; color: #666;">
+                맛집 데이터가 없습니다. (총 데이터: <span th:text="${restaurants.totalElements}">0</span>개)
+              </p>
+            </div>
+            
+            <div th:each="restaurant : ${restaurants.content}" class="restaurant-card">
+              <div class="restaurant-image">
+                <img th:src="${restaurant.mainImgThumb != null ? restaurant.mainImgThumb : '/img/default-restaurant.png'}"
+                     th:alt="${restaurant.mainTitle}"
+                     onerror="this.src='/img/default-restaurant.png'">
+                <div class="restaurant-badge" th:if="${restaurant.gugunNm}" th:text="${restaurant.gugunNm}">지역</div>
+              </div>
 
-<!-- 맛집 목록 -->
-<section class="content-section">
-  <h2 class="section-title">맛집 목록</h2>
-  <div class="restaurant-grid" id="restaurantGrid">
-    <!-- 맛집 카드들이 여기에 동적으로 생성됩니다 -->
-  </div>
+              <div class="restaurant-info">
+                <h3 class="restaurant-name" th:text="${restaurant.mainTitle}">맛집명</h3>
+                <p class="restaurant-address" th:text="${restaurant.addr1}">주소</p>
+                <p class="restaurant-menu" th:if="${restaurant.rprsnTvMenu}" th:text="${restaurant.rprsnTvMenu}">대표메뉴</p>
 
-  <!-- 페이징 -->
-  <div class="pagination" id="pagination">
-    <button class="page-btn" onclick="changePage('first')">처음</button>
-    <button class="page-btn" onclick="changePage('prev')">이전</button>
-    <button class="page-btn active">1</button>
-    <button class="page-btn">2</button>
-    <button class="page-btn">3</button>
-    <button class="page-btn" onclick="changePage('next')">다음</button>
-    <button class="page-btn" onclick="changePage('last')">마지막</button>
-  </div>
-</section>
+                <div class="restaurant-actions">
+                  <a th:href="@{'/information/restaurants/' + ${restaurant.ucSeq}}" class="btn-detail">상세보기</a>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        </div>
+          <!-- 페이징 -->
+          <div class="pagination-container" th:if="${restaurants.totalPages > 1}">
+            <div class="pagination">
+              <a th:if="${currentPage > 1}"
+                 th:href="@{/information(page=${currentPage - 1}, district=${selectedDistrict}, category=${selectedCategory})}"
+                 class="page-btn">이전</a>
+
+              <span th:each="page : ${#numbers.sequence(1, restaurants.totalPages)}"
+                    th:class="${page == currentPage ? 'page-btn active' : 'page-btn'}">
+                  <a th:if="${page != currentPage}"
+                     th:href="@{/information(page=${page}, district=${selectedDistrict}, category=${selectedCategory})}"
+                     th:text="${page}">1</a>
+                  <span th:if="${page == currentPage}" th:text="${page}">1</span>
+                </span>
+
+              <a th:if="${currentPage < restaurants.totalPages}"
+                 th:href="@{/information(page=${currentPage + 1}, district=${selectedDistrict}, category=${selectedCategory})}"
+                 class="page-btn">다음</a>
+            </div>
+          </div>
+        </section>
       </section>
     </main>
   </div>
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
-  </div>
 
-<!-- 로컬 JavaScript -->
+  <footer th:replace="~{fragments/footer :: footer}"></footer>
+</div>
+
+<!-- JavaScript -->
+<script th:inline="javascript">
+  // 서버에서 전달된 데이터
+  /*<![CDATA[*/
+  const dashboardData = /*[[${dashboardData}]]*/ {};
+  /*]]>*/
+</script>
 <script th:src="@{/js/information/restaurants.js}"></script>
 </body>
 </html>

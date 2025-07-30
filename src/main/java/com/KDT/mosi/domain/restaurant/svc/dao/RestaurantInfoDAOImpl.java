@@ -1,31 +1,29 @@
 package com.KDT.mosi.domain.restaurant.svc.dao;
 
 import com.KDT.mosi.domain.documents.RestaurantInfoDocument;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.*;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-
+@Slf4j
 @Repository
 public class RestaurantInfoDAOImpl implements RestaurantInfoDAO {
+
   @Value("${busan.api.food.service-key}")
   private String foodServiceKey;
 
   @Value("${busan.api.food.url}")
   private String foodUrl;
-
-  @Value("${busan.api.facility.service-key}")
-  private String facilityServiceKey;
-
-  @Value("${busan.api.facility.url}")
-  private String facilityUrl;
 
   @Value("${elasticsearch.host}")
   private String elasticsearchHost;
@@ -33,11 +31,12 @@ public class RestaurantInfoDAOImpl implements RestaurantInfoDAO {
   @Value("${elasticsearch.port}")
   private int elasticsearchPort;
 
-  private final RestTemplate restTemplate = new RestTemplate();
-
-  // 캐시용 데이터 저장
+  private final RestTemplate restTemplate;
   private List<RestaurantInfoDocument> cachedRestaurants;
-  private List<RestaurantInfoDocument> cachedFacilities;
+
+  public RestaurantInfoDAOImpl() {
+    this.restTemplate = new RestTemplate();
+  }
 
   @Override
   public List<RestaurantInfoDocument> getRestaurants() {
@@ -47,117 +46,145 @@ public class RestaurantInfoDAOImpl implements RestaurantInfoDAO {
     return cachedRestaurants;
   }
 
-  @Override
-  public List<RestaurantInfoDocument> getFacilities() {
-    if (cachedFacilities == null) {
-      cachedFacilities = fetchFacilitiesFromAPI();
-    }
-    return cachedFacilities;
-  }
-
   private List<RestaurantInfoDocument> fetchRestaurantsFromAPI() {
     try {
-      String url = String.format("%s/getFoodKr?serviceKey=%s&resultType=json&numOfRows=437&pageNo=1",
+      // 가장 직관적이고 통상적인 방법: 웹 검색에서 성공한 URL 형태와 동일하게
+      String url = String.format("%s/getFoodKr?serviceKey=%s&numOfRows=500&pageNo=1&resultType=json",
           foodUrl, foodServiceKey);
 
-      System.out.println("🔗 부산 맛집 API 호출: " + url);
-      Map<String, Object> response = restTemplate.getForObject(url, Map.class);
-      System.out.println("📡 API 응답: " + response);
+      log.info("API 호출: {}", url.replaceAll("serviceKey=[^&]*", "serviceKey=***"));
+      log.info("실제 서비스키 길이: {}", foodServiceKey.length());
 
-      Map<String, Object> getFoodKr = (Map<String, Object>) response.get("getFoodKr");
-      List<Map<String, Object>> items = (List<Map<String, Object>>) getFoodKr.get("item");
-
-      List<RestaurantInfoDocument> restaurants = new ArrayList<>();
-      for (Map<String, Object> item : items) {
-        RestaurantInfoDocument doc = new RestaurantInfoDocument();
-
-        // API 응답 필드명을 엔티티 필드명으로 매핑
-        doc.setUcSeq(getLong(item, "UC_SEQ"));
-        doc.setMainTitle(getString(item, "MAIN_TITLE"));
-        doc.setGugunNm(getString(item, "GUGUN_NM"));
-        doc.setLat(getDouble(item, "LAT"));
-        doc.setLng(getDouble(item, "LNG"));
-        doc.setPlace(getString(item, "PLACE"));
-        doc.setTitle(getString(item, "TITLE"));
-        doc.setSubTitle(getString(item, "SUBTITLE"));
-        doc.setAddr1(getString(item, "ADDR1"));
-        doc.setAddr2(getString(item, "ADDR2"));
-        doc.setCntctTel(getString(item, "CNTCT_TEL"));
-        doc.setHomepageUrl(getString(item, "HOMEPAGE_URL"));
-        doc.setUsageDayWeekAndTime(getString(item, "USAGE_DAY_WEEK_AND_TIME"));
-        doc.setRprsnTvMenu(getString(item, "RPRSNTV_MENU"));
-        doc.setMainImgNormal(getString(item, "MAIN_IMG_NORMAL"));
-        doc.setMainImgThumb(getString(item, "MAIN_IMG_THUMB"));
-        doc.setItemCntnts(getString(item, "ITEMCNTNTS"));
-
-        restaurants.add(doc);
+      // JSON 응답 받기 - Accept 헤더 명시적 설정
+      HttpHeaders headers = new HttpHeaders();
+      headers.set("Accept", "application/json");
+      HttpEntity<?> entity = new HttpEntity<>(headers);
+      
+      ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
+      Map<String, Object> jsonResponse = response.getBody();
+      
+      log.info("응답 Content-Type: {}", response.getHeaders().getContentType());
+      
+      if (jsonResponse == null || jsonResponse.isEmpty()) {
+        log.error("API 응답이 비어있습니다.");
+        return new ArrayList<>();
       }
       
-      System.out.println("✅ 맛집 데이터 " + restaurants.size() + "개 로드 완료");
-      return restaurants;
+      log.info("JSON 응답 키: {}", jsonResponse.keySet());
+      log.info("JSON 응답 전체 구조: {}", jsonResponse);
+      
+      // JSON에서 직접 데이터 추출 (웹 검색 결과 구조에 맞게)
+      return parseJsonResponseCorrect(jsonResponse);
+
     } catch (Exception e) {
-      System.err.println("❌ API 호출 실패: " + e.getMessage());
-      e.printStackTrace();
-      return new ArrayList<>(); // 빈 리스트 반환
-    }
-  }
-
-  private List<RestaurantInfoDocument> fetchFacilitiesFromAPI() {
-    try {
-      String url = String.format("%s/getFcltsDsgstInfo?serviceKey=%s&resultType=json&numOfRows=100&pageNo=1",
-          facilityUrl, facilityServiceKey);
-
-      Map<String, Object> response = restTemplate.getForObject(url, Map.class);
-
-      Map<String, Object> getFacilities = (Map<String, Object>) response.get("getFcltsDsgstInfo");
-      List<Map<String, Object>> items = (List<Map<String, Object>>) getFacilities.get("item");
-
-      List<RestaurantInfoDocument> facilities = new ArrayList<>();
-      for (Map<String, Object> item : items) {
-        RestaurantInfoDocument doc = new RestaurantInfoDocument();
-
-        // 편의시설 API 응답을 맛집 엔티티에 매핑 (공통 필드만)
-        doc.setUcSeq(getLong(item, "UC_SEQ"));
-        doc.setMainTitle(getString(item, "MAIN_TITLE"));
-        doc.setGugunNm(getString(item, "GUGUN_NM"));
-        doc.setLat(getDouble(item, "LAT"));
-        doc.setLng(getDouble(item, "LNG"));
-        doc.setAddr1(getString(item, "ADDR1"));
-        doc.setCntctTel(getString(item, "CNTCT_TEL"));
-        doc.setUsageDayWeekAndTime(getString(item, "USAGE_DAY_WEEK_AND_TIME"));
-        doc.setMainImgNormal(getString(item, "MAIN_IMG_NORMAL"));
-
-        facilities.add(doc);
-      }
-      return facilities;
-    } catch (Exception e) {
-      e.printStackTrace();
+      log.error("OpenAPI 호출 중 오류 발생: {}", e.getMessage());
       return new ArrayList<>();
     }
   }
+  
+  // 웹 검색에서 확인된 정확한 JSON 구조에 맞는 파싱
+  private List<RestaurantInfoDocument> parseJsonResponseCorrect(Map<String, Object> response) {
+    List<RestaurantInfoDocument> restaurants = new ArrayList<>();
+    
+    try {
+      // 웹 검색 결과 구조: getFoodKr.item 배열
+      Map<String, Object> getFoodKr = (Map<String, Object>) response.get("getFoodKr");
+      if (getFoodKr == null) {
+        log.error("응답에 'getFoodKr' 키가 없습니다.");
+        return restaurants;
+      }
+      
+      List<Map<String, Object>> items = (List<Map<String, Object>>) getFoodKr.get("item");
+      if (items == null || items.isEmpty()) {
+        log.warn("getFoodKr.item이 비어있습니다.");
+        return restaurants;
+      }
+      
+      log.info("JSON에서 {}개의 맛집 데이터 발견", items.size());
+      
+      for (Map<String, Object> item : items) {
+        RestaurantInfoDocument restaurant = new RestaurantInfoDocument();
+        
+        // JSON Map에서 직접 값 추출 (웹 검색 결과 필드명과 정확히 일치)
+        restaurant.setUcSeq(getLong(item, "UC_SEQ"));
+        restaurant.setMainTitle(getString(item, "MAIN_TITLE"));
+        restaurant.setGugunNm(getString(item, "GUGUN_NM"));
+        restaurant.setLat(getDouble(item, "LAT"));
+        restaurant.setLng(getDouble(item, "LNG"));
+        restaurant.setAddr1(getString(item, "ADDR1"));
+        restaurant.setCntctTel(getString(item, "CNTCT_TEL"));
+        restaurant.setHomepageUrl(getString(item, "HOMEPAGE_URL"));
+        restaurant.setUsageDayWeekAndTime(getString(item, "USAGE_DAY_WEEK_AND_TIME"));
+        restaurant.setRprsnTvMenu(getString(item, "RPRSNTV_MENU"));
+        restaurant.setMainImgThumb(getString(item, "MAIN_IMG_THUMB"));
+        restaurant.setItemCntnts(getString(item, "ITEMCNTNTS"));
+        
+        if (restaurant.getMainTitle() != null && !restaurant.getMainTitle().trim().isEmpty()) {
+          restaurants.add(restaurant);
+        }
+      }
+      
+      log.info("JSON 파싱 완료: {}개의 맛집 데이터 추출됨", restaurants.size());
+      return restaurants;
+      
+    } catch (Exception e) {
+      log.error("JSON 파싱 오류: {}", e.getMessage());
+      return restaurants;
+    }
+  }
+  
+  // JSON Map 값 추출 헬퍼 메소드들
+  private String getString(Map<String, Object> map, String key) {
+    Object value = map.get(key);
+    return value != null ? value.toString() : null;
+  }
+  
+  private Double getDouble(Map<String, Object> map, String key) {
+    try {
+      Object value = map.get(key);
+      return value != null ? Double.parseDouble(value.toString()) : null;
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+  
+  private Long getLong(Map<String, Object> map, String key) {
+    try {
+      Object value = map.get(key);
+      return value != null ? Long.parseLong(value.toString()) : null;
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
 
   @Override
-  public Page<RestaurantInfoDocument> getRestaurantsPaged(String district, String category, Pageable pageable) {
+  public Page<RestaurantInfoDocument> getRestaurantsPaged(int page, int size, String search, String district, String category) {
     List<RestaurantInfoDocument> allRestaurants = getRestaurants();
 
-    // 필터링
-    Stream<RestaurantInfoDocument> stream = allRestaurants.stream();
-    if (district != null && !district.isEmpty()) {
-      stream = stream.filter(r -> district.equals(r.getGugunNm()));
-    }
-    if (category != null && !category.isEmpty()) {
-      stream = stream.filter(r -> r.getItemCntnts() != null && r.getItemCntnts().contains(category));
-    }
+    List<RestaurantInfoDocument> filtered = allRestaurants.stream()
+        .filter(r -> {
+          if (StringUtils.hasText(search)) {
+            String searchLower = search.toLowerCase();
+            return (r.getMainTitle() != null && r.getMainTitle().toLowerCase().contains(searchLower)) ||
+                (r.getAddr1() != null && r.getAddr1().toLowerCase().contains(searchLower)) ||
+                (r.getRprsnTvMenu() != null && r.getRprsnTvMenu().toLowerCase().contains(searchLower));
+          }
+          return true;
+        })
+        .filter(r -> !StringUtils.hasText(district) || district.equals(r.getGugunNm()))
+        .filter(r -> !StringUtils.hasText(category) ||
+            (r.getItemCntnts() != null && r.getItemCntnts().contains(category)))
+        .collect(Collectors.toList());
 
-    List<RestaurantInfoDocument> filtered = stream.collect(Collectors.toList());
+    int totalElements = filtered.size();
+    int startIndex = (page - 1) * size;
+    int endIndex = Math.min(startIndex + size, totalElements);
 
-    // 페이징 처리
-    int start = (int) pageable.getOffset();
-    int end = Math.min(start + pageable.getPageSize(), filtered.size());
-    List<RestaurantInfoDocument> pageContent = start < filtered.size() ?
-        filtered.subList(start, end) : new ArrayList<>();
+    List<RestaurantInfoDocument> pageContent = startIndex < totalElements ?
+        filtered.subList(startIndex, endIndex) : Collections.emptyList();
 
-    return new PageImpl<>(pageContent, pageable, filtered.size());
+    Pageable pageable = PageRequest.of(page - 1, size);
+    return new PageImpl<>(pageContent, pageable, totalElements);
   }
 
   @Override
@@ -177,34 +204,19 @@ public class RestaurantInfoDAOImpl implements RestaurantInfoDAO {
   }
 
   @Override
-  public List<RestaurantInfoDocument> getRestaurantsForMap() {
-    // 좌표 정보가 있는 맛집만 반환 (부산 지역 좌표 범위 필터링)
-    return getRestaurants().stream()
-        .filter(r -> r.getLat() != null && r.getLng() != null)
-        .filter(r -> r.getLat() > 34.5 && r.getLat() < 36.0) // 부산 위도 범위
-        .filter(r -> r.getLng() > 128.5 && r.getLng() < 130.0) // 부산 경도 범위
-        .collect(Collectors.toList());
-  }
-
-  @Override
   public Map<String, Object> getAggregation(String field) {
     try {
       String url = String.format("http://%s:%d/restaurant_info/_search", elasticsearchHost, elasticsearchPort);
-
       Map<String, Object> query = Map.of(
           "size", 0,
           "aggs", Map.of(
               "group_by_field", Map.of(
-                  "terms", Map.of(
-                      "field", field + ".keyword",
-                      "size", 20
-                  )
+                  "terms", Map.of("field", field + ".keyword", "size", 20)
               )
           )
       );
 
       Map<String, Object> response = restTemplate.postForObject(url, query, Map.class);
-
       Map<String, Object> aggs = (Map<String, Object>) response.get("aggregations");
       Map<String, Object> groupBy = (Map<String, Object>) aggs.get("group_by_field");
       List<Map<String, Object>> buckets = (List<Map<String, Object>>) groupBy.get("buckets");
@@ -213,10 +225,8 @@ public class RestaurantInfoDAOImpl implements RestaurantInfoDAO {
       for (Map<String, Object> bucket : buckets) {
         result.put(bucket.get("key").toString(), bucket.get("doc_count"));
       }
-
       return result;
     } catch (Exception e) {
-      // Elasticsearch 연결 실패시 메모리 데이터로 집계
       return getAggregationFromMemory(field);
     }
   }
@@ -227,31 +237,24 @@ public class RestaurantInfoDAOImpl implements RestaurantInfoDAO {
 
     for (RestaurantInfoDocument restaurant : restaurants) {
       String value = null;
-      switch (field) {
-        case "gugunNm":
-          value = restaurant.getGugunNm();
-          break;
-        case "itemCntnts":
-          value = restaurant.getItemCntnts();
-          break;
+      if ("gugunNm".equals(field)) {
+        value = restaurant.getGugunNm();
+      } else if ("itemCntnts".equals(field)) {
+        value = restaurant.getItemCntnts();
       }
 
-      if (value != null && !value.trim().isEmpty()) {
-        // 업종의 경우 "기타" 제외 및 정제
+      if (StringUtils.hasText(value)) {
         if ("itemCntnts".equals(field)) {
           value = cleanCategory(value);
-          if (value == null) continue; // "기타" 등은 제외
+          if (value == null) continue;
         }
         aggregation.merge(value, 1L, Long::sum);
       }
     }
 
-    // 상위 항목만 반환 (업종의 경우 8개, 지역의 경우 전체)
-    int limit = "itemCntnts".equals(field) ? 8 : 20;
-
     return aggregation.entrySet().stream()
         .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-        .limit(limit)
+        .limit("itemCntnts".equals(field) ? 8 : 20)
         .collect(Collectors.toMap(
             Map.Entry::getKey,
             entry -> (Object) entry.getValue(),
@@ -261,19 +264,13 @@ public class RestaurantInfoDAOImpl implements RestaurantInfoDAO {
   }
 
   private String cleanCategory(String category) {
-    if (category == null) return null;
+    if (!StringUtils.hasText(category)) return null;
 
     String cleaned = category.toLowerCase().trim();
-
-    // "기타" 관련 키워드 제외
-    if (cleaned.contains("기타") ||
-        cleaned.contains("etc") ||
-        cleaned.equals("-") ||
-        cleaned.isEmpty() ||
-        cleaned.equals("null")) {
+    if (cleaned.contains("기타") || cleaned.contains("etc") ||
+        cleaned.equals("-") || cleaned.equals("null")) {
       return null;
     }
-
     return category;
   }
 
@@ -281,8 +278,7 @@ public class RestaurantInfoDAOImpl implements RestaurantInfoDAO {
   public List<String> getDistrictList() {
     return getRestaurants().stream()
         .map(RestaurantInfoDocument::getGugunNm)
-        .filter(Objects::nonNull)
-        .filter(district -> !district.trim().isEmpty())
+        .filter(StringUtils::hasText)
         .distinct()
         .sorted()
         .collect(Collectors.toList());
@@ -292,77 +288,16 @@ public class RestaurantInfoDAOImpl implements RestaurantInfoDAO {
   public List<String> getCategoryList() {
     return getRestaurants().stream()
         .map(RestaurantInfoDocument::getItemCntnts)
-        .filter(Objects::nonNull)
-        .filter(category -> cleanCategory(category) != null)
+        .filter(StringUtils::hasText)
         .map(this::cleanCategory)
+        .filter(Objects::nonNull)
         .distinct()
         .sorted()
         .collect(Collectors.toList());
   }
 
-  // 헬퍼 메소드들
-  private String getString(Map<String, Object> map, String key) {
-    Object value = map.get(key);
-    return value != null ? value.toString() : null;
-  }
-
-  private Double getDouble(Map<String, Object> map, String key) {
-    Object value = map.get(key);
-    if (value == null) return null;
-    try {
-      return Double.parseDouble(value.toString());
-    } catch (NumberFormatException e) {
-      return null;
-    }
-  }
-
-  private Long getLong(Map<String, Object> map, String key) {
-    Object value = map.get(key);
-    if (value == null) return null;
-    try {
-      return Long.parseLong(value.toString());
-    } catch (NumberFormatException e) {
-      return null;
-    }
-  }
-
-  // 샘플 데이터 생성 메서드
-  private List<RestaurantInfoDocument> createSampleRestaurantData() {
-    List<RestaurantInfoDocument> sampleData = new ArrayList<>();
-    
-    RestaurantInfoDocument doc1 = new RestaurantInfoDocument();
-    doc1.setUcSeq(1L);
-    doc1.setMainTitle("해운대 맛집");
-    doc1.setGugunNm("해운대구");
-    doc1.setLat(35.1585);
-    doc1.setLng(129.1600);
-    doc1.setAddr1("부산광역시 해운대구");
-    doc1.setItemCntnts("한식");
-    doc1.setRprsnTvMenu("불고기");
-    sampleData.add(doc1);
-
-    RestaurantInfoDocument doc2 = new RestaurantInfoDocument();
-    doc2.setUcSeq(2L);
-    doc2.setMainTitle("서면 카페");
-    doc2.setGugunNm("부산진구");
-    doc2.setLat(35.1579);
-    doc2.setLng(129.0589);
-    doc2.setAddr1("부산광역시 부산진구");
-    doc2.setItemCntnts("카페");
-    doc2.setRprsnTvMenu("아메리카노");
-    sampleData.add(doc2);
-
-    RestaurantInfoDocument doc3 = new RestaurantInfoDocument();
-    doc3.setUcSeq(3L);
-    doc3.setMainTitle("중구 맛집");
-    doc3.setGugunNm("중구");
-    doc3.setLat(35.1040);
-    doc3.setLng(129.0338);
-    doc3.setAddr1("부산광역시 중구");
-    doc3.setItemCntnts("일식");
-    doc3.setRprsnTvMenu("초밥");
-    sampleData.add(doc3);
-
-    return sampleData;
+  @Override
+  public List<RestaurantInfoDocument> getRestaurantsForMap() {
+    return getRestaurants();
   }
 }

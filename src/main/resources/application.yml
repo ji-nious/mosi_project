@@ -42,12 +42,12 @@ upload:
 # 공공데이터 api
 busan:
   api:
+    food:
+      url: http://apis.data.go.kr/6260000/FoodService
+      service-key: fPdY0rW%2Fg4SDZfiWY4leSfZXwCLWVtXo23evqleikvxs8PED%2BZ4KUA%2FPTyLYAdb8oTEFRKqPyPTVLBNuMKn8lQ%3D%3D
     facility:
       url: https://apis.data.go.kr/6260000/BusanFcltsDsgstInfoService
       service-key: fPdY0rW%2Fg4SDZfiWY4leSfZXwCLWVtXo23evqleikvxs8PED%2BZ4KUA%2FPTyLYAdb8oTEFRKqPyPTVLBNuMKn8lQ%3D%3D
-    food:
-      url: https://apis.data.go.kr/6260000/FoodService
-      service-key: rmNuweaQgDRs%2FZmhVSYpOUx%2F7qjCU3UOD1CrpnFdI17mcMC1DwI5l0oNu2R5VOmeU2KTMTVqt9sOZSMGiaDmvw%3D%3D
 
 # elasticsearch 설정
 elasticsearch:
