@@ -95,8 +95,12 @@ public class ProductController {
         productList.add(form);
       }
 
+      // 현재 페이지에 표시되는 실제 개수 계산
+      int currentPageCount = productList != null ? productList.size() : 0;
+      
       model.addAttribute("productList", productList == null ? new ArrayList<>() : productList);
       model.addAttribute("totalCount", totalCount);
+      model.addAttribute("currentPageCount", currentPageCount);  // 현재 페이지 표시 개수
       model.addAttribute("currentPage", page);
       model.addAttribute("totalPages", totalPages);
       model.addAttribute("selectedCategory", category);

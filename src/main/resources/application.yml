@@ -49,6 +49,11 @@ busan:
       url: https://apis.data.go.kr/6260000/BusanFcltsDsgstInfoService
       service-key: fPdY0rW%2Fg4SDZfiWY4leSfZXwCLWVtXo23evqleikvxs8PED%2BZ4KUA%2FPTyLYAdb8oTEFRKqPyPTVLBNuMKn8lQ%3D%3D
 
+# 카카오 지도 API 설정
+kakao:
+  map:
+    api-key: f966608df4bf0eb3e9a2d62ad6cf4ecc
+
 # elasticsearch 설정
 elasticsearch:
   host: localhost

@@ -242,7 +242,7 @@
         <!--리스트 갯수-->
         <div class="service-controls">
           <div class="service-count">
-            <p th:text="|${totalCount}개의 상품|"></p>
+            <p th:text="|전체 ${totalCount}개 중 ${currentPageCount}개 표시|"></p>
             <button type="button" class="dropdown-toggle">
               <span class="selected-label">인기순
                 <a th:replace="~{fragments/expand_button :: ex_btn}"></a>

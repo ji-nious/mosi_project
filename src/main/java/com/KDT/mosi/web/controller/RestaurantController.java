@@ -2,16 +2,18 @@ package com.KDT.mosi.web.controller;
 
 import com.KDT.mosi.domain.documents.RestaurantInfoDocument;
 import com.KDT.mosi.domain.restaurant.svc.RestaurantInfoSVC;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
+
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class RestaurantController {
@@ -19,116 +21,159 @@ public class RestaurantController {
   private final RestaurantInfoSVC restaurantInfoSVC;
 
   /**
+   * 카카오맵 API 서비스 키
+   */
+  @Value("${kakao.map.api-key}")
+  private String kakaoMapApiKey;
+
+  /**
    * 맛집 메인 페이지
    */
   @GetMapping("/information")
   public String restaurantMain(
       @RequestParam(name = "page", defaultValue = "1") int page,
-      @RequestParam(name = "size", defaultValue = "12") int size,
+      @RequestParam(name = "size", defaultValue = "15") int size,
       @RequestParam(name = "search", required = false) String search,
       @RequestParam(name = "district", required = false) String district,
-      @RequestParam(name = "category", required = false) String category,
+      @RequestParam(name = "cuisineType", required = false) String cuisineType,
       Model model) {
 
-    // 대시보드 데이터
-    model.addAttribute("dashboardData", restaurantInfoSVC.getDashboardData());
+    try {
+      List<RestaurantInfoDocument> allRestaurants = restaurantInfoSVC.getRestaurants();
+      List<RestaurantInfoDocument> filteredRestaurants = restaurantInfoSVC.getFilteredRestaurants(search, district, cuisineType);
 
-    // 지도용 전체 맛집 데이터 (좌표 있는 것만)
-    List<RestaurantInfoDocument> mapRestaurants = restaurantInfoSVC.getRestaurantsForMap();
-    model.addAttribute("mapRestaurants", mapRestaurants);
+      // 페이징 계산
+      long totalCount = filteredRestaurants.size();
+      int currentPage = page;
+      int totalPages = (int) Math.ceil((double) totalCount / size);
 
-    // 맛집 목록
-    Page<RestaurantInfoDocument> restaurants = restaurantInfoSVC.getRestaurantsPaged(page, size, search, district, category);
-    System.out.println("=== 맛집 목록 디버깅 ===");
-    System.out.println("총 맛집 수: " + restaurants.getTotalElements());
-    System.out.println("현재 페이지 맛집 수: " + restaurants.getContent().size());
-    System.out.println("전체 페이지 수: " + restaurants.getTotalPages());
-    System.out.println("현재 페이지: " + page);
-    
-    model.addAttribute("restaurants", restaurants);
-    model.addAttribute("currentPage", page);
-    model.addAttribute("totalPages", restaurants.getTotalPages());
+      // 페이지 네비게이션 범위
+      int displayPageNum = 10;
+      int endPage = (int) (Math.ceil(currentPage / (double) displayPageNum) * displayPageNum);
+      int startPage = endPage - displayPageNum + 1;
 
-    // 필터 옵션
-    model.addAttribute("districts", restaurantInfoSVC.getDistrictList());
-    model.addAttribute("categories", restaurantInfoSVC.getCategoryList());
-    model.addAttribute("selectedSearch", search);
-    model.addAttribute("selectedDistrict", district);
-    model.addAttribute("selectedCategory", category);
+      // 범위 보정
+      if (startPage < 1) startPage = 1;
+      if (endPage > totalPages) endPage = totalPages;
 
-    return "information/restaurants";
+      // 현재 페이지 데이터 추출
+      int startIndex = (currentPage - 1) * size;
+      int endIndex = Math.min(startIndex + size, filteredRestaurants.size());
+      List<RestaurantInfoDocument> pagedRestaurants = filteredRestaurants.subList(startIndex, endIndex);
+
+      int currentPageCount = pagedRestaurants.size();
+
+      // 필터 옵션 조회
+      List<String> districts = restaurantInfoSVC.getDistrictList();
+      List<String> categories = restaurantInfoSVC.getCuisineTypeList();
+
+      model.addAttribute("restaurants", pagedRestaurants);
+      model.addAttribute("allRestaurants", allRestaurants);
+      model.addAttribute("filteredRestaurants", filteredRestaurants);
+      model.addAttribute("districts", districts);
+      model.addAttribute("categories", categories);
+
+      model.addAttribute("selectedSearch", search);
+      model.addAttribute("selectedDistrict", district);
+      model.addAttribute("selectedCategory", cuisineType);
+
+      model.addAttribute("totalCount", totalCount);
+      model.addAttribute("currentPageCount", currentPageCount);
+      model.addAttribute("currentPage", currentPage);
+      model.addAttribute("totalPages", totalPages);
+      model.addAttribute("startPage", startPage);
+      model.addAttribute("endPage", endPage);
+
+      model.addAttribute("kakaoMapApiKey", kakaoMapApiKey);
+
+      return "information/restaurants";
+
+    } catch (Exception e) {
+      log.error("맛집 메인 페이지 로드 실패", e);
+      model.addAttribute("error", "데이터를 불러오는 중 오류가 발생했습니다.");
+      return "error/500";
+    }
   }
 
   /**
    * 맛집 상세 페이지
    */
-  @GetMapping("/restaurants/{id}")
-  public String restaurantDetail(@PathVariable Long id, Model model) {
-    RestaurantInfoDocument restaurant = restaurantInfoSVC.getRestaurantById(id);
-    if (restaurant == null) {
+  @GetMapping("/information/restaurants/{id}")
+  public String restaurantDetail(@PathVariable String id, Model model) {
+    try {
+      List<RestaurantInfoDocument> allRestaurants = restaurantInfoSVC.getRestaurants();
+
+      // 해당 ID 조회
+      RestaurantInfoDocument restaurant = allRestaurants.stream()
+          .filter(r -> id.equals(String.valueOf(r.getUcSeq())))
+          .findFirst()
+          .orElse(null);
+
+      if (restaurant == null) {
+        return "redirect:/information";
+      }
+
+      // 관련 구군 조회
+      List<RestaurantInfoDocument> relatedRestaurants = allRestaurants.stream()
+          .filter(r -> restaurant.getGugunNm() != null && restaurant.getGugunNm().equals(r.getGugunNm()))
+          .filter(r -> !id.equals(String.valueOf(r.getUcSeq())))
+          .limit(4)
+          .collect(java.util.stream.Collectors.toList());
+
+      model.addAttribute("restaurant", restaurant);
+      model.addAttribute("relatedRestaurants", relatedRestaurants);
+      model.addAttribute("kakaoMapApiKey", kakaoMapApiKey);
+
+      return "information/restaurant-detail";
+
+    } catch (Exception e) {
+      log.error("맛집 상세 페이지 로드 실패 - ID: {}", id, e);
       return "redirect:/information";
     }
+  }
 
-    model.addAttribute("restaurant", restaurant);
+  /**
+   * 전체 맛집 목록 API
+   */
+  @GetMapping("/api/restaurants")
+  @ResponseBody
+  public ResponseEntity<List<RestaurantInfoDocument>> getAllRestaurants() {
+    try {
+      List<RestaurantInfoDocument> restaurants = restaurantInfoSVC.getRestaurants();
+      return ResponseEntity.ok(restaurants);
+    } catch (Exception e) {
+      log.error("전체 맛집 조회 API 실패", e);
+      return ResponseEntity.internalServerError().build();
+    }
+  }
 
-    // 관련 맛집 (같은 지역)
-    List<RestaurantInfoDocument> relatedRestaurants =
-        restaurantInfoSVC.getRelatedRestaurants(restaurant.getGugunNm(), id, 4);
-    model.addAttribute("relatedRestaurants", relatedRestaurants);
-
-    return "information/restaurant-detail";
+  /**
+   * 지도용 맛집 목록 API
+   */
+  @GetMapping("/api/restaurants/map")
+  @ResponseBody
+  public ResponseEntity<List<RestaurantInfoDocument>> getRestaurantsForMap() {
+    try {
+      List<RestaurantInfoDocument> restaurants = restaurantInfoSVC.getRestaurantsForMap();
+      return ResponseEntity.ok(restaurants);
+    } catch (Exception e) {
+      log.error("지도용 맛집 조회 API 실패", e);
+      return ResponseEntity.internalServerError().build();
+    }
   }
 
   /**
    * 검색 자동완성 API
-   * 2글자 이상 입력시 맛집명에서 유사한 키워드 5개 반환
    */
   @GetMapping("/api/search/autocomplete")
   @ResponseBody
-  public List<String> getAutocomplete(@RequestParam("query") String query) {
-    if (query == null || query.trim().length() < 2) {
-      return List.of();
+  public ResponseEntity<List<String>> getAutocomplete(@RequestParam("query") String query) {
+    try {
+      List<String> suggestions = restaurantInfoSVC.getSearchSuggestions(query, 5);
+      return ResponseEntity.ok(suggestions);
+    } catch (Exception e) {
+      log.error("검색 자동완성 API 실패 - query: {}", query, e);
+      return ResponseEntity.internalServerError().build();
     }
-    return restaurantInfoSVC.getSearchSuggestions(query.trim(), 5);
-  }
-
-  /**
-   * 검색 기록 저장 API
-   */
-  @PostMapping("/api/search/history")
-  @ResponseBody
-  public Map<String, String> saveSearchHistory(
-      @RequestBody Map<String, String> request,
-      HttpServletRequest httpRequest) {
-
-    String keyword = request.get("keyword");
-    if (keyword != null && !keyword.trim().isEmpty()) {
-      String sessionId = httpRequest.getSession().getId();
-      restaurantInfoSVC.saveSearchHistory(sessionId, keyword.trim());
-    }
-
-    return Map.of("status", "success");
-  }
-
-  /**
-   * 검색 기록 조회 API
-   * 세션별로 최근 검색어 10개 반환
-   */
-  @GetMapping("/api/search/history")
-  @ResponseBody
-  public List<String> getSearchHistory(HttpServletRequest request) {
-    String sessionId = request.getSession().getId();
-    return restaurantInfoSVC.getSearchHistory(sessionId, 10);
-  }
-
-  /**
-   * 검색 기록 삭제 API
-   */
-  @DeleteMapping("/api/search/history")
-  @ResponseBody
-  public Map<String, String> clearSearchHistory(HttpServletRequest request) {
-    String sessionId = request.getSession().getId();
-    restaurantInfoSVC.clearSearchHistory(sessionId);
-    return Map.of("status", "success");
   }
 }
