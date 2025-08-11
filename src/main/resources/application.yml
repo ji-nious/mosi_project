@@ -1,39 +1,60 @@
 spring:
+  # app이름
   application:
-    name: project
+    name: mosi
+  #DB연결정보
   datasource:
     driver-class-name: oracle.jdbc.driver.OracleDriver
     url: jdbc:oracle:thin:@localhost:1521/xe
-    username: c##project
-    password: project1234
+    username: c##mosi
+    password: mosi1234
+  #ai
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
-  servlet:
-    session:
-      timeout: 30m
 
-server:
-  port: 9080
-  servlet:
-    session:
-      timeout: 1800
-      tracking-mode: cookie
-  error:
-    whitelabel:
+  devtools:
+    restart:
       enabled: false
-    include-message: always
-    include-binding-errors: always
 
+  #파일업로드 크기 설정
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 20MB
+      file-size-threshold: 0B
+
+# 웹서버 포트
+server:
+  port: 9070
+
+# 로그레벨
+# trace > debug > info > warn > error > fatal
 logging:
   level:
-    org:
-      springframework:
-        jdbc: DEBUG
-        security: DEBUG
-        web: DEBUG
+    root: info
 
-juso:
+# 게시판 업로드 위치
+upload:
+  path: C:\KDT\projects\uploads\bbs
+  url-prefix: /static/uploads
+
+# 공공데이터 api
+busan:
   api:
-    confmKey: "U01TX0FVVEgyMDI1MDcxMDE0MzMzNTExNTkzMTE="
-    url: "https://business.juso.go.kr/addrlink/addrLinkApi.do"
+    food:
+      url: http://apis.data.go.kr/6260000/FoodService
+      service-key: fPdY0rW%2Fg4SDZfiWY4leSfZXwCLWVtXo23evqleikvxs8PED%2BZ4KUA%2FPTyLYAdb8oTEFRKqPyPTVLBNuMKn8lQ%3D%3D
+    facility:
+      url: https://apis.data.go.kr/6260000/BusanFcltsDsgstInfoService
+      service-key: fPdY0rW%2Fg4SDZfiWY4leSfZXwCLWVtXo23evqleikvxs8PED%2BZ4KUA%2FPTyLYAdb8oTEFRKqPyPTVLBNuMKn8lQ%3D%3D
+
+# 카카오 지도 API 설정
+kakao:
+  map:
+    api-key: f966608df4bf0eb3e9a2d62ad6cf4ecc
+
+# elasticsearch 설정
+elasticsearch:
+  host: localhost
+  port: 9200

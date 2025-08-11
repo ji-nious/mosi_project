@@ -1,388 +1,260 @@
-/* =================================================================
-   Common Styles - 모든 페이지에 공통으로 적용되는 스타일
-================================================================= */
+/*common.css*/
+/* ============================= */
+/* ✅ A. Sidebar 컴포넌트       */
+/* ============================= */
 
-/* ===== 기본 레이아웃 및 폰트 설정 ===== */
-body {
-    font-family: 'Inter', 'Cabin', sans-serif;
-    background-color: #FBF9EF;
-    color: #1E2203;
-    margin: 0;
-    /* 고정된 네비게이션 바는 각 페이지에서 개별적으로 처리 */
+.sidebar {
+    width: 180px;
+    height: 1400px;
+    flex-shrink: 0;
 }
 
-a {
-    text-decoration: none;
-    color: inherit;
+.sidebar-card  {
+    width: 180px;
+    height: 1400px;
+    border: 1px solid #82d8d8;
+    border-radius: 4px;
+    background: #fff;
+    overflow: hidden;
 }
 
-/* ===== 내비게이션 바 (Navbar) ===== */
-.navbar {
+.profile-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: start;
+  width: 180px;
+  height: 220px;
+  padding-top: 15px;
+  background: #fff;
+  border-bottom: 1px solid #E0E0E0;
+  text-decoration: none;
+}
+
+
+.profile-image {
+  width: 93.5px !important;
+  height: 93.5px !important;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  margin-bottom: 0; /* auto 제거 */
+}
+
+.profile-image img {
     width: 100%;
-    height: 70px;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    height: 100%;
+    object-fit: cover;
+}
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.profile-badge  {
+    display: inline-block;
+    font-size: 12px;
+    color: #666;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    text-decoration: none;
+}
+
+.profile-name  {
+    font-size: 15px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.profile-discount{
+    background: #20c997;
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.mypage-nav {
+    width: 180px;
+    height: 1020px;
+}
+
+
+.mypage-nav .nav-title {
+    width: 180px;
+    height: 50px;
+    background:#1EC4CC;
+    color:#fff;
+    font-weight:bold;
+    /*padding-top: 15px;
+    padding-bottom: 15px;*/
     display: flex;
     justify-content: center;
     align-items: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1000;
-    padding: 0 20px;
-    box-sizing: border-box;
+    font-size:16px;
 }
 
-.navbar-container {
-    width: 100%;
-    max-width: 1200px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.navbar-logo {
-    display: flex;
-    align-items: center;
-}
-
-.navbar-logo img {
-    width: 40px;
-    height: 40px;
-    margin-right: 12px;
-}
-
-.navbar-logo span {
-    font-family: 'Cabin', sans-serif;
-    font-size: 24px;
-    font-weight: 700;
-    color: #658352;
-}
-
-.navbar-menu {
-    display: flex;
-    align-items: center;
-}
-
-.navbar-menu-group {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.navbar-menu .nav-item {
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-    padding: 8px 12px;
-    border-radius: 8px;
-    transition: background-color 0.2s, color 0.2s;
-}
-
-.navbar-menu .nav-item:hover {
-    background-color: #F5F4ED;
-    color: #658352;
-}
-
-.navbar-menu .nav-button {
-    font-size: 15px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    padding: 9px 20px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    background-color: #fff;
-    color: #555;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
- .navbar-menu .nav-button:hover {
-    background-color: #f5f5f5;
-    border-color: #ccc;
- }
- 
-.navbar-menu .nav-button.primary,
-.navbar-menu form button.nav-button {
-    background-color: #658352;
-    color: #fff;
-    border: 1px solid #658352;
-}
-
-.navbar-menu .nav-button.primary:hover,
-.navbar-menu form button.nav-button:hover {
-    background-color: #94A687;
-    border-color: #94A687;
-}
-
-/* 로그아웃 form 스타일 초기화 */
-.navbar-menu form {
+.mypage-nav ul {
+    background:#fff;
+    padding:10px 0;
     margin: 0;
-    padding: 0;
-    display: flex;
-    align-items: center;
+
 }
 
-/* =================================================================
-   Page Elements - 페이지 제목 등 공통 요소
-================================================================= */
-
-.page-title {
-    font-family: 'Cabin', sans-serif;
-    font-weight: 700;
-    color: #658352;
-    font-size: 2.4rem;
-    text-align: center;
-    margin: 40px 0;
-} 
-
-.container h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333;
+.mypage-nav > ul > li {
+    padding-top: 33px;
 }
 
-.form-group {
-    margin-bottom: 15px;
-} 
-.container {
-    width: 80%;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
 
-/* --- 주소 검색 모달 스타일 --- */
-.modal-background {
-  display: none; /* 기본적으로 숨김 */
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  justify-content: center;
-  align-items: center;
-}
-.modal-content {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 500px;
-  position: relative;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-.modal-close {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 24px;
+.mypage-nav > ul > li > a {
+  padding-left: 25px;   /* ← 왼쪽 패딩 추가 */
+  font-size: 14px;
   font-weight: bold;
-  cursor: pointer;
-  color: #888;
-}
-.modal-close:hover {
-  color: #000;
-}
-.modal-search-form {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-.modal-search-form input {
-  flex-grow: 1;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-.modal-search-form button {
-    padding: 8px 16px;
-    border: none;
-    background-color: #658352; /* Primary Color */
-    color: white;
-    border-radius: 4px;
-    cursor: pointer;
-}
-.results-container {
-  max-height: 300px;
-  overflow-y: auto;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-.result-item {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
-}
-.result-item:last-child {
-  border-bottom: none;
-}
-.result-item:hover {
-  background-color: #f0f0f0;
-}
-.result-item p {
-  margin: 5px 0;
-  font-size: 0.95rem;
-} 
-
-/* =================================================================
-   Message Styles - 에러/성공 메시지 스타일
-================================================================= */
-
-/* 전역 에러/성공 메시지 */
-.error-message, .success-message {
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-weight: 600;
-    text-align: center;
+  display: block;
+  text-decoration: none;
+  color: #414141;
 }
 
-.error-message {
-    background: #e8f5e8;
-    color: #2e7d32;
-    border: 1px solid #4caf50;
+.mypage-nav > ul > li > ul {
+    padding-left:0;
+    margin-bottom:10px;
 }
 
-.success-message {
-    background: #e8f5e8;
-    color: #2e7d32;
-    border: 1px solid #4caf50;
-}
-
-/* 필드별 에러 메시지 */
-.error-msg {
-    color: #e74c3c;
-    font-size: 0.8rem;
-    margin-top: 6px;
-    min-height: 1.2em; /* Prevent layout shift */
-}
-
-/* =================================================================
-   Form Styles - 공통 폼 스타일
-================================================================= */
-
-/* 회원가입 폼 컨테이너 */
-.signup-container {
-    width: 100%;
-    max-width: 600px;
-    margin: 0 auto;
-    background-color: #ffffff;
-    padding: 40px 50px;
-    border-radius: 20px;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-}
-
-.signup-container h2 {
-    font-family: 'Cabin', sans-serif;
-    font-weight: 700;
-    color: #658352;
-    text-align: center;
-    font-size: 2.2rem;
-    margin-top: 0;
-    margin-bottom: 30px;
-}
-
-/* 폼 행 스타일 */
-.form-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 18px;
-}
-
-.form-row label {
-    width: 120px;
-    text-align: left;
-    font-weight: bold;
-    flex-shrink: 0;
-    padding-top: 10px; /* Align with input box */
-    font-size: 0.95rem;
-}
-
-.input-col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-/* 입력 필드 스타일 */
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="date"],
-select {
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 1rem;
-    width: 100%;
-    box-sizing: border-box;
-    transition: border-color 0.2s;
-}
-
-input:focus, select:focus {
-    border-color: #658352;
-    outline: none;
-}
-
-/* 주소 검색 관련 스타일 */
-.postcode-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-#postcode { 
-    background-color: #f8f9fa; 
-}
-
-#searchPostcodeBtn {
-    padding: 10px 16px;
-    font-size: 0.9rem;
-    font-weight: bold;
-    border-radius: 8px;
-    border: 1px solid #658352;
-    background-color: transparent;
-    color: #658352;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: all 0.2s;
-}
-
-#searchPostcodeBtn:hover {
-    background-color: #658352;
-    color: #ffffff;
-}
-
-#address, #detailAddress { 
-    margin-bottom: 10px; 
-}
-
-#address { 
-    background-color: #f8f9fa; 
-}
-
-/* 회원가입 버튼 */
-.signup-btn {
+/* ✅ 기존 코드 수정본 */
+.mypage-nav > ul > li > ul a {
+    padding: 6px 15px 6px 25px;  /* 왼쪽 들여쓰기 포함한 패딩 */
     display: block;
-    width: 100%;
-    padding: 14px;
-    margin-top: 20px;
-    font-size: 1.1rem;
-    font-weight: bold;
-    border-radius: 24px;
-    border: none;
-    background-color: #658352;
-    color: white;
-    cursor: pointer;
-    transition: all 0.2s;
+    font-size: 13px;
+    color: #414141;             /* 폰트 컬러: 진한 회색 */
+    font-weight: normal;        /* 레귤러(기본) 굵기 */
+    text-decoration: none;
 }
 
-.signup-btn:hover { 
-    opacity: 0.9; 
-} 
+.mypage-nav > ul > li > ul a:hover {
+    color:#00c7e2;
+}
+
+/*전환 버튼*/
+.btn-role-switch {
+  width: 77px;
+  height: 22px;
+  background: linear-gradient(to right, #56DDF8 0%, #09D0C0 100%);
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 400; /* Regular */
+  border: none;
+  border-radius: 6px;
+  padding: 0;
+  margin-bottom: 10px;
+  text-align: center;
+  line-height: 22px;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.btn-role-switch:hover {
+  opacity: 0.9;
+}
+
+
+/* ============================= */
+/* ✅ B. Notice Bar & Section   */
+/* ============================= */
+
+.notice-bar {
+    display:flex;
+    align-items:center;
+    padding:16px 24px;
+    font-size:14px;
+    border:1px solid #ccc;
+    background: #f9f9f9;
+    border-radius: 4px;
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+.notice-label {
+    font-weight:bold;
+    margin-right:20px;
+}
+
+.notice-text  {
+    flex-grow:1;
+}
+
+.more-link    {
+    font-size:13px;
+    color:#666;
+}
+
+.section-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+}
+
+/* ============================= */
+/* ✅ C. 공통 UI 컴포넌트       */
+/* ============================= */
+
+.form-label  {
+    font-weight:bold;
+    margin-bottom:6px;
+}
+
+.text-danger {
+    font-size:0.875rem;
+    margin-top:4px;
+}
+
+.profile-image-lg {/* 프로필 큰 썸네일 필요시 */
+    width:150px;
+    height:150px;
+    object-fit:cover;
+    border-radius:10px;
+    border:1px solid #ccc;
+}
+
+#nicknameCheckBtn {
+    margin-left:8px;
+    height:38px;
+    padding:0 12px;
+    font-size:14px;
+}
+
+/* ── 공통 버튼 ── */
+.btn {
+    background:#1EC4CC !important;
+    color:#fff !important;
+    font-weight:600;
+    font-size:18px;
+    border:none;
+    border-radius:12px;
+    padding:8px 16px;
+    transition:background .2s,color .2s;
+}
+.btn:hover {
+    background:#007C90 !important;
+}
+
+
+.btn-outline-secondary {
+    background:transparent !important;
+    color:#0099AD !important;
+    border:1px solid #0099AD !important;
+    font-weight:700;
+    padding:8px 16px;
+    border-radius:12px;
+    transition:background .2s,color .2s;
+}
+
+.btn-outline-secondary:hover {
+    background:#0099AD !important;
+    color:#fff !important;
+}
