@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Slf4j
@@ -32,12 +31,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
             "/api/**"
         );
     log.info("PasswordVerifyInterceptor 등록 완료");
-  }
-
-  @Override
-  public void addViewControllers(ViewControllerRegistry registry) {
-    registry.addViewController("/login").setViewName("login");
-    log.info("뷰 컨트롤러 등록 완료");
   }
 
   // Vite CORS 설정(개발 시에만)

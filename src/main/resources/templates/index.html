@@ -335,15 +335,7 @@
     <div th:replace="~{fragments/footer :: footer}"></div>
   </div>
 
-  <!-- 개발 환경 -->
-  <script th:if="${@environment.acceptsProfiles('dev')}" type="module"
-          src="http://localhost:3000/@vite/client"></script>
-  <script th:if="${@environment.acceptsProfiles('dev')}" type="module"
-          src="http://localhost:3000/src/main.jsx"></script>
-
-  <!-- 프로덕션 환경 -->
-  <script th:unless="${@environment.acceptsProfiles('dev')}" type="module"
-          th:src="@{/assets/main.js}"></script>
+  <!-- React는 메인 페이지에서 사용하지 않음 -->
 
   <!-- 기존 스크립트 -->
   <script th:src="@{/js/layout.js}"></script>

@@ -3,6 +3,9 @@ package com.KDT.mosi.domain.entity.cart;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -26,6 +29,11 @@ public class CartItem {
   private Long quantity;
   private Long originalPrice;
   private Long salePrice;
+  
+  @CreationTimestamp
+  @Column(updatable = false)
   private LocalDateTime createdAt;
+  
+  @UpdateTimestamp
   private LocalDateTime updatedAt;
 }

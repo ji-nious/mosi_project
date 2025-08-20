@@ -52,7 +52,7 @@ public class CartController {
    */
   @GetMapping(produces = "application/json")
   @ResponseBody
-  public ResponseEntity<Map<String, Object>> getCartJson(HttpSession session) {
+  public ResponseEntity<Object> getCartJson(HttpSession session) {
     Member loginMember = (Member) session.getAttribute("loginMember");
     if (loginMember == null) {
       return ResponseEntity.status(401).body(Map.of(
@@ -98,7 +98,7 @@ public class CartController {
    */
   @PostMapping("/add")
   @ResponseBody
-  public ResponseEntity<Map<String, Object>> addToCart(
+  public ResponseEntity<Object> addToCart(
       @Valid @RequestBody CartRequest request,
       HttpSession session) {
 
@@ -118,24 +118,12 @@ public class CartController {
           request.getQuantity()
       );
 
-      Map<String, Object> response = new HashMap<>();
-
-      boolean isSuccess = result.toString().contains("rtcd=S00");
-
-      response.put("success", isSuccess);
-      response.put("code", isSuccess ? "S00" : "ERROR");
-
-      if (isSuccess) {
-        response.put("message", "장바구니에 상품이 추가되었습니다");
-      } else {
-        response.put("message", "상품 추가에 실패했습니다");
-      }
-
-      return ResponseEntity.ok(response);
+      return ResponseEntity.ok(result);
 
     } catch (Exception e) {
       log.error("장바구니 추가 오류: memberId={}, productId={}",
           loginMember.getMemberId(), request.getProductId(), e);
+      
       return ResponseEntity.status(500).body(Map.of(
           "success", false,
           "message", "장바구니 추가 중 오류가 발생했습니다"
@@ -169,19 +157,10 @@ public class CartController {
           request.getQuantity()
       );
 
-      Map<String, Object> response = new HashMap<>();
-      boolean isSuccess = result.toString().contains("rtcd=S00");
-
-      response.put("success", isSuccess);
-      response.put("code", isSuccess ? "S00" : "ERROR");
-
-      if (isSuccess) {
-        response.put("message", "수량이 변경되었습니다");
-      } else {
-        response.put("message", "수량 변경에 실패했습니다");
-      }
-
-      return ResponseEntity.ok(response);
+      return ResponseEntity.ok(Map.of(
+          "success", "S00".equals(result.getHeader().getRtcd()),
+          "message", result.getHeader().getRtmsg()
+      ));
 
     } catch (Exception e) {
       log.error("수량 변경 오류: memberId={}, productId={}",
@@ -218,19 +197,10 @@ public class CartController {
           request.getOptionType()
       );
 
-      Map<String, Object> response = new HashMap<>();
-      boolean isSuccess = result.toString().contains("rtcd=S00");
-
-      response.put("success", isSuccess);
-      response.put("code", isSuccess ? "S00" : "ERROR");
-
-      if (isSuccess) {
-        response.put("message", "상품이 삭제되었습니다");
-      } else {
-        response.put("message", "상품 삭제에 실패했습니다");
-      }
-
-      return ResponseEntity.ok(response);
+      return ResponseEntity.ok(Map.of(
+          "success", "S00".equals(result.getHeader().getRtcd()),
+          "message", result.getHeader().getRtmsg()
+      ));
 
     } catch (Exception e) {
       log.error("상품 삭제 오류: memberId={}, productId={}",

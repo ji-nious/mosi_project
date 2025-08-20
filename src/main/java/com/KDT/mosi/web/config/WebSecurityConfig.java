@@ -18,6 +18,9 @@ public class WebSecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
+        .csrf(csrf -> csrf
+            .ignoringRequestMatchers("/cart/**") // Island 방식을 위한 CSRF 비활성화
+        )
         .formLogin(form -> form
             .loginPage("/login")
             .loginProcessingUrl("/login")

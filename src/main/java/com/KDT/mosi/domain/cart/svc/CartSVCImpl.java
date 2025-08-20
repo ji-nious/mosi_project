@@ -5,6 +5,7 @@ import com.KDT.mosi.domain.cart.dto.CartItemResponse;
 import com.KDT.mosi.domain.cart.repository.CartItemRepository;
 import com.KDT.mosi.domain.cart.repository.CartRepository;
 import com.KDT.mosi.domain.entity.Product;
+import com.KDT.mosi.domain.entity.ProductImage;
 import com.KDT.mosi.domain.entity.SellerPage;
 import com.KDT.mosi.domain.entity.cart.Cart;
 import com.KDT.mosi.domain.entity.cart.CartItem;
@@ -21,10 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * 장바구니 Service 구현체
- * React+Vite 환경과 완전 호환
- */
 @Slf4j
 @Service
 @Transactional
@@ -199,29 +196,34 @@ public class CartSVCImpl implements CartSVC {
         Product product = productOpt.get();
         String sellerNickname = getSellerNickname(item.getSellerId());
         boolean isAvailable = "판매중".equals(product.getStatus());
-
-        // 🔧 수정: React가 기대하는 정확한 필드명으로 매핑
+        
+        // 첫 번째 상품 이미지 (간단하게)
+        String imageData = null;
+        if (product.getProductImages() != null && !product.getProductImages().isEmpty()) {
+          imageData = product.getProductImages().get(0).getBase64ImageData();
+        }
+        
         CartItemResponse dto = isAvailable ?
             CartItemResponse.createAvailable(
                 item.getProductId(),
-                product.getTitle(),          // productName으로 매핑됨
+                product.getTitle(),
                 product.getDescription(),
                 item.getSalePrice(),
                 item.getOriginalPrice(),
                 item.getQuantity(),
                 item.getOptionType(),
-                product.getFileName(),       // productImage로 매핑됨
+                imageData,
                 sellerNickname
             ) :
             CartItemResponse.createUnavailable(
                 item.getProductId(),
-                product.getTitle(),          // productName으로 매핑됨
+                product.getTitle(),
                 product.getDescription(),
                 item.getSalePrice(),
                 item.getOriginalPrice(),
                 item.getQuantity(),
                 item.getOptionType(),
-                product.getFileName(),       // productImage로 매핑됨
+                imageData,
                 sellerNickname
             );
 
