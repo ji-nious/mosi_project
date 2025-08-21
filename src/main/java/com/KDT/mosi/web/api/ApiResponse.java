@@ -6,10 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
-/**
- * REST API 응답메세지 표준 구현
- *
- */
 @Slf4j
 @Getter
 @ToString

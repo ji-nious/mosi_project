@@ -1,6 +1,6 @@
 package com.KDT.mosi.web.controller;
 
-import com.KDT.mosi.domain.cart.dto.CartRequest;
+import com.KDT.mosi.domain.cart.request.CartFormRequest;
 import com.KDT.mosi.domain.cart.dto.CartResponse;
 import com.KDT.mosi.domain.cart.svc.CartSVC;
 import com.KDT.mosi.domain.entity.Member;
@@ -29,7 +29,7 @@ public class CartController {
 
   /**
    * 장바구니 HTML 페이지 반환 (브라우저 직접 접근)
-   * GET /cart (Accept: text/html)
+   * GET /cart
    */
   @GetMapping(produces = "text/html")
   public String cartPageHtml(HttpSession session, Model model) {
@@ -48,7 +48,7 @@ public class CartController {
 
   /**
    * 장바구니 JSON 데이터 반환 (React AJAX 호출)
-   * GET /cart (Accept: application/json)
+   * GET /cart
    */
   @GetMapping(produces = "application/json")
   @ResponseBody
@@ -99,7 +99,7 @@ public class CartController {
   @PostMapping("/add")
   @ResponseBody
   public ResponseEntity<Object> addToCart(
-      @Valid @RequestBody CartRequest request,
+      @Valid @RequestBody CartFormRequest request,
       HttpSession session) {
 
     Member loginMember = (Member) session.getAttribute("loginMember");
@@ -138,7 +138,7 @@ public class CartController {
   @PutMapping("/quantity")
   @ResponseBody
   public ResponseEntity<Map<String, Object>> updateQuantity(
-      @Valid @RequestBody CartRequest request,
+      @Valid @RequestBody CartFormRequest request,
       HttpSession session) {
 
     Member loginMember = (Member) session.getAttribute("loginMember");
@@ -179,7 +179,7 @@ public class CartController {
   @DeleteMapping("/remove")
   @ResponseBody
   public ResponseEntity<Map<String, Object>> removeFromCart(
-      @Valid @RequestBody CartRequest request,
+      @Valid @RequestBody CartFormRequest request,
       HttpSession session) {
 
     Member loginMember = (Member) session.getAttribute("loginMember");

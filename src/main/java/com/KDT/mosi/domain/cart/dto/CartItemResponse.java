@@ -16,7 +16,6 @@ public class CartItemResponse {
 
   private Long productId;
   private String productName;
-
   private String description;
   private Long price;
   private Long originalPrice;
@@ -34,13 +33,13 @@ public class CartItemResponse {
                                                  String optionType, String imageData, String sellerNickname) {
     return CartItemResponse.builder()
         .productId(productId)
-        .productName(productTitle)  // title → productName으로 매핑
+        .productName(productTitle)
         .description(description)
         .price(price)
         .originalPrice(originalPrice)
         .quantity(quantity)
         .optionType(optionType)
-        .productImage(imageData)  // Base64 이미지 데이터
+        .productImage(imageData)
         .sellerNickname(sellerNickname)
         .available(true)
         .build();
@@ -60,7 +59,7 @@ public class CartItemResponse {
         .originalPrice(originalPrice)
         .quantity(quantity)
         .optionType(optionType)
-        .productImage(imageData)  // Base64 이미지 데이터
+        .productImage(imageData)
         .sellerNickname(sellerNickname)
         .available(false)
         .build();

@@ -1,11 +1,10 @@
 package com.KDT.mosi.domain.cart.svc;
 
-import com.KDT.mosi.domain.cart.dto.CartResponse;
 import com.KDT.mosi.domain.cart.dto.CartItemResponse;
+import com.KDT.mosi.domain.cart.dto.CartResponse;
 import com.KDT.mosi.domain.cart.repository.CartItemRepository;
 import com.KDT.mosi.domain.cart.repository.CartRepository;
 import com.KDT.mosi.domain.entity.Product;
-import com.KDT.mosi.domain.entity.ProductImage;
 import com.KDT.mosi.domain.entity.SellerPage;
 import com.KDT.mosi.domain.entity.cart.Cart;
 import com.KDT.mosi.domain.entity.cart.CartItem;
@@ -33,6 +32,10 @@ public class CartSVCImpl implements CartSVC {
   private final ProductSVC productSVC;
   private final SellerPageSVC sellerPageSVC;
 
+
+  /**
+   * 장바구니 상품 추가
+   */
   @Override
   public ApiResponse<Void> addToCart(Long buyerId, Long productId, String optionType, Long quantity) {
     try {
@@ -78,6 +81,9 @@ public class CartSVCImpl implements CartSVC {
     }
   }
 
+  /**
+   * 장바구니 조회
+   */
   @Override
   @Transactional(readOnly = true)
   public CartResponse getCart(Long buyerId, String memberNickname) {
@@ -88,13 +94,13 @@ public class CartSVCImpl implements CartSVC {
         return CartResponse.createEmptyCart(memberNickname, buyerId);
       }
 
-      // Entity → DTO 수동 변환
+      // Entity → DTO 변환
       List<CartItemResponse> cartItems = convertToCartItemResponses(items);
 
       long totalPrice = 0;
       int totalQuantity = 0;
 
-      // React에서 계산 로직을 단순화하기 위해 서버에서 미리 계산
+      // 서버에서 미리 계산
       for (CartItemResponse dto : cartItems) {
         if (dto.isAvailable()) {
           totalPrice += dto.getPrice() * dto.getQuantity();
@@ -102,14 +108,13 @@ public class CartSVCImpl implements CartSVC {
         }
       }
 
-      // 🔧 수정: 모든 파라미터를 Long 타입으로 전달, CartItemResponse 리스트 사용
       return CartResponse.createSuccess(
           memberNickname,
           buyerId,
-          cartItems,                    // List<CartItemResponse>
-          (long) cartItems.size(),      // Long
-          (long) totalQuantity,         // Long
-          totalPrice                    // Long
+          cartItems,
+          (long) cartItems.size(),
+          (long) totalQuantity,
+          totalPrice
       );
 
     } catch (Exception e) {
@@ -118,6 +123,9 @@ public class CartSVCImpl implements CartSVC {
     }
   }
 
+  /**
+   * 수량 변경
+   */
   @Override
   public ApiResponse<Void> updateQuantity(Long buyerId, Long productId, String optionType, Long quantity) {
     try {
@@ -147,6 +155,9 @@ public class CartSVCImpl implements CartSVC {
     }
   }
 
+  /**
+   * 상품 삭제
+   */
   @Override
   public ApiResponse<Void> removeFromCart(Long buyerId, Long productId, String optionType) {
     try {
@@ -160,6 +171,9 @@ public class CartSVCImpl implements CartSVC {
     }
   }
 
+  /**
+   * 장바구니 비우기
+   */
   @Override
   public void clearCart(Long buyerId) {
     try {
@@ -171,6 +185,9 @@ public class CartSVCImpl implements CartSVC {
     }
   }
 
+  /**
+   * 상품 개수 조회
+   */
   @Override
   @Transactional(readOnly = true)
   public int getCartItemCount(Long buyerId) {
@@ -184,7 +201,7 @@ public class CartSVCImpl implements CartSVC {
 
   /**
    * CartItem → CartItemResponse 변환
-   * React+Vite와 완전 호환되는 DTO 변환
+   * React+Vite와 호환되는 DTO 변환
    */
   private List<CartItemResponse> convertToCartItemResponses(List<CartItem> items) {
     List<CartItemResponse> result = new ArrayList<>();
@@ -244,7 +261,7 @@ public class CartSVCImpl implements CartSVC {
   }
 
   /**
-   * 장바구니 가져오기 또는 생성
+   * 장바구니 가져오기
    */
   private Cart getOrCreateCart(Long buyerId) {
     return cartRepository.findByBuyerId(buyerId)

@@ -1,179 +1,120 @@
-package com.KDT.mosi.web.controller;
-
 import com.KDT.mosi.domain.entity.Member;
-import com.KDT.mosi.domain.order.dto.OrderRequest;
-import com.KDT.mosi.domain.order.dto.PaymentRequest;
+import com.KDT.mosi.domain.order.dto.OrderResponse;
+import com.KDT.mosi.domain.order.request.OrderFormRequest;
 import com.KDT.mosi.domain.order.svc.OrderSVC;
-import com.KDT.mosi.web.api.ApiResponse;
-import com.KDT.mosi.web.api.ApiResponseCode;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.List;
 
-@Slf4j
 @Controller
-@RequestMapping("/order")
+@RequestMapping("/orders")
 @RequiredArgsConstructor
 public class OrderController {
 
     private final OrderSVC orderSVC;
 
     /**
-     * 주문서 작성 페이지
+     * 주문서 페이지
      */
-    @GetMapping
-    public String orderPage(Model model, HttpSession session) {
-        Member member = (Member) session.getAttribute("loginMember");
-        if (member == null) {
-            return "redirect:/members/login";
+    @GetMapping(produces = "text/html")
+    public String orderFormPage(
+        @RequestParam("cartItemIds") List<Long> cartItemIds,
+        HttpSession session, Model model) {
+
+        Member loginMember = (Member) session.getAttribute("loginMember");
+        if (loginMember == null) {
+            return "redirect:/login";
         }
-        
-        model.addAttribute("member", member);
-        return "order/order-react";
+
+        model.addAttribute("cartItemIds", cartItemIds);
+        return "order/order-form";
+    }
+
+    /**
+     * 주문서 데이터 조회 API
+     */
+    @GetMapping(value = "/form", produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<OrderResponse> getOrderForm(
+        @RequestParam("cartItemIds") List<Long> cartItemIds,
+        HttpSession session) {
+
+        Member loginMember = (Member) session.getAttribute("loginMember");
+        if (loginMember == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            OrderResponse response = orderSVC.getOrderForm(loginMember.getMemberId(), cartItemIds);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
      * 주문 생성 API
      */
-    @PostMapping("/create")
+    @PostMapping(produces = "application/json")
     @ResponseBody
-    public ResponseEntity<ApiResponse<Map<String, Object>>> createOrder(
-            @Valid @RequestBody OrderRequest request, 
-            HttpSession session) {
-        
-        Member member = (Member) session.getAttribute("loginMember");
-        if (member == null) {
-            return ResponseEntity.status(401)
-                .body(ApiResponse.of(ApiResponseCode.LOGIN_REQUIRED, null));
+    public ResponseEntity<OrderResponse> createOrder(
+        @Valid @RequestBody OrderFormRequest request,
+        HttpSession session) {
+
+        Member loginMember = (Member) session.getAttribute("loginMember");
+        if (loginMember == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         try {
-            Map<String, Object> result = orderSVC.createOrder(
-                member.getMemberId(),
-                request.getCartItemIds(),
-                request.getSpecialRequest()
-            );
-            
-            boolean isSuccess = (boolean) result.get("isSuccess");
-            if (isSuccess) {
-                return ResponseEntity.ok(ApiResponse.of(ApiResponseCode.SUCCESS, result));
-            } else {
-                String errorCode = (String) result.get("errorCode");
-                String message = (String) result.get("message");
-                
-                if ("PRICE_CHANGED".equals(errorCode)) {
-                    return ResponseEntity.status(409)
-                        .body(ApiResponse.of(ApiResponseCode.PRICE_CHANGED, result));
-                } else if ("PRODUCT_UNAVAILABLE".equals(errorCode)) {
-                    return ResponseEntity.status(409)
-                        .body(ApiResponse.of(ApiResponseCode.PRODUCT_UNAVAILABLE, result));
-                } else {
-                    return ResponseEntity.badRequest()
-                        .body(ApiResponse.of(ApiResponseCode.BAD_REQUEST, result));
-                }
-            }
+            OrderResponse response = orderSVC.createOrderAndPay(loginMember.getMemberId(), request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            log.error("주문 생성 실패", e);
-            return ResponseEntity.status(500)
-                .body(ApiResponse.of(ApiResponseCode.SERVER_ERROR, null));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     /**
-     * 결제 처리 API
+     * 주문 완료 페이지 (Step 8: 페이지 분기 처리)
      */
-    @PostMapping("/payment")
-    @ResponseBody
-    public ResponseEntity<ApiResponse<Map<String, Object>>> processPayment(
-            @Valid @RequestBody PaymentRequest request,
-            HttpSession session) {
-        
-        Member member = (Member) session.getAttribute("loginMember");
-        if (member == null) {
-            return ResponseEntity.status(401)
-                .body(ApiResponse.of(ApiResponseCode.LOGIN_REQUIRED, null));
+    @GetMapping("/complete")
+    public String orderCompletePage(
+        @RequestParam("orderCode") String orderCode,
+        HttpSession session, Model model) {
+
+        Member loginMember = (Member) session.getAttribute("loginMember");
+        if (loginMember == null) {
+            return "redirect:/login";
         }
 
-        try {
-            Map<String, Object> result = orderSVC.processPayment(
-                request.getOrderId(),
-                request.getPaymentMethod(),
-                request.getAmount(),
-                member.getMemberId()
-            );
-            
-            boolean isSuccess = (boolean) result.get("isSuccess");
-            if (isSuccess) {
-                return ResponseEntity.ok(ApiResponse.of(ApiResponseCode.SUCCESS, result));
-            } else {
-                return ResponseEntity.badRequest()
-                    .body(ApiResponse.of(ApiResponseCode.PAYMENT_FAILED, result));
-            }
-        } catch (Exception e) {
-            log.error("결제 처리 실패", e);
-            return ResponseEntity.status(500)
-                .body(ApiResponse.of(ApiResponseCode.SERVER_ERROR, null));
-        }
-    }
-
-    /**
-     * 주문 완료 페이지
-     */
-    @GetMapping("/complete/{orderId}")
-    public String orderComplete(@PathVariable Long orderId, 
-                               Model model, 
-                               HttpSession session) {
-        Member member = (Member) session.getAttribute("loginMember");
-        if (member == null) {
-            return "redirect:/members/login";
-        }
-
-        Map<String, Object> orderDetail = orderSVC.getOrderDetail(orderId, member.getMemberId());
-        if (orderDetail == null || !(boolean) orderDetail.get("isSuccess")) {
-            return "redirect:/cart";
-        }
-
-        model.addAttribute("order", orderDetail.get("data"));
-        model.addAttribute("member", member);
+        model.addAttribute("orderCode", orderCode);
         return "order/order-complete";
     }
 
     /**
-     * 주문 취소 API
+     * 주문내역 확인 이동 (Step 8-1)
      */
-    @PostMapping("/{orderId}/cancel")
-    @ResponseBody
-    public ResponseEntity<ApiResponse<Map<String, Object>>> cancelOrder(
-            @PathVariable Long orderId,
-            HttpSession session) {
-        
-        Member member = (Member) session.getAttribute("loginMember");
-        if (member == null) {
-            return ResponseEntity.status(401)
-                .body(ApiResponse.of(ApiResponseCode.LOGIN_REQUIRED, null));
-        }
+    @GetMapping("/complete/to-history")
+    public String redirectToOrderHistory() {
+        return "redirect:/mypage/orders";
+    }
 
-        try {
-            Map<String, Object> result = orderSVC.cancelOrder(orderId, member.getMemberId());
-            
-            boolean isSuccess = (boolean) result.get("isSuccess");
-            if (isSuccess) {
-                return ResponseEntity.ok(ApiResponse.of(ApiResponseCode.SUCCESS, result));
-            } else {
-                return ResponseEntity.badRequest()
-                    .body(ApiResponse.of(ApiResponseCode.BAD_REQUEST, result));
-            }
-        } catch (Exception e) {
-            log.error("주문 취소 실패", e);
-            return ResponseEntity.status(500)
-                .body(ApiResponse.of(ApiResponseCode.SERVER_ERROR, null));
-        }
+    /**
+     * 쇼핑 계속하기 이동 (Step 8-2)
+     */
+    @GetMapping("/complete/continue-shopping")
+    public String continueShopping() {
+        return "redirect:/";
     }
 }
