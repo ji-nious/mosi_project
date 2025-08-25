@@ -2,6 +2,7 @@ package com.KDT.mosi.web.controller.review;
 
 import com.KDT.mosi.domain.entity.review.Review;
 import com.KDT.mosi.domain.entity.review.ReviewList;
+import com.KDT.mosi.domain.product.dao.ProductImageDAO;
 import com.KDT.mosi.domain.review.svc.ReviewSVC;
 import com.KDT.mosi.web.api.ApiResponse;
 import com.KDT.mosi.web.api.ApiResponseCode;
@@ -11,10 +12,13 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.List;
 
 @Slf4j
@@ -24,6 +28,7 @@ import java.util.List;
 public class ApiReviewController {
 
   private final ReviewSVC reviewSVC;
+  private final ProductImageDAO productImageDAO;
 
   //리뷰 추가
   @PostMapping
@@ -112,4 +117,14 @@ public class ApiReviewController {
     return ResponseEntity.ok(bbsApiResponse);
   }
 
+  @GetMapping("/product-images/{imageId}")
+  public ResponseEntity<byte[]> image(@PathVariable("imageId") Long imageId){
+    return productImageDAO.findById(imageId)
+        .map(img -> ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType(img.getMimeType()))
+            .cacheControl(CacheControl.maxAge(Duration.ofDays(7)).cachePublic())
+            .body(img.getImageData())   // ← 여기!
+        )
+        .orElseGet(() -> ResponseEntity.notFound().build());
+  }
 }
