@@ -212,28 +212,28 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ⭐⭐⭐ 수정된 부분: 모든 관련 필드를 함수 내에서 재선언합니다. ⭐⭐⭐
-    function toggleGuidePriceFields() {
-        const isGuideIncluded = document.querySelector('input[name="guideYn"][value="Y"]').checked;
-
-        const salesGuidePriceInput = document.querySelector('input[name="salesGuidePrice"]');
-        const guidePriceInput = document.querySelector('input[name="guidePrice"]');
-        const gpriceDetailTextarea = document.querySelector('textarea[name="gpriceDetail"]');
-
-        const fields = [guidePriceInput, salesGuidePriceInput, gpriceDetailTextarea];
-
-        fields.forEach(field => {
-            if (!field) return;
-
-            field.disabled = !isGuideIncluded;
-            if (!isGuideIncluded) {
-                field.value = '';
-                hideValidationMessage(field);
-                const messageElement = field.closest('.input-container').querySelector('.word-count-message');
-                if(messageElement) messageElement.textContent = `0/${field.maxLength || 150}자`;
-            }
-        });
-    }
-    toggleGuidePriceFields();
+//    function toggleGuidePriceFields() {
+//        const isGuideIncluded = document.querySelector('input[name="guideYn"][value="Y"]').checked;
+//
+//        const salesGuidePriceInput = document.querySelector('input[name="salesGuidePrice"]');
+//        const guidePriceInput = document.querySelector('input[name="guidePrice"]');
+//        const gpriceDetailTextarea = document.querySelector('textarea[name="gpriceDetail"]');
+//
+//        const fields = [guidePriceInput, salesGuidePriceInput, gpriceDetailTextarea];
+//
+//        fields.forEach(field => {
+//            if (!field) return;
+//
+//            field.disabled = !isGuideIncluded;
+//            if (!isGuideIncluded) {
+//                field.value = '';
+//                hideValidationMessage(field);
+//                const messageElement = field.closest('.input-container').querySelector('.word-count-message');
+//                if(messageElement) messageElement.textContent = `0/${field.maxLength || 150}자`;
+//            }
+//        });
+//    }
+//    toggleGuidePriceFields();
 
     // 폼 제출 시 모든 필드에 대한 최종 유효성 검사
     productForm.addEventListener('submit', async function (event) {

@@ -61,7 +61,7 @@
           </div>
         </div>
         <!-- 상품명 -->
-        <h1 th:text="*{product.title}"></h1>
+        <label class="product-title" th:text="*{product.title}"></label>
         <!-- 평점 -->
         <div class="rating" style="margin-top: 5px;">
           <span class="stars" style="color: gold;">
@@ -85,7 +85,7 @@
                onerror="this.onerror=null; this.src='/img/default-profile.png';">
           <div class="seller-info">
             <strong th:text="${productDetailForm.nickname}"></strong>
-            <div class="seller-tags" th:text="${productDetailForm.intro}"></div>
+            <div class="seller-tags text-trim" th:text="${productDetailForm.intro}"></div>
           </div>
           <button class="inquiry-btn">문의하기</button>
         </div>
@@ -466,6 +466,12 @@
           });
         </script>
         <script th:src="@{/js/product/product_detail.js}"></script>
+      </div>
+      <!-- 공지 -->
+      <div class="notice-bar">
+        <div class="notice-label">공지</div>
+        <div class="notice-text">&lt;MO:SI&gt; 신규 코스 등록 이벤트 당첨자 안내</div>
+        <a href="#" class="more-link">+ 더보기</a>
       </div>
     </div>
 

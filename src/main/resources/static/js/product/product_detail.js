@@ -5,6 +5,16 @@ document.addEventListener("DOMContentLoaded", function() {
   const nextBtn = document.getElementById("nextBtn");
   let currentIndex = 0;
 
+  const maxLength = 70;
+  const descriptionElements = document.querySelectorAll('.text-trim');
+
+  descriptionElements.forEach(el => {
+    if (el.textContent.length > maxLength) {
+      el.textContent = el.textContent.substring(0, maxLength) + '...';
+    }
+  });
+
+
   // 슬라이드 표시
   function showSlide(index) {
     slides.forEach((slide, i) => {
