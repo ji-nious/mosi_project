@@ -85,9 +85,7 @@ saveBtn?.addEventListener('click', async () => {
     saveBtn.disabled = true;
     const res = await ajax.post('/api/review', payload);
     if (res?.header?.rtcd === 'S00') {
-      alert('리뷰가 저장되었습니다.');
-      // 필요 시 이동
-      // location.href = '/review/list';
+      location.href = '/review/buyer/list';
     } else {
       alert(res?.header?.rtmsg || '저장에 실패했습니다.');
     }
