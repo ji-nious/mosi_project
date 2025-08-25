@@ -2,6 +2,10 @@
   margin-top: 80px;
 }
 
+.post-section hr {
+  border: solid 2px #1ec4cc;
+}
+
 /* tap 메뉴 */
 .tab-menu {
   display: flex;
@@ -108,12 +112,14 @@
   font-weight: bold;
 }
 
+.inquiry-list-seller_nickname,
 .inquiry-list-buyer_nickname {
   font-weight: bold;
   margin-bottom: 5px;
 }
 .inquiry-list-last_msg:hover,
-.inquiry-list-buyer_nickname:hover {
+.inquiry-list-buyer_nickname:hover,
+.inquiry-list-seller_nickname:hover {
   cursor: pointer;
   color: #1ec4cc;
   transition: 0.2s;
