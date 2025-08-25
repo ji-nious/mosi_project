@@ -26,6 +26,9 @@ export default defineConfig({
   server: {
     port: 3000,
     host: true,
+    watch: {                
+      usePolling: true
+    },
     proxy: {
       '/cart': {
         target: 'http://localhost:9070',
