@@ -97,11 +97,11 @@ public class ChatMessageDao {
                    sp.NICKNAME AS seller_nickname,
                    sp.IMAGE    AS seller_image,
                    bp.NICKNAME AS buyer_nickname,
-                   bp.pic    AS buyer_image
+                   bp.image    AS buyer_image
             FROM CHAT_MESSAGE m
             JOIN CHAT_ROOM r   ON m.ROOM_ID = r.ROOM_ID
             JOIN SELLER_PAGE sp ON r.SELLER_ID = sp.MEMBER_ID
-            JOIN MEMBER bp      ON r.BUYER_ID = bp.MEMBER_ID   -- BUYER_PAGE가 따로 없다면 MEMBER 사용
+            JOIN BUYER_PAGE bp      ON r.BUYER_ID = bp.MEMBER_ID   -- BUYER_PAGE가 따로 없다면 MEMBER 사용
             WHERE m.ROOM_ID = :roomId
             ORDER BY m.CREATED_AT ASC
         """;

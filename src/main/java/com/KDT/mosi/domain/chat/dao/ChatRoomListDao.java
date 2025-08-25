@@ -33,7 +33,7 @@ public class ChatRoomListDao {
                     AND cm2.read_yn = 'N'
              ) THEN 1 ELSE 0 END AS has_new
       FROM chat_room r
-      JOIN member b ON r.buyer_id = b.member_id
+      JOIN buyer_page b ON r.buyer_id = b.member_id
       JOIN member s ON r.seller_id = s.member_id
       JOIN product p ON r.product_id = p.product_id
       JOIN (
