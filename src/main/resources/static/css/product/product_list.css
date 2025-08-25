@@ -501,11 +501,16 @@ input[type="radio"]:checked+.radio-img {
   flex-direction: column;
   align-items: center;
   width: 290px;
-  height: 380px;
+  height: 340px;
   margin: 0 auto;
   padding-top: 5px;
   padding-bottom: 5px;
   cursor: pointer;
+}
+
+.product-item-container {
+  width: inherit;
+  height: inherit;
 }
 
 .product-item:hover {
