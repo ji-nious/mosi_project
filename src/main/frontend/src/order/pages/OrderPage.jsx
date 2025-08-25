@@ -66,17 +66,51 @@ function OrderPage() {
     try {
       setError(null)
 
-      // 세션 스토리지에서 선택된 상품들 가져오기
-      const selectedItems = sessionStorage.getItem('selectedCartItems')
+      // 1. 세션 스토리지에서 선택된 상품들 가져오기
+      let selectedItems = sessionStorage.getItem('selectedCartItems')
+      let items = null
 
-      if (!selectedItems) {
+      if (selectedItems) {
+        items = JSON.parse(selectedItems)
+      } else {
+        // 2. 세션 스토리지에 없으면 서버 세션에서 주문 상태 복원 시도
+        try {
+          const sessionResponse = await fetch('/order/session-state', {
+            method: 'GET',
+            credentials: 'include'
+          })
+
+          if (sessionResponse.ok) {
+            const sessionData = await sessionResponse.json()
+            const orderState = sessionData.body || sessionData
+
+            if (orderState.cartItemIds && orderState.cartItemIds.length > 0) {
+              // 서버 세션에서 복원된 cartItemIds로 장바구니 데이터 조회
+              const cartResponse = await fetch(`/cart/items?ids=${orderState.cartItemIds.join(',')}`, {
+                method: 'GET',
+                credentials: 'include'
+              })
+
+              if (cartResponse.ok) {
+                const cartData = await cartResponse.json()
+                items = cartData.body || cartData
+                
+                // 복원된 데이터를 세션 스토리지에도 저장
+                sessionStorage.setItem('selectedCartItems', JSON.stringify(items))
+              }
+            }
+          }
+        } catch (error) {
+          console.log('서버 세션 상태 복원 실패:', error)
+        }
+      }
+
+      if (!items || items.length === 0) {
         // 선택된 상품이 없으면 장바구니로 리다이렉트
         alert('주문할 상품을 선택해주세요.')
         window.location.href = '/cart'
         return
       }
-
-      const items = JSON.parse(selectedItems)
 
       // 회원 정보 가져오기 (서버에서)
       try {
@@ -259,6 +293,21 @@ function OrderPage() {
 
         // ApiResponse 구조에서 실제 데이터 추출
         const result = apiResponse.body || apiResponse
+
+        // 결제 완료 처리 (상태를 결제대기 → 결제완료로 변경)
+        const orderCode = result.orderCode || result.data?.orderCode
+        if (orderCode) {
+          await fetch('/order/payment', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              orderCode: orderCode,
+              paymentMethod: paymentMethod
+            })
+          })
+        }
 
         // 결제 완료 로딩 모달 표시
         setShowPaymentSuccessModal(true)

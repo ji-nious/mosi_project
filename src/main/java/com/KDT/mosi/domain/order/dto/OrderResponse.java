@@ -20,6 +20,11 @@ public class OrderResponse {
   private List<OrderItemResponse> orderItems;
   private Long totalPrice;
   private int totalItemCount;
+  
+  // getTotalAmount 메서드 추가 (호환성)
+  public Long getTotalAmount() {
+    return this.totalPrice;
+  }
 
   /**
    * 주문서 성공 응답

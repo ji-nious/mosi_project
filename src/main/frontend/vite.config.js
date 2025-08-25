@@ -10,7 +10,11 @@ export default defineConfig({
     emptyOutDir: false,
 
     rollupOptions: {
-      input: './src/main.jsx',
+      input: {
+        main: './src/main.jsx',
+        'order-main': './src/order-main.jsx',
+        'order-complete-main': './src/order-complete-main.jsx'
+      },
       output: {
         entryFileNames: '[name]-[hash].js',
         chunkFileNames: '[name]-[hash].js',
@@ -24,6 +28,11 @@ export default defineConfig({
     host: true,
     proxy: {
       '/cart': {
+        target: 'http://localhost:9070',
+        changeOrigin: true,
+        secure: false
+      },
+      '/order': {
         target: 'http://localhost:9070',
         changeOrigin: true,
         secure: false

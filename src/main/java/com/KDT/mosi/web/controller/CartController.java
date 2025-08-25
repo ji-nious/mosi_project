@@ -10,14 +10,14 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
+
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+
 import java.util.Map;
 
 @Slf4j
@@ -56,7 +56,7 @@ public class CartController {
   public ResponseEntity<ApiResponse<CartResponse>> getCartJson(HttpSession session) {
     Member loginMember = (Member) session.getAttribute("loginMember");
     if (loginMember == null) {
-      return ResponseEntity.status(401).body(
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
           ApiResponse.of(ApiResponseCode.LOGIN_REQUIRED, null)
       );
     }
@@ -73,7 +73,7 @@ public class CartController {
 
     } catch (Exception e) {
       log.error("장바구니 조회 오류: memberId={}", loginMember.getMemberId(), e);
-      return ResponseEntity.status(500).body(
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
           ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
       );
     }
@@ -91,7 +91,7 @@ public class CartController {
 
     Member loginMember = (Member) session.getAttribute("loginMember");
     if (loginMember == null) {
-      return ResponseEntity.status(401).body(
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
           ApiResponse.of(ApiResponseCode.LOGIN_REQUIRED, null)
       );
     }
@@ -110,7 +110,7 @@ public class CartController {
       log.error("장바구니 추가 오류: memberId={}, productId={}",
           loginMember.getMemberId(), request.getProductId(), e);
 
-      return ResponseEntity.status(500).body(
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
           ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
       );
     }
@@ -128,7 +128,7 @@ public class CartController {
 
     Member loginMember = (Member) session.getAttribute("loginMember");
     if (loginMember == null) {
-      return ResponseEntity.status(401).body(
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
           ApiResponse.of(ApiResponseCode.LOGIN_REQUIRED, null)
       );
     }
@@ -146,7 +146,7 @@ public class CartController {
     } catch (Exception e) {
       log.error("수량 변경 오류: memberId={}, productId={}",
           loginMember.getMemberId(), request.getProductId(), e);
-      return ResponseEntity.status(500).body(
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
           ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
       );
     }
@@ -164,7 +164,7 @@ public class CartController {
 
     Member loginMember = (Member) session.getAttribute("loginMember");
     if (loginMember == null) {
-      return ResponseEntity.status(401).body(
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
           ApiResponse.of(ApiResponseCode.LOGIN_REQUIRED, null)
       );
     }
@@ -181,7 +181,7 @@ public class CartController {
     } catch (Exception e) {
       log.error("상품 삭제 오류: memberId={}, productId={}",
           loginMember.getMemberId(), request.getProductId(), e);
-      return ResponseEntity.status(500).body(
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
           ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
       );
     }
@@ -208,8 +208,46 @@ public class CartController {
       );
     } catch (Exception e) {
       log.error("장바구니 개수 조회 오류: memberId={}", loginMember.getMemberId(), e);
-      return ResponseEntity.status(500).body(
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
           ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, 0)
+      );
+    }
+  }
+
+  /**
+   * 장바구니 아이템 ID 목록으로 조회
+   * GET /cart/items?ids=1,2,3
+   */
+  @GetMapping("/items")
+  @ResponseBody
+  public ResponseEntity<ApiResponse<Object>> getCartItemsByIds(
+      @RequestParam("ids") String ids,
+      HttpSession session) {
+    
+    Member loginMember = (Member) session.getAttribute("loginMember");
+    if (loginMember == null) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+          ApiResponse.of(ApiResponseCode.LOGIN_REQUIRED, null)
+      );
+    }
+
+    try {
+      // 전체 장바구니 조회 후 클라이언트에서 필터링하도록 반환
+      // (실제 구현에서는 서비스 레이어에서 ID별 필터링 구현 권장)
+      CartResponse cartResponse = cartSVC.getCart(
+          loginMember.getMemberId(),
+          loginMember.getNickname()
+      );
+
+      return ResponseEntity.ok(
+          ApiResponse.of(ApiResponseCode.SUCCESS, cartResponse.getCartItems())
+      );
+
+    } catch (Exception e) {
+      log.error("장바구니 아이템 조회 오류: memberId={}, ids={}", 
+          loginMember.getMemberId(), ids, e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+          ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
       );
     }
   }
@@ -223,7 +261,7 @@ public class CartController {
   public ResponseEntity<ApiResponse<Void>> clearCart(HttpSession session) {
     Member loginMember = (Member) session.getAttribute("loginMember");
     if (loginMember == null) {
-      return ResponseEntity.status(401).body(
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
           ApiResponse.of(ApiResponseCode.LOGIN_REQUIRED, null)
       );
     }
@@ -236,36 +274,11 @@ public class CartController {
 
     } catch (Exception e) {
       log.error("장바구니 비우기 오류: memberId={}", loginMember.getMemberId(), e);
-      return ResponseEntity.status(500).body(
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
           ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
       );
     }
   }
 
-  /**
-   * 유효성 검증 예외 처리
-   */
-  @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationErrors(MethodArgumentNotValidException ex) {
-    Map<String, String> errors = new HashMap<>();
-    for (FieldError error : ex.getBindingResult().getFieldErrors()) {
-      errors.put(error.getField(), error.getDefaultMessage());
-    }
 
-    log.warn("유효성 검증 실패: {}", errors);
-    return ResponseEntity.badRequest().body(
-        ApiResponse.withDetails(ApiResponseCode.VALIDATION_ERROR, errors, errors)
-    );
-  }
-
-  /**
-   * 일반 예외 처리
-   */
-  @ExceptionHandler(Exception.class)
-  public ResponseEntity<ApiResponse<Void>> handleGenericError(Exception ex) {
-    log.error("예상치 못한 오류 발생", ex);
-    return ResponseEntity.status(500).body(
-        ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
-    );
-  }
 }

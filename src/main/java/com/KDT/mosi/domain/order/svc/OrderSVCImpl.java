@@ -202,10 +202,8 @@ public class OrderSVCImpl implements OrderSVC {
   public OrderResponse getOrderDetailByCode(String orderCode, Long buyerId) {
     try {
       // 주문번호로 주문 조회
-      Order order = orderRepository.findByOrderCode(orderCode);
-      if (order == null) {
-        throw new IllegalArgumentException("주문을 찾을 수 없습니다.");
-      }
+      Order order = orderRepository.findByOrderCode(orderCode)
+          .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
       // 구매자 확인
       if (!order.getBuyerId().equals(buyerId)) {
@@ -605,14 +603,56 @@ public class OrderSVCImpl implements OrderSVC {
    */
   private String getProductImage(Product product) {
     List<ProductImage> images = productImageSVC.findByProductId(product.getProductId());
-    log.info("주문 상품 이미지 조회: productId={}, 이미지 개수={}", product.getProductId(), images != null ? images.size() : 0);
+    log.info(" 주문 상품 이미지 조회: productId={}, 이미지 개수={}", product.getProductId(), images != null ? images.size() : 0);
     if (images != null && !images.isEmpty()) {
       String imageData = images.get(0).getBase64ImageData();
-      log.info("주문 이미지 데이터 설정 완료: {}", imageData != null ? "성공" : "실패");
+      log.info(" 주문 이미지 데이터 설정 완료: {}", imageData != null ? "성공" : "실패");
       return imageData;
     }
     return null;
   }
 
+  /**
+   * 결제 완료 처리
+   */
+  @Override
+  @Transactional
+  public OrderResponse completePayment(String orderCode, Long buyerId) {
+    try {
+      // 주문 조회
+      Order order = orderRepository.findByOrderCode(orderCode)
+          .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다"));
+
+      // 권한 확인
+      if (!order.getBuyerId().equals(buyerId)) {
+        throw new IllegalArgumentException("접근 권한이 없습니다");
+      }
+
+      // 결제 가능 상태 확인
+      if (!"결제대기".equals(order.getStatus())) {
+        throw new IllegalArgumentException("결제할 수 없는 주문 상태입니다");
+      }
+
+      // 상태를 결제완료로 변경
+      order.setStatus("결제완료");
+      orderRepository.save(order);
+
+      log.info("결제 완료 처리: orderCode={}, buyerId={}", orderCode, buyerId);
+
+      return OrderResponse.createOrderCompleteSuccess(
+          order.getOrderCode(),
+          order.getOrderId(),
+          order.getTotalPrice(),
+          order.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+      );
+
+    } catch (IllegalArgumentException e) {
+      log.error("결제 완료 처리 실패 - 잘못된 요청: {}", e.getMessage());
+      throw e;
+    } catch (Exception e) {
+      log.error("결제 완료 처리 실패: orderCode={}", orderCode, e);
+      throw new RuntimeException("결제 처리 중 오류가 발생했습니다");
+    }
+  }
 
 }

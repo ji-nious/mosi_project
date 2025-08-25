@@ -28,4 +28,7 @@ public interface OrderSVC {
 
   // 주문 개수 조회
   int getOrderCount(Long buyerId);
+
+  // 결제 완료 처리
+  OrderResponse completePayment(String orderCode, Long buyerId);
 }

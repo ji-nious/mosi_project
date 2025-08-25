@@ -631,7 +631,7 @@ input:checked + .slider:before {
   display: inline-block;
 }
 
-.cart-badge {
+#cart-count {
   position: absolute;
   top: -5px;
   right: -5px;
@@ -651,6 +651,8 @@ input:checked + .slider:before {
   justify-content: center;
 }
 
-.cart-badge:empty {
+#cart-count:empty,
+#cart-count.hidden {
   display: none;
 }
+

@@ -152,10 +152,17 @@ async function handleBuyNow(event) {
       return;
     }
     
-    // 주문 페이지로 이동
+    // 1. 먼저 장바구니에 추가
     const productId = getProductIdFromPage();
-    const orderUrl = `/order?productId=${productId}&optionType=${encodeURIComponent(optionType)}&quantity=1`;
-    window.location.href = orderUrl;
+    const result = await addToCartAPI(productId, optionType, 1);
+    
+    if (result.header && result.header.rtcd === 'S00') {
+      // 2. 장바구니 추가 성공 시 주문서 작성 페이지로 바로 이동
+      window.location.href = '/order';
+    } else {
+      const message = result.header?.rtmsg || '상품 추가에 실패했습니다';
+      showAlert(message);
+    }
     
   } catch (error) {
     console.error('구매하기 오류:', error);
@@ -360,29 +367,10 @@ function showAlert(message) {
   }
 }
 
-// 장바구니 개수 업데이트
-async function updateCartCount() {
-  try {
-    const response = await fetch('/cart/count', {
-      method: 'GET',
-      credentials: 'include'
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      const badge = document.getElementById('cart-count');
-      
-      if (badge) {
-        if (data.count > 0) {
-          badge.textContent = data.count > 99 ? '99+' : data.count;
-          badge.style.display = 'inline';
-        } else {
-          badge.style.display = 'none';
-        }
-      }
-    }
-  } catch (error) {
-
+// 장바구니 개수 업데이트 (전역 함수 사용)
+function updateCartCount() {
+  if (window.updateCartCount) {
+    window.updateCartCount();
   }
 }
 
