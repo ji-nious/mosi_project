@@ -6,6 +6,7 @@ import com.KDT.mosi.domain.product.document.ProductDocument;
 import com.KDT.mosi.domain.product.dto.response.ProductSearchResponse;
 import com.KDT.mosi.domain.product.svc.*;
 import com.KDT.mosi.web.form.product.*;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +14,6 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -27,7 +27,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
@@ -52,10 +51,10 @@ public class ProductController {
   public String searchProducts(@RequestParam(name="keyword", required = false) String keyword,
                                @RequestParam(name = "page", defaultValue = "1") int page,
                                @RequestParam(name = "size", defaultValue = "12") int size,
-                               Model model) throws IOException {
+                               Model model,HttpServletRequest request) throws IOException {
 
     // 검색 로직을 performSearch 메서드에 통합
-    return performSearch(keyword, null, page, size, model);
+    return performSearch(keyword, null, page, size, model,request);
   }
 
   // ✅ 상품 목록 조회 (카테고리 및 키워드)
@@ -67,11 +66,15 @@ public class ProductController {
                      @RequestParam(name = "keyword", required = false) String keyword) throws IOException {
 
     log.info("Product list/search request. Category: {}, Keyword: {}, Page: {}", category, keyword, page);
-    return performSearch(keyword, category, page, size, model);
+    return performSearch(keyword, category, page, size, model,request);
   }
 
   // ✅ 검색 및 목록 조회 로직을 통합한 헬퍼 메서드
-  private String performSearch(String keyword, String category, int page, int size, Model model) throws IOException {
+  private String performSearch(String keyword, String category, int page, int size, Model model,
+                               HttpServletRequest request
+
+  ) throws IOException {
+
     List<ProductListForm> productList = new ArrayList<>();
     long totalCount;
 
@@ -136,9 +139,6 @@ public class ProductController {
     if (endPage > totalPages) endPage = totalPages;
 
 
-      
-
-
     model.addAttribute("productList", productList);
     model.addAttribute("totalCount", totalCount);
     model.addAttribute("currentPage", page);
@@ -147,11 +147,13 @@ public class ProductController {
     model.addAttribute("keyword", keyword);
     model.addAttribute("startPage", startPage);
     model.addAttribute("endPage", endPage);
-    
+
     model.addAttribute("activePath", request.getRequestURI());
 
     return "product/product_list";
   }
+
+
 
   // 판매자별 등록 상품 조회
   @GetMapping("/manage")
@@ -271,7 +273,7 @@ public class ProductController {
 
     model.addAttribute("activePath", request.getRequestURI());
 
-    log.info("nickname = {}", sellerPage);
+//    log.info("nickname = {}", sellerPage);
 
     return "product/product_managing";
   }
@@ -333,6 +335,35 @@ public class ProductController {
     model.addAttribute("activePath", request.getRequestURI());
 
     return "product/product_enroll";
+  }
+
+  // ⭐⭐⭐ 임시저장 기능 추가 부분 ⭐⭐⭐
+  @PostMapping("/temp-save")
+  @ResponseBody
+  @Transactional
+  public ResponseEntity<?> tempSaveProduct(
+      @ModelAttribute ProductTempSaveForm form,
+      @RequestPart(value = "documentFile", required = false) MultipartFile documentFile,
+      @RequestPart(value = "productImages", required = false) List<MultipartFile> productImages,
+      HttpSession session
+  ) {
+    log.info("임시저장 요청 접수. 제목: {}", form.getTitle());
+    try {
+      Member loginMember = (Member) session.getAttribute("loginMember");
+      if (loginMember == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "로그인 상태가 아닙니다."));
+      }
+      Long memberId = loginMember.getMemberId();
+      form.setCategory("임시저장");
+      form.setDocumentFile(documentFile);
+      form.setProductImages(productImages);
+      form.setStatus("임시저장");
+      productSVC.saveTempProduct(form, memberId);
+      return ResponseEntity.ok().body(Map.of("message", "상품이 성공적으로 임시저장되었습니다."));
+    } catch (Exception e) {
+      log.error("상품 임시저장 중 오류 발생", e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "임시저장 중 서버 오류가 발생했습니다."));
+    }
   }
 
   // 상품 등록 적용
@@ -438,16 +469,16 @@ public class ProductController {
     ProductUpdateForm form = new ProductUpdateForm();
     form.setProduct(product);
     form.setExistingImages(images);
-    form.setCoursePoints(coursePoints);
     form.setNickname(loginMember.getNickname());
     form.setSellerImage(base64SellerImage);
     if (sellerPage.getIntro() != null) {
       form.setIntro(sellerPage.getIntro());
     }
+    form.setDocumentFile(form.getDocumentFile());
 
     model.addAttribute("sellerImage", base64SellerImage);
     model.addAttribute("nickname", loginMember.getNickname());
-    model.addAttribute("productUploadForm", form);
+    model.addAttribute("productUpdateForm", form);
     model.addAttribute("images", images);
     model.addAttribute("coursePoints", coursePoints);
 
@@ -541,31 +572,6 @@ public class ProductController {
     }
     productImageSVC.saveAll(images);
 
-    // 기존 코스포인트 삭제
-    if (form.getDeleteCoursePointIds() != null) {
-      for (Long coursePointId : form.getDeleteCoursePointIds()) {
-        productCoursePointSVC.deleteByProductId(coursePointId);
-      }
-    }
-
-    // 새 코스포인트 저장
-    List<ProductCoursePoint> coursePoints = new ArrayList<>();
-    if (form.getCoursePoints() != null) {
-      int pointOrder = 1;
-      for (ProductCoursePoint coursePoint : form.getCoursePoints()) {
-        if (coursePoint.getLatitude() != null && coursePoint.getLongitude() != null) {
-          ProductCoursePoint pcp = new ProductCoursePoint();
-          pcp.setProduct(updateProduct);
-          pcp.setLatitude(coursePoint.getLatitude());
-          pcp.setLongitude(coursePoint.getLongitude());
-          pcp.setDescription(coursePoint.getDescription());
-          pcp.setPointOrder(pointOrder++);
-          pcp.setCreatedAt(new Date(System.currentTimeMillis()));
-          coursePoints.add(pcp);
-        }
-      }
-    }
-    productCoursePointSVC.saveAll(coursePoints);
 
     return "redirect:/product/manage";
   }
@@ -614,6 +620,8 @@ public class ProductController {
     return "redirect:/product/manage";
   }
 
+
+
   // 상세페이지
   @GetMapping("/view/{id}")
   public String view(@PathVariable("id") Long id, Model model, HttpSession session,
@@ -623,28 +631,31 @@ public class ProductController {
     Member loginMember = (Member) session.getAttribute("loginMember");
     if (loginMember == null) {
       // 필요 시 로그인 페이지로 리다이렉트 또는 예외 처리
-//      throw new IllegalStateException("로그인한 회원이 아닙니다.");
-      return "redirect:/login";
+      throw new IllegalStateException("로그인한 회원이 아닙니다.");
     }
-    Long memberId = loginMember.getMemberId();
+    Long buyerId = loginMember.getMemberId();
 
     // 2) 상품 조회, 없으면 예외 처리
     Product product = productSVC.getProduct(id)
         .orElseThrow(() -> new IllegalArgumentException("상품이 없습니다."));
+
+    // 판매자 id 세팅
+    Long sellerId = product.getMember().getMemberId();
 
     // 3) 상품 이미지, 코스 포인트 리스트 조회
     List<ProductImage> images = productImageSVC.findByProductId(id);
     List<ProductCoursePoint> coursePoints = productCoursePointSVC.findByProductId(id);
 
     // 4) 판매자 페이지 정보 조회
-    Optional<SellerPage> optional = sellerPageSVC.findByMemberId(memberId);
+    Optional<SellerPage> optional = sellerPageSVC.findByMemberId(sellerId);
     if (optional.isEmpty()) {
       return "redirect:/mypage/seller/create";
     }
     SellerPage sellerPage = optional.get();
 
+
     // 5) DTO에 데이터 세팅
-    product.setMember(loginMember);
+    //product.setMember(loginMember);
     product.setProductImages(images); // 엔티티에 이미지 세팅
 
     ProductDetailForm productDetailForm = new ProductDetailForm();
@@ -664,7 +675,7 @@ public class ProductController {
     }
 
     // 판매자 상품 수
-    productDetailForm.setCountProduct(productSVC.countByMemberId(memberId));
+    productDetailForm.setCountProduct(productSVC.countByMemberId(sellerId));
 
     // 6) model에 DTO 등록
     model.addAttribute("productDetailForm", productDetailForm);
