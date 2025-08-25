@@ -15,6 +15,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -176,19 +177,50 @@ public class ProductController {
     }
 
     List<ProductManagingForm> managingForms = new ArrayList<>();
+    // ✨✨✨ 여기에 Null 체크 로직을 추가해야 합니다. ✨✨✨
     for (Product product : products) {
-      List<ProductImage> images = productImageSVC.findByProductId(product.getProductId());
-      List<ProductCoursePoint> coursePoints = productCoursePointSVC.findByProductId(product.getProductId());
+      if (product != null) { // 이 조건이 없어서 에러가 발생합니다.
+        List<ProductImage> images = productImageSVC.findByProductId(product.getProductId());
+        List<ProductCoursePoint> coursePoints = productCoursePointSVC.findByProductId(product.getProductId());
 
-      ProductManagingForm form = new ProductManagingForm();
-      form.setProduct(product);
-      form.setImages(images);
-      form.setCoursePoints(coursePoints);
+        double discountAmount = (double) product.getNormalPrice() - (double) product.getSalesPrice();
+        double salePercent = (discountAmount / product.getNormalPrice()) * 100;
+        long salesRate = Math.round(salePercent);
+        if (salesRate < 0) {
+          salesRate = 0;
+        }
 
-      managingForms.add(form);
+        ProductManagingForm form = new ProductManagingForm();
+        form.setProduct(product);
+        form.setImages(images);
+        form.setCoursePoints(coursePoints);
+        form.setSalesRate(salesRate);
+
+        managingForms.add(form);
+      } else {
+        log.warn("상품 목록에 null 객체가 포함되어 있습니다. 데이터베이스 또는 서비스 로직을 확인하세요.");
+      }
     }
 
+    // 디버깅용 출력
+    Object csrfObj1 = request.getAttribute(CsrfToken.class.getName());
+    Object csrfObj2 = request.getAttribute("_csrf");
+    System.out.println("CSRF 토큰 객체1: " + csrfObj1);
+    System.out.println("CSRF 토큰 객체2: " + csrfObj2);
 
+    CsrfToken csrfToken = null;
+    if (csrfObj1 instanceof CsrfToken) {
+      csrfToken = (CsrfToken) csrfObj1;
+    } else if (csrfObj2 instanceof CsrfToken) {
+      csrfToken = (CsrfToken) csrfObj2;
+    }
+    if (csrfToken != null) {
+      model.addAttribute("_csrf", csrfToken);
+    } else {
+      System.out.println("CSRF 토큰을 찾을 수 없습니다.");
+    }
+
+    model.addAttribute("_csrf", csrfToken);
     model.addAttribute("productManagingForms", managingForms);
     model.addAttribute("nickname", sellerPage.getNickname());
     model.addAttribute("sellerImage", base64SellerImage);
@@ -198,6 +230,8 @@ public class ProductController {
     model.addAttribute("selectedStatus", status);  // 뷰 선택값 유지용
     model.addAttribute("startPage", startPage);
     model.addAttribute("endPage", endPage);
+
+    model.addAttribute("activePath", request.getRequestURI());
 
     log.info("nickname = {}", sellerPage);
 
