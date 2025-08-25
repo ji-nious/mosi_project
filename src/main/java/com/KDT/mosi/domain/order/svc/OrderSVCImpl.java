@@ -45,9 +45,7 @@ public class OrderSVCImpl implements OrderSVC {
   private final ProductImageSVC productImageSVC;
   private final SellerPageSVC sellerPageSVC;
 
-  /**
-   * 주문번호 생성 (MOSI-YYYYMMDD-XXX 형식)
-   */
+  // 주문번호 생성
   private String generateOrderCode() {
     LocalDateTime now = LocalDateTime.now();
     String dateStr = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));

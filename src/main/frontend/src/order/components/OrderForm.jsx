@@ -1,7 +1,7 @@
-// 주문서 작성 폼 컴포넌트
+// 주문 폼 컴포넌트
 import React, { useState } from 'react'
 
-// 입력 필드 컴포넌트
+// 입력 필드
 function Input({
   label,
   placeholder,
@@ -29,7 +29,7 @@ function Input({
   )
 }
 
-// 라디오 버튼 컴포넌트
+// 라디오 버튼
 function RadioButton({ name, value, checked, onChange, children }) {
   return (
     <div
@@ -153,46 +153,50 @@ export default function OrderForm({
           주문자 정보
         </div>
 
-
-
-        <div className="order-info-item">
-          <div className="order-info-content">
-            <div className="order-info-label">주문자명</div>
-            <div className="order-info-value">{formData.ordererName || '정보 없음'}</div>
+        <div className="form-section-content">
+          <div className="order-info-item">
+            <div className="order-info-content">
+              <div className="order-info-label">주문자명</div>
+              <div className="order-info-value">{formData.ordererName || '정보 없음'}</div>
+            </div>
           </div>
-        </div>
 
-        <div className="order-info-item">
-          <div className="order-info-content">
-            <div className="order-info-label">연락처</div>
-            <div className="order-info-value">{formData.phone || '정보 없음'}</div>
+          <div className="order-info-item">
+            <div className="order-info-content">
+              <div className="order-info-label">연락처</div>
+              <div className="order-info-value">{formData.phone || '정보 없음'}</div>
+            </div>
           </div>
-        </div>
 
-        <div className="order-info-item">
-          <div className="order-info-content">
-            <div className="order-info-label">이메일</div>
-            <div className="order-info-value">{formData.email || '정보 없음'}</div>
+          <div className="order-info-item">
+            <div className="order-info-content">
+              <div className="order-info-label">이메일</div>
+              <div className="order-info-value">{formData.email || '정보 없음'}</div>
+            </div>
           </div>
-        </div>
 
-        <div className="form-group requirements-group">
-          <label className="form-label">요청사항(50자 이내)</label>
-          <textarea
-            placeholder="요구사항을 입력해주세요"
-            value={formData.requirements}
-            onChange={(e) => handleInputChange('requirements', e.target.value)}
-            className="form-textarea"
-            rows="2"
-            maxLength={50}
-          />
-          <div className="character-counter">
-            <span className={formData.requirements.length > 50 ? 'error' : ''}>
-              {formData.requirements.length}/50자
-            </span>
-            {formData.requirements.length > 50 && (
-              <span className="error-message">50자를 초과했습니다.</span>
-            )}
+          <div className="order-info-item">
+            <div className="order-info-content">
+              <div className="order-info-label">요청사항</div>
+              <div className="order-info-value">
+                <textarea
+                  placeholder="요청사항을 입력해주세요(50자 이내)"
+                  value={formData.requirements}
+                  onChange={(e) => handleInputChange('requirements', e.target.value)}
+                  className="form-textarea requirements-textarea"
+                  rows="2"
+                  maxLength={50}
+                />
+                <div className="character-counter">
+                  <span className={formData.requirements.length > 50 ? 'error' : ''}>
+                    {formData.requirements.length}/50자
+                  </span>
+                  {formData.requirements.length > 50 && (
+                    <span className="error-message">50자를 초과했습니다.</span>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -204,7 +208,8 @@ export default function OrderForm({
           결제수단
         </div>
 
-        <div className="payment-options">
+        <div className="form-section-content">
+          <div className="payment-options">
           <RadioButton
             name="payment"
             value="card"
@@ -249,6 +254,7 @@ export default function OrderForm({
           >
             간편결제
           </RadioButton>
+          </div>
         </div>
       </div>
 
@@ -259,7 +265,8 @@ export default function OrderForm({
           주문상품({orderItems.length}개)
         </div>
 
-        {orderItems.length > 0 ? (
+        <div className="form-section-content">
+          {orderItems.length > 0 ? (
           orderItems.map((item, index) => (
             <OrderItem
               key={index}
@@ -275,9 +282,10 @@ export default function OrderForm({
         ) : (
           <div className="no-items">
             <p>주문할 상품이 없습니다.</p>
-            <a href="/cart" className="go-cart-btn">장바구니로 이동</a>
+            <a href="/cart" className="go-cart-btn">장바구니로 돌아가기</a>
           </div>
         )}
+        </div>
       </div>
 
 

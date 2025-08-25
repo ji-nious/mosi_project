@@ -357,7 +357,7 @@ function OrderPage() {
     return (
       <div className="order-container">
         <div className="continue-shopping-section">
-          <a href="/cart" className="continue-shopping-btn">&lt; 장바구니로 이동</a>
+          <a href="/cart" className="continue-shopping-btn">&lt; 장바구니로 돌아가기</a>
         </div>
         <p>주문 정보를 불러오는 중...</p>
       </div>
@@ -366,9 +366,9 @@ function OrderPage() {
 
   return (
     <div className="order-container">
-      {/* 장바구니로 이동 버튼 - 장바구니와 동일한 위치 */}
+      {/* 장바구니로 돌아가기 버튼 - 장바구니와 동일한 위치 */}
       <div className="continue-shopping-section">
-        <a href="/cart" className="continue-shopping-btn">&lt; 장바구니로 이동</a>
+        <a href="/cart" className="continue-shopping-btn">&lt; 장바구니로 돌아가기</a>
       </div>
 
       <div className="order-layout">

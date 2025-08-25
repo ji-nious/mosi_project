@@ -119,6 +119,13 @@ async function handleAddToCart(event) {
     
     const productId = getProductIdFromPage();
     
+    // 중복 상품 체크
+    const isDuplicate = await checkDuplicateProduct(productId, optionType);
+    if (isDuplicate) {
+      showAlert('이미 장바구니에 있는 상품입니다.');
+      return;
+    }
+    
     const result = await addToCartAPI(productId, optionType, 1);
     
     if (result.header && result.header.rtcd === 'S00') {
@@ -192,12 +199,9 @@ async function validatePurchase(optionType) {
     };
   }
   
-  // 옵션 체크
+  // 옵션 체크 - 자동으로 기본 옵션 선택
   if (!optionType) {
-    return {
-      isValid: false,
-      message: '옵션을 선택해주세요.'
-    };
+    optionType = '기본코스'; // 기본 옵션으로 설정
   }
   
   return { isValid: true };
@@ -328,15 +332,13 @@ function showSuccessModal(message) {
   const continueBtn = modal.querySelector('#continue-shopping');
   const cartBtn = modal.querySelector('#go-to-cart');
   
-  // 장바구니 확인하기 버튼만 호버 효과 적용
+  // 장바구니 확인하기 버튼 호버 효과 (흔들림 제거)
   cartBtn.addEventListener('mouseenter', () => {
     cartBtn.style.backgroundColor = '#007a8a';
-    cartBtn.style.transform = 'translateY(-1px)';
   });
   
   cartBtn.addEventListener('mouseleave', () => {
     cartBtn.style.backgroundColor = '#0099AD';
-    cartBtn.style.transform = 'translateY(0)';
   });
   
   // 클릭 이벤트

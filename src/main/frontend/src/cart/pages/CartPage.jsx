@@ -10,12 +10,12 @@ function CartPage() {
   const [updating, setUpdating] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  // 컴포넌트 마운트시 장바구니 데이터 가져오기
+  // 컴포넌트 마운트
   useEffect(() => {
     fetchCartData()
   }, [])
 
-  // 서버에서 장바구니 데이터 가져오기
+  // 장바구니 데이터 가져오기
   const fetchCartData = useCallback(async () => {
     try {
       setError(null)
@@ -30,10 +30,10 @@ function CartPage() {
         setCartData(data)
 
         if (data.cartItems && data.cartItems.length > 0) {
-          const allItems = data.cartItems.map(item =>
-            `${item.productId}-${item.optionType}`
-          )
-          setSelectedItems(new Set(allItems))
+          const availableItems = data.cartItems
+            .filter(item => item.available)
+            .map(item => `${item.productId}-${item.optionType}`)
+          setSelectedItems(new Set(availableItems))
         } else {
           setSelectedItems(new Set())
         }
@@ -158,7 +158,7 @@ function CartPage() {
   // 주문하기
   const goToOrder = useCallback(async () => {
     const selectedCartItems = cartData?.cartItems?.filter(item =>
-      selectedItems.has(`${item.productId}-${item.optionType}`)
+      item.available && selectedItems.has(`${item.productId}-${item.optionType}`)
     ) || []
 
     if (selectedCartItems.length === 0) {
@@ -178,7 +178,7 @@ function CartPage() {
   const cartItems = cartData?.cartItems || []
   const availableItems = cartItems.filter(item => item.available)
   const selectedCartItems = cartItems.filter(item =>
-    selectedItems.has(`${item.productId}-${item.optionType}`)
+    item.available && selectedItems.has(`${item.productId}-${item.optionType}`)
   )
   const isAllSelected = availableItems.length > 0 && selectedItems.size === availableItems.length
 

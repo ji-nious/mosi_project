@@ -8,7 +8,7 @@
     "name": "modulepreload-polyfill"
   },
   "src/main.jsx": {
-    "file": "main-B_8DeMIi.js",
+    "file": "main-BgDYWDlH.js",
     "name": "main",
     "src": "src/main.jsx",
     "isEntry": true,
@@ -27,7 +27,7 @@
     ]
   },
   "src/order-main.jsx": {
-    "file": "order-main-CMZ5XX8S.js",
+    "file": "order-main-BB9uDQ84.js",
     "name": "order-main",
     "src": "src/order-main.jsx",
     "isEntry": true,

@@ -36,9 +36,7 @@ public class CartSVCImpl implements CartSVC {
   private final SellerPageSVC sellerPageSVC;
 
 
-  /**
-   * 장바구니 상품 추가
-   */
+  // 장바구니 상품 추가
   @Override
   public ApiResponse<Void> addToCart(Long buyerId, Long productId, String optionType, Long quantity) {
     try {
