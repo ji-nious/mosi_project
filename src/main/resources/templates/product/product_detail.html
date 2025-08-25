@@ -383,21 +383,22 @@
             <p>여기에 리뷰 내용이 들어갑니다.</p>
           </div>
         </section>
+
         <!-- 오른쪽 (구매박스) -->
-        <section class="product-body-right"
-          th:attr="data-product-id=*{product.productId}, data-product-status=*{product.status}">
+        <section class="product-body-right" th:attr="data-product-status=*{product.status}, data-product-id=*{product.productId}">
           <div class="product-body-right-container">
             <!-- 탭 -->
             <div style="display: flex;">
               <div id="tab-basic" onclick="showTab('basic')"
-                style="flex:1; text-align:center; padding:12px; cursor:pointer; font-weight:bold; border-bottom: 2px solid #333;">
+                   style="flex:1; text-align:center; padding:12px; cursor:pointer; font-weight:bold; border-bottom: 2px solid #333;">
                 기본 코스
               </div>
               <div id="tab-guide" onclick="showTab('guide')"
-                style="flex:1; text-align:center; padding:12px; cursor:pointer; color:#999;">
+                   style="flex:1; text-align:center; padding:12px; cursor:pointer; color:#999;">
                 가이드 포함
               </div>
             </div>
+
             <!-- 기본 코스 -->
             <div id="content-basic">
               <div class="allPrice" th:text="|*{product.salesPrice}원|">
@@ -417,8 +418,7 @@
               </button>
               <!-- 구매/장바구니 버튼 그룹 -->
               <div class="btn-group">
-                <button class="product-btn btn-cart" data-option="기본코스" data-price=""
-                  th:attr="data-price=*{product.salesPrice}">
+                <button class="product-btn btn-cart" data-option="기본코스" data-price="" th:attr="data-price=*{product.salesPrice}">
                   장바구니
                 </button>
                 <button class="product-btn btn-buy" data-option="기본코스">
@@ -426,6 +426,7 @@
                 </button>
               </div>
             </div>
+
             <!-- 가이드 포함 -->
             <div id="content-guide">
               <div class="allPrice" th:text="|*{product.salesGuidePrice}원|">
@@ -448,18 +449,22 @@
             </div>
           </div>
         </section>
+
         <script>
           function showTab(tab) {
             document.getElementById('content-basic').style.display = 'none';
             document.getElementById('content-guide').style.display = 'none';
+
             document.getElementById('tab-basic').style.borderBottom = '2px solid #ddd';
             document.getElementById('tab-guide').style.borderBottom = '2px solid #ddd';
             document.getElementById('tab-basic').style.color = '#999';
             document.getElementById('tab-guide').style.color = '#999';
+
             document.getElementById('content-' + tab).style.display = 'block';
             document.getElementById('tab-' + tab).style.borderBottom = '2px solid #333';
             document.getElementById('tab-' + tab).style.color = '#333';
           }
+
           // 기본 활성화
           document.addEventListener('DOMContentLoaded', function () {
             showTab('basic');

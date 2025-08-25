@@ -9,6 +9,8 @@ import java.util.List;
 @Repository
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
-  // 주문 ID로 주문 상세 조회
+  /**
+   *  주문 상세 조회
+   */
   List<OrderItem> findByOrderId(Long orderId);
 }

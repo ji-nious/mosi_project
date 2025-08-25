@@ -118,11 +118,11 @@ const CartItem = memo(({
         <div className="item-title">{productName}</div>
         {!available && <div className="sold-out-status">판매중단</div>}
         
-        <div className="item-option">옵션: ({optionType})</div>
-        
         <div className="item-seller">
           판매자: {sellerNickname || '판매자'}
         </div>
+
+        <div className="item-option">옵션: {optionType}</div>
       </div>
 
       {/* 가격 정보 */}
@@ -144,7 +144,7 @@ const CartItem = memo(({
         type="button"
       >
         {isUpdating ? (
-          <i className="fas fa-spinner fa-spin"></i>
+          <div className="button-spinner"></div>
         ) : (
           <i className="fas fa-times"></i>
         )}

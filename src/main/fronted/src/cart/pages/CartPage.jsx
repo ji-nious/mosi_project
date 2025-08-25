@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react'
 import { cartService } from '../services/CartService'
 import CartItem from '../components/CartItem'
@@ -22,9 +21,12 @@ function CartPage() {
       setError(null)
       setLoading(true)
 
+      console.log('🛒 장바구니 데이터 요청 시작...')
       const data = await cartService.getCart()
+      console.log('📦 장바구니 응답 데이터:', data)
 
       if (data && data.success) {
+        console.log('✅ 장바구니 데이터 성공:', data)
         setCartData(data)
 
         if (data.cartItems && data.cartItems.length > 0) {
@@ -36,9 +38,11 @@ function CartPage() {
           setSelectedItems(new Set())
         }
       } else {
+        console.log('❌ 장바구니 데이터 실패:', data)
         setError('장바구니 데이터를 불러올 수 없습니다')
       }
     } catch (error) {
+      console.log('🚨 장바구니 네트워크 오류:', error)
       setError('네트워크 오류가 발생했습니다')
     } finally {
       setLoading(false)
@@ -183,9 +187,7 @@ function CartPage() {
     return (
       <div className="react-cart-content">
         <div className="loading-container">
-          <div className="loading-spinner">
-            <i className="fas fa-spinner fa-spin"></i>
-          </div>
+          <div className="custom-spinner"></div>
           <div className="loading-text">장바구니를 불러오는 중...</div>
         </div>
       </div>
@@ -230,7 +232,7 @@ function CartPage() {
         </div>
 
         {/* 전체 선택 및 삭제 영역 */}
-        <div className="select-all-section">
+        <div className={`select-all-section ${!isAllSelected ? 'unselected' : ''}`}>
           <div className="left">
             <input
               type="checkbox"
@@ -286,7 +288,7 @@ function CartPage() {
               <div key={`item-${item.productId}-${item.optionType}`} className="price-item">
                 <div className="price-item-info">
                   <div className="price-item-name">{item.productName}</div>
-                  <div className="price-item-type">옵션: ({item.optionType})</div>
+                  <div className="price-item-type">{item.optionType}</div>
                 </div>
                 <span className="price-item-amount">
                   {(item.price * item.quantity)?.toLocaleString()}원
@@ -312,7 +314,7 @@ function CartPage() {
             disabled={selectedCartItems.length === 0 || updating}
           >
             {updating ? (
-              <i className="fas fa-spinner fa-spin"></i>
+              <div className="button-spinner"></div>
             ) : (
               `${selectedCartItems.length}개 상품 주문하기`
             )}

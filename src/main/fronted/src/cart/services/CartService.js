@@ -1,4 +1,3 @@
-
 const handleResponse = async (response) => {
   if (response.status === 401) {
     window.location.href = '/login'
@@ -7,12 +6,23 @@ const handleResponse = async (response) => {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+    // ApiResponse 구조에서 메시지 추출
+    const message = errorData.header?.rtmsg || errorData.message || `HTTP ${response.status}: ${response.statusText}`
+    throw new Error(message)
   }
 
   try {
-    return await response.json()
+    const apiResponse = await response.json()
+    // ApiResponse 구조에서 실제 데이터 추출
+    if (apiResponse.header && apiResponse.header.rtcd !== 'S00') {
+      throw new Error(apiResponse.header.rtmsg || '요청 처리 중 오류가 발생했습니다')
+    }
+
+    return apiResponse.body || apiResponse
   } catch (error) {
+    if (error.message !== '서버 응답을 처리할 수 없습니다') {
+      throw error
+    }
     throw new Error('서버 응답을 처리할 수 없습니다')
   }
 }
@@ -40,23 +50,12 @@ export const cartService = {
   // 장바구니 상품 수량 변경
   async updateQuantity(productId, optionType, quantity) {
     try {
-      // CSRF 토큰 가져오기
-      const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-      const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-      
-      const headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      };
-      
-      // CSRF 헤더 추가
-      if (csrfToken && csrfHeader) {
-        headers[csrfHeader] = csrfToken;
-      }
-
       const response = await fetch('/cart/quantity', {
         method: 'PUT',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         credentials: 'include',
         body: JSON.stringify({
           productId,
@@ -75,23 +74,12 @@ export const cartService = {
   // 장바구니에서 상품 삭제
   async removeFromCart(productId, optionType) {
     try {
-      // CSRF 토큰 가져오기
-      const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-      const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-      
-      const headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      };
-      
-      // CSRF 헤더 추가
-      if (csrfToken && csrfHeader) {
-        headers[csrfHeader] = csrfToken;
-      }
-
       const response = await fetch('/cart/remove', {
         method: 'DELETE',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         credentials: 'include',
         body: JSON.stringify({
           productId,
