@@ -440,16 +440,16 @@ public class ProductController {
     ProductUpdateForm form = new ProductUpdateForm();
     form.setProduct(product);
     form.setExistingImages(images);
-    form.setCoursePoints(coursePoints);
     form.setNickname(loginMember.getNickname());
     form.setSellerImage(base64SellerImage);
     if (sellerPage.getIntro() != null) {
       form.setIntro(sellerPage.getIntro());
     }
+    form.setDocumentFile(form.getDocumentFile());
 
     model.addAttribute("sellerImage", base64SellerImage);
     model.addAttribute("nickname", loginMember.getNickname());
-    model.addAttribute("productUploadForm", form);
+    model.addAttribute("productUpdateForm", form);
     model.addAttribute("images", images);
     model.addAttribute("coursePoints", coursePoints);
 
@@ -543,31 +543,6 @@ public class ProductController {
     }
     productImageSVC.saveAll(images);
 
-    // 기존 코스포인트 삭제
-    if (form.getDeleteCoursePointIds() != null) {
-      for (Long coursePointId : form.getDeleteCoursePointIds()) {
-        productCoursePointSVC.deleteByProductId(coursePointId);
-      }
-    }
-
-    // 새 코스포인트 저장
-    List<ProductCoursePoint> coursePoints = new ArrayList<>();
-    if (form.getCoursePoints() != null) {
-      int pointOrder = 1;
-      for (ProductCoursePoint coursePoint : form.getCoursePoints()) {
-        if (coursePoint.getLatitude() != null && coursePoint.getLongitude() != null) {
-          ProductCoursePoint pcp = new ProductCoursePoint();
-          pcp.setProduct(updateProduct);
-          pcp.setLatitude(coursePoint.getLatitude());
-          pcp.setLongitude(coursePoint.getLongitude());
-          pcp.setDescription(coursePoint.getDescription());
-          pcp.setPointOrder(pointOrder++);
-          pcp.setCreatedAt(new Date(System.currentTimeMillis()));
-          coursePoints.add(pcp);
-        }
-      }
-    }
-    productCoursePointSVC.saveAll(coursePoints);
 
     return "redirect:/product/manage";
   }
