@@ -87,12 +87,15 @@
       });
       
       if (response.ok) {
-        const data = await response.json();
+        const apiResponse = await response.json();
         const badge = document.getElementById('cart-count');
         
-        if (badge && data.success) {
-          if (data.count > 0) {
-            badge.textContent = data.count > 99 ? '99+' : data.count;
+        // ApiResponse 구조에서 데이터 추출
+        const count = apiResponse.body || apiResponse;
+        
+        if (badge) {
+          if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
             badge.style.display = 'inline';
           } else {
             badge.style.display = 'none';
@@ -104,6 +107,9 @@
       console.debug('장바구니 카운트 초기화 실패:', error);
     }
   }
+
+  // 글로벌 함수로 노출
+  window.updateCartCount = initCartCount;
 
   (document.readyState === 'loading')
     ? document.addEventListener('DOMContentLoaded', ready)

@@ -10,6 +10,8 @@ import com.KDT.mosi.domain.entity.cart.Cart;
 import com.KDT.mosi.domain.entity.cart.CartItem;
 import com.KDT.mosi.domain.mypage.seller.svc.SellerPageSVC;
 import com.KDT.mosi.domain.product.svc.ProductSVC;
+import com.KDT.mosi.domain.product.svc.ProductImageSVC;
+import com.KDT.mosi.domain.entity.ProductImage;
 import com.KDT.mosi.web.api.ApiResponse;
 import com.KDT.mosi.web.api.ApiResponseCode;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ public class CartSVCImpl implements CartSVC {
   private final CartRepository cartRepository;
   private final CartItemRepository cartItemRepository;
   private final ProductSVC productSVC;
+  private final ProductImageSVC productImageSVC;
   private final SellerPageSVC sellerPageSVC;
 
 
@@ -201,7 +204,6 @@ public class CartSVCImpl implements CartSVC {
 
   /**
    * CartItem → CartItemResponse 변환
-   * React+Vite와 호환되는 DTO 변환
    */
   private List<CartItemResponse> convertToCartItemResponses(List<CartItem> items) {
     List<CartItemResponse> result = new ArrayList<>();
@@ -214,14 +216,18 @@ public class CartSVCImpl implements CartSVC {
         String sellerNickname = getSellerNickname(item.getSellerId());
         boolean isAvailable = "판매중".equals(product.getStatus());
         
-        // 첫 번째 상품 이미지 (간단하게)
+        // 첫 번째 상품 이미지 (ProductImageSVC 사용)
         String imageData = null;
-        if (product.getProductImages() != null && !product.getProductImages().isEmpty()) {
-          imageData = product.getProductImages().get(0).getBase64ImageData();
+        List<ProductImage> images = productImageSVC.findByProductId(product.getProductId());
+        log.info("🖼️ 상품 이미지 조회: productId={}, 이미지 개수={}", product.getProductId(), images != null ? images.size() : 0);
+        if (images != null && !images.isEmpty()) {
+          imageData = images.get(0).getBase64ImageData();
+          log.info("🎯 이미지 데이터 설정 완료: {}", imageData != null ? "성공" : "실패");
         }
         
         CartItemResponse dto = isAvailable ?
             CartItemResponse.createAvailable(
+                item.getCartItemId(), // cartItemId 추가
                 item.getProductId(),
                 product.getTitle(),
                 product.getDescription(),
@@ -233,6 +239,7 @@ public class CartSVCImpl implements CartSVC {
                 sellerNickname
             ) :
             CartItemResponse.createUnavailable(
+                item.getCartItemId(), // cartItemId 추가
                 item.getProductId(),
                 product.getTitle(),
                 product.getDescription(),

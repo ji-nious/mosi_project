@@ -35,7 +35,7 @@
         <form id="buyerUpdateForm" class="edit-form" th:object="${form}" th:action="@{'/mypage/buyer/' + *{memberId}}"
               method="post" enctype="multipart/form-data">
 
-          <input type="hidden" name="_csrf" th:value="${_csrf != null ? _csrf.token : ''}">
+
           <input type="hidden" th:field="*{memberId}">
           <input type="hidden" th:field="*{pageId}">
 

@@ -5,6 +5,8 @@ import com.KDT.mosi.domain.mypage.seller.svc.SellerPageSVC;
 import com.KDT.mosi.domain.product.svc.ProductCoursePointSVC;
 import com.KDT.mosi.domain.product.svc.ProductImageSVC;
 import com.KDT.mosi.domain.product.svc.ProductSVC;
+import com.KDT.mosi.web.api.ApiResponse;
+import com.KDT.mosi.web.api.ApiResponseCode;
 import com.KDT.mosi.web.form.product.*;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.web.csrf.CsrfToken;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -187,25 +188,7 @@ public class ProductController {
       managingForms.add(form);
     }
 
-    // 디버깅용 출력
-    Object csrfObj1 = request.getAttribute(CsrfToken.class.getName());
-    Object csrfObj2 = request.getAttribute("_csrf");
-    System.out.println("CSRF 토큰 객체1: " + csrfObj1);
-    System.out.println("CSRF 토큰 객체2: " + csrfObj2);
 
-    CsrfToken csrfToken = null;
-    if (csrfObj1 instanceof CsrfToken) {
-      csrfToken = (CsrfToken) csrfObj1;
-    } else if (csrfObj2 instanceof CsrfToken) {
-      csrfToken = (CsrfToken) csrfObj2;
-    }
-    if (csrfToken != null) {
-      model.addAttribute("_csrf", csrfToken);
-    } else {
-      System.out.println("CSRF 토큰을 찾을 수 없습니다.");
-    }
-
-    model.addAttribute("_csrf", csrfToken);
     model.addAttribute("productManagingForms", managingForms);
     model.addAttribute("nickname", sellerPage.getNickname());
     model.addAttribute("sellerImage", base64SellerImage);

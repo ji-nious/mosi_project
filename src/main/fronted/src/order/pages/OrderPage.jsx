@@ -1,16 +1,10 @@
-/**
- * 주문결제 메인 페이지 컴포넌트
- * Image 2와 완전 동일하게 구현 - 주문 진행 상태 제거
- */
-
+// 주문결제 메인 페이지
 import React, { useState, useEffect } from 'react'
-import { orderService } from '../services/orderService.js'
-import OrderForm from '../components/OrderForm.jsx'
-import PaymentSummary from '../components/PaymentSummary.jsx'
+import { orderService } from '../services/OrderService'
+import OrderForm from '../components/OrderForm'
+import PaymentSummary from '../components/PaymentSummary'
 
-/**
- * 에러 컴포넌트
- */
+// 에러 컴포넌트
 function ErrorMessage({ message, onRetry }) {
   return (
     <div className="error-container">
@@ -34,11 +28,35 @@ function OrderPage() {
   const [memberInfo, setMemberInfo] = useState({})
   const [error, setError] = useState(null)
   const [processing, setProcessing] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState('card')
+  const [paymentMethod, setPaymentMethod] = useState('')
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [showMemberInfoModal, setShowMemberInfoModal] = useState(false)
+  const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState(false)
+  
+  // 사용자 입력 요청사항
+  const [requirements, setRequirements] = useState('')
+
+
+  // 계산된 값들
+  const items = orderData?.orderItems || []
+  const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 
   // 초기 데이터 로드
   useEffect(() => {
     fetchOrderData()
+    
+    // 글로벌 함수로 즉시 결제 함수 등록
+    window.processPaymentImmediately = processPaymentImmediately
+    
+    // 모달 표시
+    setShowMemberInfoModal(true)
+    
+
+    
+    return () => {
+      // 컴포넌트 언마운트 시 정리
+      delete window.processPaymentImmediately
+    }
   }, [])
 
   /**
@@ -60,18 +78,43 @@ function OrderPage() {
 
       const items = JSON.parse(selectedItems)
 
-      // 회원 정보 가져오기 (실제로는 서버에서)
-      const memberData = {
-        name: '홍길동',
-        phone: '010-1234-5678',
-        email: 'hong@example.com'
+      // 회원 정보 가져오기 (서버에서)
+      try {
+        const memberResponse = await fetch('/order/member-info', {
+          method: 'GET',
+          credentials: 'include'
+        })
+        
+        if (memberResponse.ok) {
+          const apiResponse = await memberResponse.json()
+          
+          // ApiResponse 구조에서 데이터 추출
+          const memberData = apiResponse.body || apiResponse
+          setMemberInfo({
+            name: memberData.name || '',
+            phone: memberData.tel || '',
+            email: memberData.email || ''
+          })
+        } else {
+          // 기본값 설정
+          setMemberInfo({
+            name: '',
+            phone: '',
+            email: ''
+          })
+        }
+      } catch (error) {
+        // 오류 시 기본값
+        setMemberInfo({
+          name: '',
+          phone: '',
+          email: ''
+        })
       }
 
-      setOrderData({ items })
-      setMemberInfo(memberData)
+      setOrderData({ orderItems: items })
 
     } catch (error) {
-      console.error('주문 데이터 조회 실패:', error)
       setError('주문 정보를 불러올 수 없습니다')
     }
   }
@@ -152,8 +195,104 @@ function OrderPage() {
     setPaymentMethod(method)
   }
 
-  // 계산된 값들
-  const items = orderData?.items || []
+  /**
+   * 라디오 버튼 선택 시 임시 결제 처리 (주문완료로 가지 않음)
+   */
+  const processPaymentImmediately = async (selectedPaymentMethod) => {
+    try {
+      setShowPaymentModal(true)
+      setProcessing(true)
+
+      // 임시 결제 처리 API 호출 (시뮬레이션)
+      await new Promise(resolve => setTimeout(resolve, 1500)) // 1.5초 대기
+      
+      // 임시 결제 완료 메시지 표시 (업계 표준)
+      alert('결제가 완료되었습니다.')
+      
+    } catch (error) {
+      console.error('임시 결제 처리 실패:', error)
+      alert('임시 결제 처리 중 오류가 발생했습니다')
+    } finally {
+      setShowPaymentModal(false)
+      setProcessing(false)
+    }
+  }
+
+  /**
+   * 결제하기 버튼 클릭 시 - 실제 주문 완료 처리
+   */
+  const onPayment = async () => {
+    // 결제 수단 선택 여부 확인
+    if (!paymentMethod) {
+      alert('결제 수단을 먼저 선택해주세요.')
+      return
+    }
+
+    try {
+      setProcessing(true)
+
+      const requestData = {
+        cartItemIds: items.map(item => item.cartItemId),
+        ordererName: memberInfo.name || '',
+        phone: memberInfo.phone || '',
+        email: memberInfo.email || '',
+        requirements: requirements || '',
+        paymentMethod,
+        totalAmount: totalAmount
+      }
+
+      const response = await fetch('/order/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+      })
+
+      if (response.ok) {
+        const apiResponse = await response.json()
+        
+        // ApiResponse 구조에서 오류 체크
+        if (apiResponse.header && apiResponse.header.rtcd !== 'S00') {
+          throw new Error(apiResponse.header.rtmsg || '주문 처리 중 오류가 발생했습니다.')
+        }
+        
+        // ApiResponse 구조에서 실제 데이터 추출
+        const result = apiResponse.body || apiResponse
+        
+        // 결제 완료 로딩 모달 표시
+        setShowPaymentSuccessModal(true)
+        
+        // 2초 후 주문 완료 페이지로 자동 이동
+        setTimeout(() => {
+          // 세션 스토리지 정리
+          sessionStorage.removeItem('selectedCartItems')
+          
+          // 헤더 장바구니 개수 업데이트
+          if (window.updateCartCount) {
+            window.updateCartCount()
+          }
+          
+          // 주문 완료 페이지로 이동
+          const orderCode = result.orderCode || result.data?.orderCode
+          if (orderCode) {
+            window.location.href = `/order/complete?orderCode=${orderCode}`
+          } else {
+            alert('주문 코드를 찾을 수 없습니다. 주문내역에서 확인해주세요.')
+            window.location.href = '/mypage/orders'
+          }
+        }, 2000)
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        const message = errorData.header?.rtmsg || errorData.message || `결제에 실패했습니다: ${response.status} ${response.statusText}`
+        alert(message)
+      }
+    } catch (error) {
+      alert('주문 처리 중 오류가 발생했습니다. 다시 시도해주세요.')
+    } finally {
+      setProcessing(false)
+    }
+  }
 
   // 에러 발생
   if (error) {
@@ -168,12 +307,9 @@ function OrderPage() {
   if (!orderData) {
     return (
       <div className="order-container">
-        <div className="breadcrumb">
-          <a href="/cart">장바구니</a> &gt;
-          <span className="current"> 주문결제</span> &gt;
-          <span> 주문완료</span>
+        <div className="continue-shopping-section">
+          <a href="/cart" className="continue-shopping-btn">&lt; 장바구니로 이동</a>
         </div>
-        <h1 className="page-title">주문결제</h1>
         <p>주문 정보를 불러오는 중...</p>
       </div>
     )
@@ -181,15 +317,10 @@ function OrderPage() {
 
   return (
     <div className="order-container">
-      {/* 브레드크럼 - Image 2와 동일 */}
-      <div className="breadcrumb">
-        <a href="/cart">장바구니</a> &gt;
-        <span className="current"> 주문결제</span> &gt;
-        <span> 주문완료</span>
+      {/* 장바구니로 이동 버튼 - 장바구니와 동일한 위치 */}
+      <div className="continue-shopping-section">
+        <a href="/cart" className="continue-shopping-btn">&lt; 장바구니로 이동</a>
       </div>
-
-      {/* 페이지 제목 */}
-      <h1 className="page-title">주문결제</h1>
 
       <div className="order-layout">
         {/* 왼쪽: 주문 폼 */}
@@ -200,6 +331,8 @@ function OrderPage() {
             onSubmit={handleOrderSubmit}
             loading={processing}
             onPaymentMethodChange={handlePaymentMethodChange}
+            paymentMethod={paymentMethod}
+            onRequirementsChange={setRequirements}
           />
         </div>
 
@@ -207,22 +340,70 @@ function OrderPage() {
         <div className="order-sidebar">
           <PaymentSummary
             items={items}
-            onPayment={(amount) => {
-              // 폼 데이터와 함께 결제 처리
-              const formData = {
-                ordererName: memberInfo.name,
-                phone: memberInfo.phone,
-                email: memberInfo.email,
-                requirements: '',
-                paymentMethod,
-                items
-              }
-              handleOrderSubmit(formData)
-            }}
-            paymentMethod={paymentMethod}
           />
         </div>
       </div>
+
+      {/* 하단 안내 문구 - 전체 레이아웃 하단 */}
+      <div className="order-notice">
+        <div className="notice-item">※ 관광 상품은 예약 확정 후 취소 불가능합니다.</div>
+        <div className="notice-item">※ 날씨나 현지 사정으로 인한 변경 시 사전안내 드립니다.</div>
+        <div className="notice-item">※ 결제 후 예약 확정 안내를 받으실 수 있습니다.</div>
+      </div>
+
+      {/* 하단 결제 버튼 - 전체 레이아웃 하단 */}
+      <div className="order-bottom">
+        <button 
+          onClick={onPayment}
+          className="full-payment-button"
+          disabled={!items.length}
+        >
+          {totalAmount?.toLocaleString()}원 결제하기
+        </button>
+      </div>
+      
+
+
+      {/* 회원 정보 자동 입력 모달 */}
+      {showMemberInfoModal && (
+        <div className="modal-overlay" onClick={() => setShowMemberInfoModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>알림</h3>
+              <button 
+                className="modal-close" 
+                onClick={() => setShowMemberInfoModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>회원 정보가 자동으로 입력됩니다.<br/>(회원 정보 수정은 내 정보&gt;회원 정보 관리에서 가능)</p>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="modal-confirm-btn"
+                onClick={() => setShowMemberInfoModal(false)}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 결제 완료 로딩 모달 - 장바구니 스타일과 동일 */}
+      {showPaymentSuccessModal && (
+        <div className="modal-overlay">
+          <div className="loading-modal-content">
+            <div className="loading-container">
+              <div className="custom-spinner"></div>
+              <div className="loading-text">주문 처리 중입니다.<br/>잠시만 기다려 주세요.</div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

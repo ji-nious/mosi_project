@@ -1,13 +1,7 @@
-/**
- * 주문서 작성 폼 컴포넌트
- * Image 2와 완전 동일하게 구현 - 로딩 제거
- */
-
+// 주문서 작성 폼 컴포넌트
 import React, { useState } from 'react'
 
-/**
- * 입력 필드 컴포넌트
- */
+// 입력 필드 컴포넌트
 function Input({
   label,
   placeholder,
@@ -20,7 +14,6 @@ function Input({
   return (
     <div className="form-group">
       <label className="form-label">
-        {required && <span className="required">*</span>}
         {label}
       </label>
       <input
@@ -36,10 +29,8 @@ function Input({
   )
 }
 
-/**
- * 라디오 버튼 컴포넌트
- */
-function RadioButton({ name, value, checked, onChange, children, description }) {
+// 라디오 버튼 컴포넌트
+function RadioButton({ name, value, checked, onChange, children }) {
   return (
     <div
       className={`payment-option ${checked ? 'selected' : ''}`}
@@ -55,32 +46,47 @@ function RadioButton({ name, value, checked, onChange, children, description }) 
       />
       <div className="payment-content">
         <div className="payment-label">{children}</div>
-        {description && <div className="payment-description">{description}</div>}
       </div>
     </div>
   )
 }
 
 /**
- * 주문 상품 아이템 컴포넌트
+ * 주문 상품 아이템 컴포넌트 - 장바구니와 동일한 형태
  */
-function OrderItem({ productName, price, quantity, seller, productImage, description }) {
+function OrderItem({ productName, price, quantity, optionType, sellerNickname, productImage, originalPrice }) {
+  console.log('🖼️ OrderItem 이미지 데이터:', productName, '→', productImage ? 'Base64 있음' : 'null/undefined')
+  
   return (
     <div className="order-item">
       <div className="order-item-image">
         {productImage ? (
-          <img src={productImage} alt={productName} />
+          <img
+            src={productImage}
+            alt={productName}
+            loading="lazy"
+            onError={(e) => {
+              console.log('❌ 이미지 로드 실패:', productName, '→', productImage)
+              e.target.style.display = 'none'
+              e.target.nextSibling.style.display = 'block'
+            }}
+          />
         ) : (
-          <span>이미지</span>
+          <div className="no-image">이미지 없음</div>
         )}
+        <div className="no-image" style={{display: 'none'}}>이미지 없음</div>
       </div>
       <div className="order-item-info">
         <div className="order-item-title">{productName}</div>
-        <div className="order-item-description">{description || '상세설명입니다.'}</div>
-        <div className="order-item-meta">경비 • 예약 • {seller}</div>
+        <div className="order-item-option">옵션: {optionType}</div>
+        <div className="order-item-seller">판매자: {sellerNickname || '판매자'}</div>
       </div>
-      <div className="order-item-quantity">수량: {quantity}개</div>
-      <div className="order-item-price">{(price * quantity)?.toLocaleString()}원</div>
+      <div className="order-item-price">
+        {originalPrice && originalPrice !== price && (
+          <span className="original-price">{(originalPrice * quantity)?.toLocaleString()}원</span>
+        )}
+        <span className="sale-price">{(price * quantity)?.toLocaleString()}원</span>
+      </div>
     </div>
   )
 }
@@ -92,15 +98,17 @@ function OrderItem({ productName, price, quantity, seller, productImage, descrip
 export default function OrderForm({
   orderItems = [],
   memberInfo = {},
-  onSubmit
+  onSubmit,
+  paymentMethod,
+  onPaymentMethodChange,
+  onRequirementsChange
 }) {
   // 폼 데이터 상태
   const [formData, setFormData] = useState({
     ordererName: memberInfo.name || '',
     phone: memberInfo.phone || '',
     email: memberInfo.email || '',
-    requirements: '',
-    paymentMethod: 'card'
+    requirements: ''
   })
 
   // 폼 데이터 변경 처리
@@ -109,6 +117,11 @@ export default function OrderForm({
       ...prev,
       [field]: value
     }))
+    
+    // 요청사항 변경 시 부모에게 알림
+    if (field === 'requirements' && onRequirementsChange) {
+      onRequirementsChange(value)
+    }
   }
 
   // 폼 제출 처리
@@ -120,7 +133,7 @@ export default function OrderForm({
       return
     }
 
-    if (!formData.paymentMethod) {
+    if (!paymentMethod) {
       alert('결제수단을 선택해주세요.')
       return
     }
@@ -140,42 +153,48 @@ export default function OrderForm({
           주문자 정보
         </div>
 
-        <div className="form-row">
-          <Input
-            label="주문자명"
-            placeholder="주문자명 입력 (수정불가)"
-            value={formData.ordererName}
-            onChange={(value) => handleInputChange('ordererName', value)}
-            required
-            disabled={!!memberInfo.name}
-          />
 
-          <Input
-            label="연락처"
-            placeholder="010-1234-5678(수정불가)"
-            value={formData.phone}
-            onChange={(value) => handleInputChange('phone', value)}
-            required
-            disabled={!!memberInfo.phone}
-          />
+
+        <div className="order-info-item">
+          <div className="order-info-content">
+            <div className="order-info-label">주문자명</div>
+            <div className="order-info-value">{formData.ordererName || '정보 없음'}</div>
+          </div>
+        </div>
+        
+        <div className="order-info-item">
+          <div className="order-info-content">
+            <div className="order-info-label">연락처</div>
+            <div className="order-info-value">{formData.phone || '정보 없음'}</div>
+          </div>
+        </div>
+        
+        <div className="order-info-item">
+          <div className="order-info-content">
+            <div className="order-info-label">이메일</div>
+            <div className="order-info-value">{formData.email || '정보 없음'}</div>
+          </div>
         </div>
 
-        <Input
-          label="이메일"
-          type="email"
-          placeholder="moomoo@noomssom.co.kr(수정불가)"
-          value={formData.email}
-          onChange={(value) => handleInputChange('email', value)}
-          required
-          disabled={!!memberInfo.email}
-        />
-
-        <Input
-          label="요구사항"
-          placeholder="요구사항을 입력해주세요"
-          value={formData.requirements}
-          onChange={(value) => handleInputChange('requirements', value)}
-        />
+        <div className="form-group requirements-group">
+          <label className="form-label">요청사항(50자 이내)</label>
+          <textarea
+            placeholder="요구사항을 입력해주세요"
+            value={formData.requirements}
+            onChange={(e) => handleInputChange('requirements', e.target.value)}
+            className="form-textarea"
+            rows="2"
+            maxLength={50}
+          />
+          <div className="character-counter">
+            <span className={formData.requirements.length > 50 ? 'error' : ''}>
+              {formData.requirements.length}/50자
+            </span>
+            {formData.requirements.length > 50 && (
+              <span className="error-message">50자를 초과했습니다.</span>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* 결제수단 섹션 - Image 2와 동일 */}
@@ -189,9 +208,14 @@ export default function OrderForm({
           <RadioButton
             name="payment"
             value="card"
-            checked={formData.paymentMethod === 'card'}
-            onChange={(value) => handleInputChange('paymentMethod', value)}
-            description="무이자 할부 가능"
+            checked={paymentMethod === 'card'}
+            onChange={(value) => {
+              onPaymentMethodChange(value)
+              // 라디오 버튼 선택 시 즉시 결제 진행
+              if (window.processPaymentImmediately) {
+                window.processPaymentImmediately(value)
+              }
+            }}
           >
             신용카드 / 체크카드
           </RadioButton>
@@ -199,21 +223,31 @@ export default function OrderForm({
           <RadioButton
             name="payment"
             value="bank"
-            checked={formData.paymentMethod === 'bank'}
-            onChange={(value) => handleInputChange('paymentMethod', value)}
-            description="입금 확인 후 예약 확정"
+            checked={paymentMethod === 'bank'}
+            onChange={(value) => {
+              onPaymentMethodChange(value)
+              // 라디오 버튼 선택 시 즉시 결제 진행
+              if (window.processPaymentImmediately) {
+                window.processPaymentImmediately(value)
+              }
+            }}
           >
-            무통장 입금
+            무통장입금
           </RadioButton>
 
           <RadioButton
             name="payment"
-            value="kakao"
-            checked={formData.paymentMethod === 'kakao'}
-            onChange={(value) => handleInputChange('paymentMethod', value)}
-            description="간편하고 안전한 결제"
+            value="simple"
+            checked={paymentMethod === 'simple'}
+            onChange={(value) => {
+              onPaymentMethodChange(value)
+              // 라디오 버튼 선택 시 즉시 결제 진행
+              if (window.processPaymentImmediately) {
+                window.processPaymentImmediately(value)
+              }
+            }}
           >
-            카카오페이
+            간편결제
           </RadioButton>
         </div>
       </div>
@@ -232,9 +266,10 @@ export default function OrderForm({
               productName={item.productName}
               price={item.price}
               quantity={item.quantity}
-              seller={item.seller || '판매자'}
+              optionType={item.optionType}
+              sellerNickname={item.sellerNickname}
               productImage={item.productImage}
-              description={item.description}
+              originalPrice={item.originalPrice}
             />
           ))
         ) : (
@@ -245,24 +280,7 @@ export default function OrderForm({
         )}
       </div>
 
-      {/* 제출 버튼 */}
-      <div className="form-actions">
-        <button
-          type="button"
-          onClick={() => window.location.href = '/cart'}
-          className="back-button"
-        >
-          장바구니로 돌아가기
-        </button>
 
-        <button
-          type="submit"
-          className="submit-button"
-          disabled={orderItems.length === 0}
-        >
-          주문하기
-        </button>
-      </div>
     </form>
   )
 }

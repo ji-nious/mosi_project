@@ -44,7 +44,9 @@ public class ProductImageDAOImpl implements ProductImageDAO {
     String sql = "SELECT * FROM PRODUCT_IMAGE WHERE PRODUCT_ID = :productId ORDER BY IMAGE_ORDER";
     Map<String, Object> params = new HashMap<>();
     params.put("productId", productId);
-    return jdbcTemplate.query(sql, params, rowMapper);
+    List<ProductImage> result = jdbcTemplate.query(sql, params, rowMapper);
+    System.out.println("🔍 DB 조회 결과: productId=" + productId + ", 이미지 개수=" + result.size());
+    return result;
   }
 
   @Override

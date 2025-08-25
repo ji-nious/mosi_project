@@ -15,26 +15,24 @@ import com.KDT.mosi.domain.order.repository.OrderItemRepository;
 import com.KDT.mosi.domain.order.repository.OrderRepository;
 import com.KDT.mosi.domain.order.request.OrderFormRequest;
 import com.KDT.mosi.domain.product.svc.ProductSVC;
-import jakarta.servlet.http.HttpSession;
-import lombok.Builder;
+import com.KDT.mosi.domain.product.svc.ProductImageSVC;
+import com.KDT.mosi.domain.entity.ProductImage;
+import com.KDT.mosi.web.api.ApiResponse;
+import com.KDT.mosi.web.api.ApiResponseCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Builder
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -45,6 +43,7 @@ public class OrderSVCImpl implements OrderSVC {
     private final CartItemRepository cartItemRepository;
     private final MemberDAO memberDAO;
     private final ProductSVC productSVC;
+    private final ProductImageSVC productImageSVC;
     private final SellerPageSVC sellerPageSVC;
 
     /**
@@ -113,7 +112,7 @@ public class OrderSVCImpl implements OrderSVC {
             Long serverCalculatedAmount = calculateTotalAmount(request.getCartItemIds());
 
             // 2. 클라이언트 금액과 서버 금액 비교
-            if (!serverCalculatedAmount.equals(request.getAmount())) {
+            if (!serverCalculatedAmount.equals(request.getTotalAmount())) {
                 throw new IllegalArgumentException("결제 금액이 일치하지 않습니다. 새로고침 후 다시 시도해주세요.");
             }
 
@@ -121,23 +120,23 @@ public class OrderSVCImpl implements OrderSVC {
             List<CartItem> cartItems = cartItemRepository.findAllById(request.getCartItemIds());
             validateCartItems(cartItems);
 
-            // 4. 주문 생성
+            // 5. 주문 생성
             String orderCode = generateOrderCode();
 
-            Order order = Order.builder()
-                .orderCode(orderCode)
-                .buyerId(buyerId)
-                .totalPrice(serverCalculatedAmount)
-                .specialRequest(request.getSpecialRequest())
-                .status("결제완료")
-                .build();
+            Order order = new Order();
+            order.setOrderCode(orderCode);
+            order.setBuyerId(buyerId);
+            order.setTotalPrice(serverCalculatedAmount);
+            order.setSpecialRequest(request.getRequirements());
+            order.setStatus("결제대기"); // 업계 표준: 결제 완료 전까지 대기 상태 유지
+            order.setOrderDate(LocalDateTime.now());
 
             Order savedOrder = orderRepository.save(order);
 
             // 5. 주문 상품 생성
             createOrderItems(savedOrder.getOrderId(), cartItems);
 
-            // 6. 장바구니에서 주문된 상품 제거
+            // 6. 장바구니에서 주문한 상품들 제거 (주문 확정 시)
             cartItemRepository.deleteAllById(request.getCartItemIds());
 
             return OrderResponse.createOrderCompleteSuccess(
@@ -184,6 +183,7 @@ public class OrderSVCImpl implements OrderSVC {
                 order.getOrderCode(),
                 order.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
                 order.getStatus(),
+                order.getSpecialRequest(),
                 orderItemResponses,
                 order.getTotalPrice(),
                 orderItems.size()
@@ -195,6 +195,36 @@ public class OrderSVCImpl implements OrderSVC {
         } catch (Exception e) {
             log.error("주문 상세 조회 실패: orderId={}", orderId, e);
             throw new RuntimeException("주문 정보를 불러올 수 없습니다");
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponse getOrderDetailByCode(String orderCode, Long buyerId) {
+        try {
+            // 주문번호로 주문 조회
+            Order order = orderRepository.findByOrderCode(orderCode);
+            if (order == null) {
+                throw new IllegalArgumentException("주문을 찾을 수 없습니다.");
+            }
+
+            // 구매자 확인
+            if (!order.getBuyerId().equals(buyerId)) {
+                throw new IllegalArgumentException("접근 권한이 없습니다.");
+            }
+
+            // 주문 상품 목록 조회
+            List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getOrderId());
+            
+            // OrderResponse 생성 (정가/할인가 정보 포함)
+            return createOrderCompleteResponse(order, orderItems);
+
+        } catch (IllegalArgumentException e) {
+            log.error("주문 조회 실패 - 잘못된 요청: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("주문 조회 실패: orderCode={}, buyerId={}", orderCode, buyerId, e);
+            throw new RuntimeException("주문 조회 중 오류가 발생했습니다");
         }
     }
 
@@ -237,13 +267,13 @@ public class OrderSVCImpl implements OrderSVC {
 
     @Override
     @Transactional(readOnly = true)
-    public List<OrderResponse> getBuyerOrders(Long buyerId) {
+    public ApiResponse<List<OrderResponse>> getOrderHistory(Long buyerId) {
         try {
             // Sort 파라미터로 최신순 정렬
             Sort sort = Sort.by("orderDate").descending();
             List<Order> orders = orderRepository.findByBuyerId(buyerId, sort);
 
-            return orders.stream()
+            List<OrderResponse> orderResponses = orders.stream()
                 .map(order -> {
                     List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getOrderId());
                     List<OrderItemResponse> orderItemResponses = convertOrderItemsToResponse(orderItems);
@@ -261,9 +291,11 @@ public class OrderSVCImpl implements OrderSVC {
                 })
                 .collect(Collectors.toList());
 
+            return ApiResponse.of(ApiResponseCode.SUCCESS, orderResponses);
+
         } catch (Exception e) {
             log.error("주문 목록 조회 실패: buyerId={}", buyerId, e);
-            return List.of();
+            return ApiResponse.of(ApiResponseCode.BUSINESS_ERROR, null);
         }
     }
 
@@ -390,14 +422,18 @@ public class OrderSVCImpl implements OrderSVC {
      */
     private Long calculateTotalAmount(List<Long> cartItemIds) {
         List<CartItem> cartItems = cartItemRepository.findAllById(cartItemIds);
+        
         return cartItems.stream()
             .mapToLong(cartItem -> {
+                // 업계 표준: 장바구니에 저장된 가격 사용 (UI 일관성)
+                // 단, 상품 상태는 실시간 검증
                 Optional<Product> productOpt = productSVC.getProduct(cartItem.getProductId());
                 if (productOpt.isPresent() && "판매중".equals(productOpt.get().getStatus())) {
-                    Long currentPrice = getCurrentPrice(productOpt.get(), cartItem.getOptionType());
-                    return currentPrice * cartItem.getQuantity();
+                    // CartItem의 salePrice 사용 (할인가)
+                    return cartItem.getSalePrice() * cartItem.getQuantity();
+                } else {
+                    return 0L;
                 }
-                return 0L;
             })
             .sum();
     }
@@ -435,32 +471,86 @@ public class OrderSVCImpl implements OrderSVC {
      */
     private void createOrderItems(Long orderId, List<CartItem> cartItems) {
         List<OrderItem> orderItems = cartItems.stream()
-            .map(cartItem -> OrderItem.builder()
-                .orderId(orderId)
-                .productId(cartItem.getProductId())
-                .sellerId(cartItem.getSellerId())
-                .quantity(cartItem.getQuantity())
-                .originalPrice(cartItem.getOriginalPrice())
-                .salePrice(cartItem.getSalePrice())
-                .optionType(cartItem.getOptionType())
-                .reviewed("N")
-                .build())
+            .map(cartItem -> {
+                OrderItem orderItem = new OrderItem();
+                orderItem.setOrderId(orderId);
+                orderItem.setProductId(cartItem.getProductId());
+                orderItem.setSellerId(cartItem.getSellerId());
+                orderItem.setQuantity(cartItem.getQuantity());
+                orderItem.setOriginalPrice(cartItem.getOriginalPrice());
+                orderItem.setSalePrice(cartItem.getSalePrice());
+                orderItem.setOptionType(cartItem.getOptionType());
+                orderItem.setReviewed("N");
+                return orderItem;
+            })
             .collect(Collectors.toList());
 
         orderItemRepository.saveAll(orderItems);
     }
 
     /**
-     * 옵션에 따른 현재 판매가 조회
+     * 주문 완료 응답 생성 (정가/할인가 정보 포함)
      */
-    private Long getCurrentPrice(Product product, String optionType) {
-        if ("가이드포함".equals(optionType)) {
-            return product.getSalesGuidePrice() != null ?
-                product.getSalesGuidePrice().longValue() : 0L;
-        } else {
-            return product.getSalesPrice() != null ?
-                product.getSalesPrice().longValue() : 0L;
-        }
+    private OrderResponse createOrderCompleteResponse(Order order, List<OrderItem> orderItems) {
+        // 주문자 정보 조회
+        Member buyer = memberDAO.findById(order.getBuyerId())
+            .orElse(null);
+        List<OrderItemResponse> orderItemResponses = orderItems.stream()
+            .map(orderItem -> {
+                // 상품 정보 조회
+                Optional<Product> productOpt = productSVC.getProduct(orderItem.getProductId());
+                if (productOpt.isEmpty()) {
+                    throw new IllegalArgumentException("상품을 찾을 수 없습니다");
+                }
+                Product product = productOpt.get();
+
+                // 판매자 정보 조회
+                String sellerNickname = "판매자";
+                try {
+                    Optional<SellerPage> sellerPageOpt = sellerPageSVC.findByMemberId(orderItem.getSellerId());
+                    if (sellerPageOpt.isPresent()) {
+                        sellerNickname = sellerPageOpt.get().getNickname();
+                    }
+                } catch (Exception e) {
+                    log.warn("판매자 정보 조회 실패: sellerId={}", orderItem.getSellerId());
+                }
+
+                // 현재 상품의 정가/할인가 조회
+                Long currentOriginalPrice = getCurrentOriginalPrice(product, orderItem.getOptionType());
+                Long currentSalePrice = getCurrentPrice(product, orderItem.getOptionType());
+                
+                // 상품 이미지 조회
+                String imageData = getProductImage(product);
+
+                return OrderItemResponse.createAvailable(
+                    orderItem.getProductId(),
+                    product.getTitle(),
+                    product.getDescription(),
+                    currentSalePrice,
+                    currentOriginalPrice,
+                    orderItem.getSalePrice(),
+                    orderItem.getOriginalPrice(),
+                    orderItem.getQuantity().longValue(),
+                    orderItem.getOptionType(),
+                    imageData,
+                    sellerNickname
+                );
+            })
+            .collect(Collectors.toList());
+
+        return OrderResponse.createOrderDetailSuccess(
+            buyer != null ? buyer.getName() : null,
+            buyer != null ? buyer.getTel() : null,
+            buyer != null ? buyer.getEmail() : null,
+            order.getOrderId(),
+            order.getOrderCode(),
+            order.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
+            order.getStatus(),
+            order.getSpecialRequest(),
+            orderItemResponses,
+            order.getTotalPrice(),
+            orderItems.size()
+        );
     }
 
     /**
@@ -477,12 +567,27 @@ public class OrderSVCImpl implements OrderSVC {
     }
 
     /**
+     * 옵션에 따른 현재 판매가 조회
+     */
+    private Long getCurrentPrice(Product product, String optionType) {
+        if ("가이드포함".equals(optionType)) {
+            return product.getSalesGuidePrice() != null ?
+                product.getSalesGuidePrice().longValue() : 0L;
+        } else {
+            return product.getSalesPrice() != null ?
+                product.getSalesPrice().longValue() : 0L;
+        }
+    }
+
+    /**
      * 상품 상태에 따른 메시지 반환
      */
     private String getStatusMessage(String productStatus) {
         switch (productStatus) {
             case "판매대기":
                 return "판매중단";
+            default:
+                return productStatus;
         }
     }
 
@@ -497,11 +602,18 @@ public class OrderSVCImpl implements OrderSVC {
 
     /**
      * 상품 이미지 조회
+     * ProductImageSVC를 사용하여 상품 기본 정보에서 이미지를 가져옴
      */
     private String getProductImage(Product product) {
-        if (product.getProductImages() != null && !product.getProductImages().isEmpty()) {
-            return product.getProductImages().get(0).getBase64ImageData();
+        List<ProductImage> images = productImageSVC.findByProductId(product.getProductId());
+        log.info("🖼️ 주문 상품 이미지 조회: productId={}, 이미지 개수={}", product.getProductId(), images != null ? images.size() : 0);
+        if (images != null && !images.isEmpty()) {
+            String imageData = images.get(0).getBase64ImageData();
+            log.info("🎯 주문 이미지 데이터 설정 완료: {}", imageData != null ? "성공" : "실패");
+            return imageData;
         }
         return null;
     }
+
+
 }

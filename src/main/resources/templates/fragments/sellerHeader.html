@@ -16,7 +16,6 @@
         <th:block th:if="${#authorization.expression('isAuthenticated()')}">
           <div class="user-logged-in">
             <form th:action="@{/login/logout}" method="post" class="logout-form">
-              <input type="hidden" sec:csrf/>
               <button type="submit" class="logout-button" aria-label="로그아웃">로그아웃</button>
             </form>
             <a th:href="@{/notifications}" class="notification-link" aria-label="알림">

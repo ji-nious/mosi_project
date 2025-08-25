@@ -29,9 +29,8 @@
           닉네임
         </div>
 
-        <!-- 역할 전환: POST + CSRF -->
+        <!-- 역할 전환 -->
         <form th:action="@{/mypage/role/toBuyer}" method="post" style="margin-top:10px;" sec:authorize="isAuthenticated()">
-          <input type="hidden" sec:csrf/>
           <button type="submit" class="btn-role-switch">구매자 전환</button>
         </form>
       </div>

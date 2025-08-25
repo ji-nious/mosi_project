@@ -10,7 +10,11 @@ export default defineConfig({
     emptyOutDir: false,
 
     rollupOptions: {
-      input: './src/main.jsx',
+      input: {
+        cart: './src/main.jsx',
+        order: './src/order-main.jsx',
+        'order-complete': './src/order-complete-main.jsx'
+      },
       output: {
         entryFileNames: '[name]-[hash].js',
         chunkFileNames: '[name]-[hash].js',

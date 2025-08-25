@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CartItemResponse {
 
+  private Long cartItemId; // 추가: 장바구니 아이템 ID
   private Long productId;
   private String productName;
   private String description;
@@ -28,10 +29,11 @@ public class CartItemResponse {
   /**
    * 사용 가능한 상품 생성
    */
-  public static CartItemResponse createAvailable(Long productId, String productTitle, String description,
+  public static CartItemResponse createAvailable(Long cartItemId, Long productId, String productTitle, String description,
                                                  Long price, Long originalPrice, Long quantity,
                                                  String optionType, String imageData, String sellerNickname) {
     return CartItemResponse.builder()
+        .cartItemId(cartItemId)
         .productId(productId)
         .productName(productTitle)
         .description(description)
@@ -48,10 +50,11 @@ public class CartItemResponse {
   /**
    * 사용 불가능한 상품 생성
    */
-  public static CartItemResponse createUnavailable(Long productId, String productTitle, String description,
+  public static CartItemResponse createUnavailable(Long cartItemId, Long productId, String productTitle, String description,
                                                    Long price, Long originalPrice, Long quantity,
                                                    String optionType, String imageData, String sellerNickname) {
     return CartItemResponse.builder()
+        .cartItemId(cartItemId)
         .productId(productId)
         .productName(productTitle)
         .description(description)

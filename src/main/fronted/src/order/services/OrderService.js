@@ -11,8 +11,19 @@ const handleResponse = async (response) => {
   }
 
   try {
-    return await response.json()
+    const apiResponse = await response.json()
+    
+    // ApiResponse 구조에서 오류 체크
+    if (apiResponse.header && apiResponse.header.rtcd !== 'S00') {
+      throw new Error(apiResponse.header.rtmsg || '요청 처리 중 오류가 발생했습니다')
+    }
+    
+    // ApiResponse 구조에서 실제 데이터 추출
+    return apiResponse.body || apiResponse
   } catch (error) {
+    if (error.message !== '서버 응답을 처리할 수 없습니다') {
+      throw error
+    }
     console.error('JSON 파싱 오류:', error)
     throw new Error('서버 응답을 처리할 수 없습니다')
   }

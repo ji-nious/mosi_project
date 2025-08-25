@@ -36,7 +36,7 @@
           <form th:action="@{/mypage/seller/{id}/edit(id=${form.memberId})}" th:object="${form}" method="post" enctype="multipart/form-data">
 
           <!-- ✅ 현재 프로필 이미지 -->
-            <input type="hidden" name="_csrf" th:value="${_csrf != null ? _csrf.token : ''}">
+
             <input type="hidden" th:field="*{memberId}">
             <input type="hidden" th:field="*{pageId}">
 

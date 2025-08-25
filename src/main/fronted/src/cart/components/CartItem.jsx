@@ -41,7 +41,7 @@ const CartItem = memo(({
    */
   const handleRemove = useCallback(async () => {
     if (isUpdating || updating) return
-    if (!confirm('이 상품을 삭제하시겠습니까?')) return
+    if (!confirm('해당 상품을 삭제하시겠습니까?')) return
 
     setIsUpdating(true)
     try {
@@ -100,8 +100,12 @@ const CartItem = memo(({
             alt={productName}
             loading="lazy"
             onError={(e) => {
-              e.target.style.display = 'none'
-              e.target.nextSibling.style.display = 'block'
+              if (e.target) {
+                e.target.style.display = 'none'
+                if (e.target.nextSibling) {
+                  e.target.nextSibling.style.display = 'block'
+                }
+              }
             }}
           />
         ) : (
@@ -112,47 +116,13 @@ const CartItem = memo(({
       {/* 상품 정보 */}
       <div className="item-info">
         <div className="item-title">{productName}</div>
-        {description && <div className="item-description">{description}</div>}
-
-        <div className="item-meta">
-          {optionType} • {sellerNickname || '판매자'}
-          {!available && <span className="unavailable-text"> • 판매중단</span>}
+        {!available && <div className="sold-out-status">판매중단</div>}
+        
+        <div className="item-seller">
+          판매자: {sellerNickname || '판매자'}
         </div>
-
-        {/* 수량 조절 */}
-        <div className="item-quantity-section">
-          <div className="quantity-controls">
-            <button
-              onClick={() => handleQuantityChange(quantity - 1)}
-              disabled={isDisabled || quantity <= 1}
-              className="quantity-btn decrease"
-              type="button"
-            >
-              -
-            </button>
-            <input
-              type="number"
-              value={quantity}
-              onChange={(e) => {
-                const value = parseInt(e.target.value) || 1
-                if (value >= 1) {
-                  handleQuantityChange(value)
-                }
-              }}
-              disabled={isDisabled}
-              className="quantity-input"
-              min="1"
-            />
-            <button
-              onClick={() => handleQuantityChange(quantity + 1)}
-              disabled={isDisabled}
-              className="quantity-btn increase"
-              type="button"
-            >
-              +
-            </button>
-          </div>
-        </div>
+        
+        <div className="item-option">옵션: {optionType}</div>
       </div>
 
       {/* 가격 정보 */}
@@ -163,9 +133,6 @@ const CartItem = memo(({
           </div>
         )}
         <div className="item-price">{totalPrice?.toLocaleString()}원</div>
-        <div className="item-unit-price">
-          ({price?.toLocaleString()}원 × {quantity}개)
-        </div>
       </div>
 
       {/* 삭제 버튼 */}
@@ -177,7 +144,7 @@ const CartItem = memo(({
         type="button"
       >
         {isUpdating ? (
-          <i className="fas fa-spinner fa-spin"></i>
+          <div className="button-spinner"></div>
         ) : (
           <i className="fas fa-times"></i>
         )}

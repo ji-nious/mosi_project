@@ -19,7 +19,12 @@ public class WebSecurityConfig {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .csrf(csrf -> csrf
-            .ignoringRequestMatchers("/cart/**") // Island 방식을 위한 CSRF 비활성화
+            .ignoringRequestMatchers(
+                "/api/**", "/cart/**", "/order/**",     // Island 방식
+                "/product/status/**",                    // 상품 상태 업데이트
+                "/login", "/logout",                     // 인증 플로우 간소화
+                "/error"                                 // 오류 페이지 CSRF 제외
+            ) // 중요 계정 관리(비밀번호/정보수정)는 CSRF 보호 유지
         )
         .formLogin(form -> form
             .loginPage("/login")

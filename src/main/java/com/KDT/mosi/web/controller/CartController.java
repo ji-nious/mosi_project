@@ -5,6 +5,7 @@ import com.KDT.mosi.domain.cart.dto.CartResponse;
 import com.KDT.mosi.domain.cart.svc.CartSVC;
 import com.KDT.mosi.domain.entity.Member;
 import com.KDT.mosi.web.api.ApiResponse;
+import com.KDT.mosi.web.api.ApiResponseCode;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -52,13 +53,12 @@ public class CartController {
    */
   @GetMapping(produces = "application/json")
   @ResponseBody
-  public ResponseEntity<Object> getCartJson(HttpSession session) {
+  public ResponseEntity<ApiResponse<CartResponse>> getCartJson(HttpSession session) {
     Member loginMember = (Member) session.getAttribute("loginMember");
     if (loginMember == null) {
-      return ResponseEntity.status(401).body(Map.of(
-          "success", false,
-          "message", "로그인이 필요합니다"
-      ));
+      return ResponseEntity.status(401).body(
+          ApiResponse.of(ApiResponseCode.LOGIN_REQUIRED, null)
+      );
     }
 
     try {
@@ -67,28 +67,15 @@ public class CartController {
           loginMember.getNickname()
       );
 
-      Map<String, Object> response = new HashMap<>();
-      response.put("success", cartResponse.isSuccess());
-      response.put("empty", cartResponse.isEmpty());
-      response.put("memberNickname", cartResponse.getMemberNickname());
-      response.put("memberId", cartResponse.getMemberId());
-      response.put("cartItems", cartResponse.getCartItems());
-      response.put("totalCount", cartResponse.getTotalCount());
-      response.put("totalQuantity", cartResponse.getTotalQuantity());
-      response.put("totalPrice", cartResponse.getTotalPrice());
-
-      if (cartResponse.isEmpty()) {
-        response.put("message", "장바구니가 비어있습니다");
-      }
-
-      return ResponseEntity.ok(response);
+      return ResponseEntity.ok(
+          ApiResponse.of(ApiResponseCode.SUCCESS, cartResponse)
+      );
 
     } catch (Exception e) {
       log.error("장바구니 조회 오류: memberId={}", loginMember.getMemberId(), e);
-      return ResponseEntity.status(500).body(Map.of(
-          "success", false,
-          "message", "장바구니 조회 중 오류가 발생했습니다"
-      ));
+      return ResponseEntity.status(500).body(
+          ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
+      );
     }
   }
 
@@ -98,16 +85,15 @@ public class CartController {
    */
   @PostMapping("/add")
   @ResponseBody
-  public ResponseEntity<Object> addToCart(
+  public ResponseEntity<ApiResponse<Void>> addToCart(
       @Valid @RequestBody CartFormRequest request,
       HttpSession session) {
 
     Member loginMember = (Member) session.getAttribute("loginMember");
     if (loginMember == null) {
-      return ResponseEntity.status(401).body(Map.of(
-          "success", false,
-          "message", "로그인이 필요합니다"
-      ));
+      return ResponseEntity.status(401).body(
+          ApiResponse.of(ApiResponseCode.LOGIN_REQUIRED, null)
+      );
     }
 
     try {
@@ -124,10 +110,9 @@ public class CartController {
       log.error("장바구니 추가 오류: memberId={}, productId={}",
           loginMember.getMemberId(), request.getProductId(), e);
       
-      return ResponseEntity.status(500).body(Map.of(
-          "success", false,
-          "message", "장바구니 추가 중 오류가 발생했습니다"
-      ));
+      return ResponseEntity.status(500).body(
+          ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
+      );
     }
   }
 
@@ -137,16 +122,15 @@ public class CartController {
    */
   @PutMapping("/quantity")
   @ResponseBody
-  public ResponseEntity<Map<String, Object>> updateQuantity(
+  public ResponseEntity<ApiResponse<Void>> updateQuantity(
       @Valid @RequestBody CartFormRequest request,
       HttpSession session) {
 
     Member loginMember = (Member) session.getAttribute("loginMember");
     if (loginMember == null) {
-      return ResponseEntity.status(401).body(Map.of(
-          "success", false,
-          "message", "로그인이 필요합니다"
-      ));
+      return ResponseEntity.status(401).body(
+          ApiResponse.of(ApiResponseCode.LOGIN_REQUIRED, null)
+      );
     }
 
     try {
@@ -157,18 +141,14 @@ public class CartController {
           request.getQuantity()
       );
 
-      return ResponseEntity.ok(Map.of(
-          "success", "S00".equals(result.getHeader().getRtcd()),
-          "message", result.getHeader().getRtmsg()
-      ));
+      return ResponseEntity.ok(result);
 
     } catch (Exception e) {
       log.error("수량 변경 오류: memberId={}, productId={}",
           loginMember.getMemberId(), request.getProductId(), e);
-      return ResponseEntity.status(500).body(Map.of(
-          "success", false,
-          "message", "수량 변경 중 오류가 발생했습니다"
-      ));
+      return ResponseEntity.status(500).body(
+          ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
+      );
     }
   }
 
@@ -178,16 +158,15 @@ public class CartController {
    */
   @DeleteMapping("/remove")
   @ResponseBody
-  public ResponseEntity<Map<String, Object>> removeFromCart(
+  public ResponseEntity<ApiResponse<Void>> removeFromCart(
       @Valid @RequestBody CartFormRequest request,
       HttpSession session) {
 
     Member loginMember = (Member) session.getAttribute("loginMember");
     if (loginMember == null) {
-      return ResponseEntity.status(401).body(Map.of(
-          "success", false,
-          "message", "로그인이 필요합니다"
-      ));
+      return ResponseEntity.status(401).body(
+          ApiResponse.of(ApiResponseCode.LOGIN_REQUIRED, null)
+      );
     }
 
     try {
@@ -197,18 +176,14 @@ public class CartController {
           request.getOptionType()
       );
 
-      return ResponseEntity.ok(Map.of(
-          "success", "S00".equals(result.getHeader().getRtcd()),
-          "message", result.getHeader().getRtmsg()
-      ));
+      return ResponseEntity.ok(result);
 
     } catch (Exception e) {
       log.error("상품 삭제 오류: memberId={}, productId={}",
           loginMember.getMemberId(), request.getProductId(), e);
-      return ResponseEntity.status(500).body(Map.of(
-          "success", false,
-          "message", "상품 삭제 중 오류가 발생했습니다"
-      ));
+      return ResponseEntity.status(500).body(
+          ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
+      );
     }
   }
 
@@ -218,28 +193,24 @@ public class CartController {
    */
   @GetMapping("/count")
   @ResponseBody
-  public ResponseEntity<Map<String, Object>> getCartItemCount(HttpSession session) {
+  public ResponseEntity<ApiResponse<Integer>> getCartItemCount(HttpSession session) {
     Member loginMember = (Member) session.getAttribute("loginMember");
     if (loginMember == null) {
-      return ResponseEntity.ok(Map.of(
-          "success", true,
-          "count", 0
-      ));
+      return ResponseEntity.ok(
+          ApiResponse.of(ApiResponseCode.SUCCESS, 0)
+      );
     }
 
     try {
       int count = cartSVC.getCartItemCount(loginMember.getMemberId());
-      return ResponseEntity.ok(Map.of(
-          "success", true,
-          "count", count
-      ));
+      return ResponseEntity.ok(
+          ApiResponse.of(ApiResponseCode.SUCCESS, count)
+      );
     } catch (Exception e) {
       log.error("장바구니 개수 조회 오류: memberId={}", loginMember.getMemberId(), e);
-      return ResponseEntity.ok(Map.of(
-          "success", false,
-          "count", 0,
-          "message", "장바구니 개수 조회 중 오류가 발생했습니다"
-      ));
+      return ResponseEntity.status(500).body(
+          ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, 0)
+      );
     }
   }
 
@@ -249,28 +220,25 @@ public class CartController {
    */
   @DeleteMapping("/clear")
   @ResponseBody
-  public ResponseEntity<Map<String, Object>> clearCart(HttpSession session) {
+  public ResponseEntity<ApiResponse<Void>> clearCart(HttpSession session) {
     Member loginMember = (Member) session.getAttribute("loginMember");
     if (loginMember == null) {
-      return ResponseEntity.status(401).body(Map.of(
-          "success", false,
-          "message", "로그인이 필요합니다"
-      ));
+      return ResponseEntity.status(401).body(
+          ApiResponse.of(ApiResponseCode.LOGIN_REQUIRED, null)
+      );
     }
 
     try {
       cartSVC.clearCart(loginMember.getMemberId());
-      return ResponseEntity.ok(Map.of(
-          "success", true,
-          "message", "장바구니가 비워졌습니다"
-      ));
+      return ResponseEntity.ok(
+          ApiResponse.of(ApiResponseCode.SUCCESS, null)
+      );
 
     } catch (Exception e) {
       log.error("장바구니 비우기 오류: memberId={}", loginMember.getMemberId(), e);
-      return ResponseEntity.status(500).body(Map.of(
-          "success", false,
-          "message", "장바구니 비우기 중 오류가 발생했습니다"
-      ));
+      return ResponseEntity.status(500).body(
+          ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
+      );
     }
   }
 
@@ -278,30 +246,26 @@ public class CartController {
    * 유효성 검증 예외 처리
    */
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException ex) {
-    Map<String, Object> response = new HashMap<>();
-    response.put("success", false);
-    response.put("message", "입력값이 올바르지 않습니다");
-
+  public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationErrors(MethodArgumentNotValidException ex) {
     Map<String, String> errors = new HashMap<>();
     for (FieldError error : ex.getBindingResult().getFieldErrors()) {
       errors.put(error.getField(), error.getDefaultMessage());
     }
-    response.put("errors", errors);
 
     log.warn("유효성 검증 실패: {}", errors);
-    return ResponseEntity.badRequest().body(response);
+    return ResponseEntity.badRequest().body(
+        ApiResponse.withDetails(ApiResponseCode.VALIDATION_ERROR, errors, errors)
+    );
   }
 
   /**
    * 일반 예외 처리
    */
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<Map<String, Object>> handleGenericError(Exception ex) {
+  public ResponseEntity<ApiResponse<Void>> handleGenericError(Exception ex) {
     log.error("예상치 못한 오류 발생", ex);
-    return ResponseEntity.status(500).body(Map.of(
-        "success", false,
-        "message", "서버에서 오류가 발생했습니다"
-    ));
+    return ResponseEntity.status(500).body(
+        ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
+    );
   }
 }

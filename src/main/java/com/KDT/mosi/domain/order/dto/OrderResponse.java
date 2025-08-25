@@ -16,6 +16,7 @@ public class OrderResponse {
   private String orderCode;
   private String orderDate;
   private String orderStatus;
+  private String specialRequest;  // 요청사항 추가
   private List<OrderItemResponse> orderItems;
   private Long totalPrice;
   private int totalItemCount;
@@ -56,7 +57,7 @@ public class OrderResponse {
    */
   public static OrderResponse createOrderDetailSuccess(String buyerName, String buyerPhone, String buyerEmail,
                                                        Long orderId, String orderCode, String orderDate,
-                                                       String orderStatus, List<OrderItemResponse> orderItems,
+                                                       String orderStatus, String specialRequest, List<OrderItemResponse> orderItems,
                                                        Long totalPrice, int totalItemCount) {
     OrderResponse response = new OrderResponse();
     response.setBuyerName(buyerName);
@@ -66,6 +67,7 @@ public class OrderResponse {
     response.setOrderCode(orderCode);
     response.setOrderDate(orderDate);
     response.setOrderStatus(orderStatus);
+    response.setSpecialRequest(specialRequest);
     response.setOrderItems(orderItems);
     response.setTotalPrice(totalPrice);
     response.setTotalItemCount(totalItemCount);

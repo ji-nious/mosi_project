@@ -22,4 +22,6 @@ public class MemberApiController {
     response.put("exists", exists);
     return response;
   }
+
+
 }

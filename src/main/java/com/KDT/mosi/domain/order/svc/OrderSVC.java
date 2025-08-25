@@ -1,18 +1,30 @@
 package com.KDT.mosi.domain.order.svc;
 
+import com.KDT.mosi.domain.order.dto.OrderResponse;
+import com.KDT.mosi.domain.order.request.OrderFormRequest;
+import com.KDT.mosi.web.api.ApiResponse;
+
 import java.util.List;
-import java.util.Map;
 
 public interface OrderSVC {
 
+  // 주문서 데이터 조회
+  OrderResponse getOrderForm(Long buyerId, List<Long> cartItemIds);
+
   // 주문 생성
-  Map<String, Object> createOrder(Long buyerId, List<Long> cartItemIds, String specialRequest);
+  OrderResponse createOrder(Long buyerId, OrderFormRequest request);
 
   // 주문 상세 조회
-  Map<String, Object> getOrderDetail(Long orderId, Long buyerId);
+  OrderResponse getOrderDetail(Long orderId, Long buyerId);
+
+  // 주문번호로 주문 상세 조회
+  OrderResponse getOrderDetailByCode(String orderCode, Long buyerId);
 
   // 주문 취소
-  Map<String, Object> cancelOrder(Long orderId, Long buyerId);
+  OrderResponse cancelOrder(Long orderId, Long buyerId);
+
+  // 주문 목록 조회
+  ApiResponse<List<OrderResponse>> getOrderHistory(Long buyerId);
 
   // 주문 개수 조회
   int getOrderCount(Long buyerId);

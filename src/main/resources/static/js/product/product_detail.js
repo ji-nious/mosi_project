@@ -121,7 +121,7 @@ async function handleAddToCart(event) {
     // 중복 체크
     const isDuplicate = await checkDuplicateProduct(productId, optionType);
     if (isDuplicate) {
-      showAlert('이미 장바구니에 동일한 상품이 존재합니다.');
+      alert('이미 장바구니에 동일한 상품이 존재합니다.');
       return;
     }
     
@@ -142,7 +142,7 @@ async function handleAddToCart(event) {
   }
 }
 
-// 구매하기
+// 구매하기 (업계 표준: 장바구니에 담고 주문페이지로 이동)
 async function handleBuyNow(event) {
   const button = event.target;
   const optionType = button.getAttribute('data-option');
@@ -157,14 +157,68 @@ async function handleBuyNow(event) {
       return;
     }
     
-    // 주문 페이지 이동
+    // 실제로 장바구니에 추가하고 주문페이지로 이동 (업계 표준)
     const productId = getProductIdFromPage();
-    const orderUrl = `/order?productId=${productId}&optionType=${encodeURIComponent(optionType)}&quantity=1`;
-    window.location.href = orderUrl;
+    
+    // 먼저 장바구니에 중복 상품이 있는지 확인
+    const existingItem = await checkDuplicateProduct(productId, optionType);
+    if (existingItem) {
+      // 기존 상품이 있으면 그 상품을 선택하여 주문페이지로 이동
+      sessionStorage.setItem('selectedCartItems', JSON.stringify([existingItem]));
+      window.location.href = '/order';
+      return;
+    }
+    
+    // 중복이 없으면 장바구니에 추가
+    const addResponse = await fetch('/cart/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        productId: productId,
+        optionType: optionType,
+        quantity: 1
+      })
+    });
+
+    if (!addResponse.ok) {
+      const errorData = await addResponse.json().catch(() => ({}));
+      const message = errorData.header?.rtmsg || errorData.message || '장바구니 추가에 실패했습니다.';
+      throw new Error(message);
+    }
+
+    // 장바구니 추가 성공 후 장바구니 데이터 조회
+    const cartResponse = await fetch('/cart', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!cartResponse.ok) {
+      throw new Error('장바구니 데이터를 불러올 수 없습니다.');
+    }
+
+    const cartApiResponse = await cartResponse.json();
+    const cartData = cartApiResponse.body || cartApiResponse;
+    
+    // 방금 추가한 상품 찾기
+    const addedItem = cartData.cartItems?.find(item => 
+      item.productId == productId && item.optionType === optionType
+    );
+
+    if (addedItem) {
+      // 추가된 상품을 선택하여 주문페이지로 이동
+      sessionStorage.setItem('selectedCartItems', JSON.stringify([addedItem]));
+      window.location.href = '/order';
+    } else {
+      throw new Error('추가한 상품을 찾을 수 없습니다.');
+    }
     
   } catch (error) {
     console.error('구매하기 오류:', error);
-    showAlert('오류가 발생했습니다. 다시 시도해주세요.');
+    showAlert(error.message || '오류가 발생했습니다. 다시 시도해주세요.');
   } finally {
     button.disabled = false;
   }
@@ -203,19 +257,10 @@ async function validatePurchase(optionType) {
 
 // 장바구니 API
 async function addToCartAPI(productId, optionType, quantity) {
-  // CSRF 토큰 가져오기
-  const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-  const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-  
   const headers = {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   };
-  
-  // CSRF 헤더 추가
-  if (csrfToken && csrfHeader) {
-    headers[csrfHeader] = csrfToken;
-  }
 
   const response = await fetch('/cart/add', {
     method: 'POST',
@@ -247,6 +292,24 @@ async function checkLoginStatus() {
 // 상품 ID 추출
 function getProductIdFromPage() {
   return document.querySelector('[data-product-id]').getAttribute('data-product-id');
+}
+
+// 옵션에 따른 현재 가격 가져오기
+function getCurrentPrice(optionType) {
+  if (optionType === '가이드포함') {
+    const guidePriceElement = document.querySelector('#content-guide .allPrice');
+    if (guidePriceElement) {
+      const priceText = guidePriceElement.textContent.replace(/[^\d]/g, '');
+      return parseInt(priceText) || 0;
+    }
+  } else {
+    const basicPriceElement = document.querySelector('#content-basic .allPrice');
+    if (basicPriceElement) {
+      const priceText = basicPriceElement.textContent.replace(/[^\d]/g, '');
+      return parseInt(priceText) || 0;
+    }
+  }
+  return 0;
 }
 
 // 상품 상태 추출
@@ -351,15 +414,40 @@ function showSuccessModal(message) {
   });
 }
 
-// 알림
+// 알림 (CSS 클래스 사용으로 관심사 분리)
 function showAlert(message) {
   if (message.includes('로그인이 필요합니다')) {
     if (confirm(message)) {
       window.location.href = '/login';
     }
-  } else {
-    alert(message);
+    return;
   }
+
+  // CSS 클래스를 사용한 모달 생성
+  const overlay = document.createElement('div');
+  overlay.className = 'alert-modal-overlay';
+  
+  overlay.innerHTML = `
+    <div class="alert-modal-content">
+      <div class="alert-modal-message">${message}</div>
+      <button class="alert-modal-button">확인</button>
+    </div>
+  `;
+  
+  // 확인 버튼 클릭 이벤트
+  const button = overlay.querySelector('.alert-modal-button');
+  button.addEventListener('click', () => {
+    document.body.removeChild(overlay);
+  });
+  
+  // 배경 클릭시 닫기
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      document.body.removeChild(overlay);
+    }
+  });
+  
+  document.body.appendChild(overlay);
 }
 
 // 헤더 카운트 업데이트
@@ -371,12 +459,15 @@ async function updateCartCount() {
     });
     
     if (response.ok) {
-      const data = await response.json();
+      const apiResponse = await response.json();
       const badge = document.getElementById('cart-count');
       
+      // ApiResponse 구조에서 데이터 추출
+      const count = apiResponse.body || apiResponse;
+      
       if (badge) {
-        if (data.count > 0) {
-          badge.textContent = data.count > 99 ? '99+' : data.count;
+        if (count > 0) {
+          badge.textContent = count > 99 ? '99+' : count;
           badge.style.display = 'inline';
         } else {
           badge.style.display = 'none';
@@ -397,7 +488,11 @@ async function checkDuplicateProduct(productId, optionType) {
     });
     
     if (response.ok) {
-      const data = await response.json();
+      const apiResponse = await response.json();
+      
+      // ApiResponse 구조에서 데이터 추출
+      const data = apiResponse.body || apiResponse;
+      
       // 동일한 상품ID와 옵션이 이미 장바구니에 있는지 확인
       // 판매 상품은 최대 1개만 구매 가능 (중복 불가)
       const existingItem = data.cartItems?.find(item => 

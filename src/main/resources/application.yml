@@ -2,9 +2,9 @@ spring:
   # app이름
   application:
     name: mosi
-  # 개발 환경 활성화
+  # 환경별 프로필 
   profiles:
-    active: dev
+    active: dev    # local, dev, staging, prod
   #DB연결정보
   datasource:
     driver-class-name: oracle.jdbc.driver.OracleDriver
@@ -42,6 +42,12 @@ spring:
 # 웹서버 포트
 server:
   port: 9070
+  servlet:
+    session:
+      cookie:
+        same-site: lax     # CSRF 보호를 위한 SameSite 쿠키 설정
+        secure: false      # 개발환경에서는 false (HTTPS 환경에서는 true)
+        http-only: true    # XSS 방지
 
 # 로그레벨
 # trace > debug > info > warn > error > fatal

@@ -76,9 +76,7 @@
             </a>
 
             <form method="post" th:action="@{/members/{id}/delete(id=${member.memberId})}">
-              <div th:if="${_csrf != null}">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-              </div>
+
               <button type="submit" class="withdraw-text" onclick="return confirm('정말 탈퇴하시겠습니까?');">
                 모시 탈퇴
               </button>
