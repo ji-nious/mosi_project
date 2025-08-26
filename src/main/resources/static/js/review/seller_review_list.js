@@ -172,7 +172,7 @@ function renderOneItem(item, listNumber) {
   const html = `
     <div class="review_lists" data-id="${item.reviewId ?? ''}">
       <div class="review_item_summary">
-        <div class="listNumber">${listNumber}</div>
+        <div class="listNumber">${item.reviewId}</div>
         <div class="listImg">
           <div class="image">
             <img src="${imgUrl}" alt="${escapeHTML(title)}" loading="lazy" decoding="async">
@@ -317,6 +317,7 @@ async function goPage(pageNo=1) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  markSellerSidebarActive();
   // 초기 진입: 페이지 1
   await fetchTotalCount();
   await getBbs(1, PAGE_SIZE);
@@ -346,3 +347,63 @@ window.initRatingDisplays = function() {
     labelEl.textContent = labels[score];
   });
 };
+
+
+// ====== 신고 처리 ======
+async function reportReview(reviewId, reason){
+  try {
+    const res = await ajax.post(`/api/review/${reviewId}/report`, { reason });
+
+    if (res?.header?.rtcd === 'S00') {
+      alert('신고가 접수되었습니다.');
+      const item = document.querySelector(`.review_lists[data-id="${reviewId}"]`);
+      item?.querySelector('.btnReport')?.setAttribute('disabled', 'disabled');
+    } else {
+      alert(res?.header?.rtmsg || '신고 처리에 실패했습니다.');
+    }
+  } catch (e) {
+    console.error('신고 실패', e);
+    alert('신고 중 오류가 발생했습니다.');
+  }
+}
+
+// 신고 버튼 델리게이션
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.btnReport');
+  if (!btn) return;
+
+  const item = btn.closest('.review_lists');
+  const reviewId = item?.dataset?.id;
+  if (!reviewId) {
+    alert('리뷰 ID를 찾을 수 없습니다.');
+    return;
+  }
+
+  const reason = prompt('신고 사유를 입력하세요(최대 300자):', '');
+  if (reason == null) return; // 취소
+  const trimmed = reason.trim();
+  if (!trimmed) {
+    alert('신고 사유가 필요합니다.');
+    return;
+  }
+  const safe = trimmed.length > 300 ? trimmed.slice(0,300) : trimmed;
+
+  await reportReview(reviewId, safe);
+});
+
+// ====== 사이드바 활성화 ======
+function markSellerSidebarActive() {
+  const sidebar = document.querySelector('#SELLER_SIDEBAR');
+  if (!sidebar) return;
+
+  // 먼저 모든 메뉴에서 is-active 제거
+  sidebar.querySelectorAll('a.is-active').forEach(el => {
+    el.classList.remove('is-active');
+  });
+
+  // 리뷰 메뉴에만 is-active 추가
+  const reviewLink = sidebar.querySelector('a[href="/review/seller/list"]');
+  if (reviewLink) {
+    reviewLink.classList.add('is-active');
+  }
+}
