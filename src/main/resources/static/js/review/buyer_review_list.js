@@ -366,10 +366,11 @@ async function deleteReviewById(reviewId){
     if (res?.header?.rtcd === 'S00') {
       // 총 개수 감소 반영
       totalCount = Math.max(0, (totalCount || 0) - 1);
-
+      fetchTotalCount();
       // 현재 페이지에서 마지막 1개를 지웠다면 이전 페이지로 이동
       const rendered = document.querySelectorAll('.review_list_main .review_lists').length;
       const willBeEmpty = rendered <= 1; // 지금 보이는 게 1개면, 이걸 지우면 빈 페이지
+
       if (willBeEmpty && currentPage > 1) {
         await goPage(currentPage - 1);
       } else {
