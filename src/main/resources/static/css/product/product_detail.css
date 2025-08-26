@@ -28,7 +28,7 @@ body {
 
 .layout-wrapper {
   width: 1200px;
-  display: flex;
+  display: block;
   justify-content: center;
   flex-direction: column;
 }
@@ -184,14 +184,17 @@ h3{
     display: flex;
     width: 1200px;
     padding: 30px 20px 0px 20px;
-
+    overflow: visible;
 }
+
 /* ------ 왼쪽 (이미지, 리뷰, 상품탭 등) ----- */
 .product-body-left{
     display: flex;
     flex-direction: column;
     width: 70%;
     padding-right: 50px;
+    overflow: visible;
+    position: relative;
 }
 
 /* ------ 이미지 슬라이드 ----- */
@@ -287,7 +290,7 @@ h3{
 #recently-review{
   font-size: 22px;
   font-weight: 700;
-  margin-bottom: 30px;
+  margin: 30px 0px;
   margin-left: 30px;
   color: #414141;
 }
@@ -295,11 +298,19 @@ h3{
 .swiper-slide{
   width: 430px;
   height: 130px;
-  border-radius: 10px;
+  border-radius: 15px;
   margin: 0 10px;
-  padding: 10px 15px;
+  padding: 20px 15px 10px 25px;
   background-color: rgba(128, 204, 214, 0.1);
 
+}
+
+.stars {
+  margin-top: 7px;
+}
+
+.review-card p {
+  margin-top: 10px;
 }
 .product-recent-reviews .swiper.review-swiper {
   width: 100%;
@@ -356,16 +367,19 @@ h3{
 /* ------ 탭 메뉴 ----- */
 .tab-wrapper {
   width: 100%;
-  height: auto;       /* 부모가 tab-menu 크기로 고정되지 않게 */
-  overflow: visible;  /* sticky 깨지지 않도록 */
+  position: sticky;
+  top: 0;     /* 헤더 높이에 맞게 */
+  z-index: 2000;
+  background: #fff;
 }
+
 
 .tab-menu{
     display: flex;
     gap: 30px;
     padding-top: 10px;
     position: sticky;
-    top: 167px;
+    top: 0;
     border-bottom: 1px solid #BFBFBF;
     color: #BFBFBF;
     background: white;
@@ -654,6 +668,10 @@ h3{
 .product-body-right .product-body-right-container{
     border: 1px solid #BFBFBF;
     border-radius: 10px;
+
+    position: sticky;
+    top: 180px;
+    z-index: 1000;
 }
 
 #content-basic, #content-guide{
@@ -698,7 +716,6 @@ h3{
     height: 50px;
     margin-top: 10px;
     margin-bottom: 10px;
-    border:1px solid #BFBFBF;
     border-radius: 10px;
     cursor:pointer;
 }
@@ -712,6 +729,7 @@ h3{
     font-size: 18px;
     font-weight: 500;
     margin-bottom: 5px;
+    border: 1px solid #BFBFBF !important;
 }
 
 .product-btn.btn-buy{
@@ -719,6 +737,7 @@ h3{
     font-size: 20px;
     font-weight: 600;
     transition: all 0.2s ease;
+    border: 1px solid #80CCD6 !important;
 }
 
 .product-btn.btn-buy:hover{
@@ -733,6 +752,7 @@ h3{
     font-weight: 600;
     color: #333;
     transition: all 0.2s ease;
+    border: 1px solid #d9d9d9 !important;
 }
 
 .product-btn.btn-cart:hover{
@@ -746,6 +766,7 @@ h3{
     display: flex;
     gap: 8px;
     margin-top: 0px;
+    border: 1px solid #fff !important;
 }
 
 .btn-group .product-btn {
