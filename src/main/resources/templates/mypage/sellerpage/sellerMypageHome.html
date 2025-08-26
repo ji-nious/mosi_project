@@ -122,8 +122,10 @@
                   </a>
                 </div>
               </th:block>
+              <th:block th:if="${totalCount == 0}">
+                <p class="no-products">등록된 상품이 없습니다.</p>
+              </th:block>
             </div>
-
           </div>
         </section>
       </main>

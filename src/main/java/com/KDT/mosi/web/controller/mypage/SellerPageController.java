@@ -1,12 +1,16 @@
 package com.KDT.mosi.web.controller.mypage;
 
 import com.KDT.mosi.domain.entity.Member;
+import com.KDT.mosi.domain.entity.Product;
 import com.KDT.mosi.domain.entity.SellerPage;
 import com.KDT.mosi.domain.member.svc.MemberSVC;
 import com.KDT.mosi.domain.mypage.seller.dao.SellerPageDAO;
 import com.KDT.mosi.domain.mypage.seller.svc.SellerPageSVC;
+import com.KDT.mosi.domain.product.svc.ProductImageSVC;
+import com.KDT.mosi.domain.product.svc.ProductSVC;
 import com.KDT.mosi.web.form.mypage.sellerpage.SellerPageCreateForm;
 import com.KDT.mosi.web.form.mypage.sellerpage.SellerPageUpdateForm;
+import com.KDT.mosi.web.form.product.ProductListForm;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,6 +41,8 @@ public class SellerPageController {
   private final SellerPageSVC sellerPageSVC;
   private final SellerPageDAO sellerPageDAO;
   private final MemberSVC memberSVC;
+  private final ProductSVC productSVC;
+  private final ProductImageSVC productImageSVC;
 
   @Autowired
   private PasswordEncoder passwordEncoder;
@@ -63,37 +70,43 @@ public class SellerPageController {
 
     SellerPage sellerPage = optional.get();
 
-    // 🔐 Null-safe 기본값 설정
+    // 기본값 보정
     if (sellerPage.getTotalSales() == null) sellerPage.setTotalSales(0);
     if (sellerPage.getFollowerCount() == null) sellerPage.setFollowerCount(0);
     if (sellerPage.getReviewCount() == null) sellerPage.setReviewCount(0);
     if (sellerPage.getRecentQnaCnt() == null) sellerPage.setRecentQnaCnt(0);
 
-    // 🔍 로그 추가
-    log.info("🟢 member: {}", loginMember.getName());
-    log.info("🟢 sellerPage: {}", sellerPage);
-    log.info("🟢 loginMember.getNickname: {}", loginMember.getNickname());
-    log.info("🟢 totalSales: {}", sellerPage.getTotalSales());
-    log.info("🟢 followerCount: {}", sellerPage.getFollowerCount());
-    log.info("🟢 reviewCount: {}", sellerPage.getReviewCount());
-    log.info("🟢 recentQnaCnt: {}", sellerPage.getRecentQnaCnt());
-    log.info("🟢 optional.get(): {}", optional.get());
-
-    // 판매자 페이지로 이동할 때 session에 저장된 loginMember 객체의 닉네임을 판매자용 닉네임으로 업데이트
+    // 로그인 세션 업데이트
     loginMember.setNickname(sellerPage.getNickname());
     session.setAttribute("loginMember", loginMember);
 
-    // ✅ 사이드바/템플릿 보조 속성
+    // ==============================
+    // 🔥 최근 등록한 상품 3개 조회
+    // ==============================
+    List<Product> recentProducts = productSVC.getProductsByMemberIdAndPage(loginMember.getMemberId(), 1, 3);
+
+    List<ProductListForm> productList = new ArrayList<>();
+    for (Product product : recentProducts) {
+      ProductListForm form = new ProductListForm();
+      form.setProduct(product);
+      form.setImages(productImageSVC.findByProductId(product.getProductId()));
+      productList.add(form);
+    }
+
+    // ==============================
+    // 📦 모델 세팅
+    // ==============================
     model.addAttribute("activePath", "/mypage/seller/home");
     model.addAttribute("hasSellerImg", sellerPage.getImage() != null);
-
     model.addAttribute("member", loginMember);
-    model.addAttribute("sellerPage", optional.get());
-    model.addAttribute("orders", mockOrders());     // 개발용 모의 데이터
-    model.addAttribute("products", mockProducts()); // 개발용 모의 데이터
+    model.addAttribute("sellerPage", sellerPage);
+    model.addAttribute("orders", mockOrders()); // 주문은 아직 mock
+    model.addAttribute("productList", productList);
+    model.addAttribute("totalCount", productList.size());
 
     return "mypage/sellerpage/sellerMypageHome";
   }
+
 
   /**
    * ✅ 판매자 상세 페이지 보기
