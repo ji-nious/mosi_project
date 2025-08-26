@@ -99,7 +99,7 @@ public class ProductApiController {
     if ("all".equals(status)) {
       products = productSVC.getProductsByMemberIdAndPage(memberId, page, size);
       totalCount = productSVC.countByMemberId(memberId);
-    } else if ("판매중".equals(status) || "판매대기".equals(status)) {
+    } else if ("판매중".equals(status) || "판매대기".equals(status) || "임시저장".equals(status)) {
       products = productSVC.getProductsByMemberIdAndStatusAndPage(memberId, status, page, size);
       totalCount = productSVC.countByMemberIdAndStatus(memberId, status);
     } else {

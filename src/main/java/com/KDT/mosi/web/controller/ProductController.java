@@ -73,7 +73,7 @@ public class ProductController {
   private String performSearch(String keyword, String category, int page, int size, Model model,
                                HttpServletRequest request
 
-                               ) throws IOException {
+  ) throws IOException {
 
     List<ProductListForm> productList = new ArrayList<>();
     long totalCount;
@@ -99,11 +99,13 @@ public class ProductController {
 
         if (optionalProduct.isPresent()) {
           Product product = optionalProduct.get();
-          ProductListForm form = new ProductListForm();
-          form.setProduct(product);
-          form.setImages(productImageSVC.findByProductId(product.getProductId()));
-          form.setCoursePoints(productCoursePointSVC.findByProductId(product.getProductId()));
-          productList.add(form);
+          if (!"임시저장".equals(product.getStatus()) && !"판매대기".equals(product.getStatus())){
+            ProductListForm form = new ProductListForm();
+            form.setProduct(product);
+            form.setImages(productImageSVC.findByProductId(product.getProductId()));
+            form.setCoursePoints(productCoursePointSVC.findByProductId(product.getProductId()));
+            productList.add(form);
+          }
         } else {
           log.warn("상품 ID {}를 Oracle DB에서 찾을 수 없습니다. 데이터 동기화 문제를 확인하세요.", doc.getProductId());
         }
@@ -121,11 +123,13 @@ public class ProductController {
       }
 
       for (Product product : products) {
-        ProductListForm form = new ProductListForm();
-        form.setProduct(product);
-        form.setImages(productImageSVC.findByProductId(product.getProductId()));
-        form.setCoursePoints(productCoursePointSVC.findByProductId(product.getProductId()));
-        productList.add(form);
+        if (!"임시저장".equals(product.getStatus()) && !"판매대기".equals(product.getStatus())){
+          ProductListForm form = new ProductListForm();
+          form.setProduct(product);
+          form.setImages(productImageSVC.findByProductId(product.getProductId()));
+          form.setCoursePoints(productCoursePointSVC.findByProductId(product.getProductId()));
+          productList.add(form);
+        }
       }
     }
 
@@ -273,7 +277,7 @@ public class ProductController {
 
     model.addAttribute("activePath", request.getRequestURI());
 
-    log.info("nickname = {}", sellerPage);
+//    log.info("nickname = {}", sellerPage);
 
     return "product/product_managing";
   }
@@ -335,6 +339,35 @@ public class ProductController {
     model.addAttribute("activePath", request.getRequestURI());
 
     return "product/product_enroll";
+  }
+
+  // ⭐⭐⭐ 임시저장 기능 추가 부분 ⭐⭐⭐
+  @PostMapping("/temp-save")
+  @ResponseBody
+  @Transactional
+  public ResponseEntity<?> tempSaveProduct(
+      @ModelAttribute ProductTempSaveForm form,
+      @RequestPart(value = "documentFile", required = false) MultipartFile documentFile,
+      @RequestPart(value = "productImages", required = false) List<MultipartFile> productImages,
+      HttpSession session
+  ) {
+    log.info("임시저장 요청 접수. 제목: {}", form.getTitle());
+    try {
+      Member loginMember = (Member) session.getAttribute("loginMember");
+      if (loginMember == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "로그인 상태가 아닙니다."));
+      }
+      Long memberId = loginMember.getMemberId();
+      form.setCategory("임시저장");
+      form.setDocumentFile(documentFile);
+      form.setProductImages(productImages);
+      form.setStatus("임시저장");
+      productSVC.saveTempProduct(form, memberId);
+      return ResponseEntity.ok().body(Map.of("message", "상품이 성공적으로 임시저장되었습니다."));
+    } catch (Exception e) {
+      log.error("상품 임시저장 중 오류 발생", e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "임시저장 중 서버 오류가 발생했습니다."));
+    }
   }
 
   // 상품 등록 적용
