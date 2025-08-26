@@ -300,6 +300,22 @@ public class ReviewDAOImpl implements ReviewDAO{
   }
 
   @Override
+  public boolean updateReviewWrite(Long reviewId) {
+    StringBuffer sql = new StringBuffer();
+    sql.append("UPDATE ORDER_ITEMS oi ");
+    sql.append("SET oi.reviewed = 'N' ");
+    sql.append("WHERE oi.ORDER_ITEM_ID =( ");
+    sql.append("SELECT r.order_item_id ");
+    sql.append("FROM review r ");
+    sql.append("WHERE r.review_id = :reviewId) ");
+
+    SqlParameterSource param = new MapSqlParameterSource().addValue("reviewId",reviewId);
+    int updated = template.update(sql.toString(), param);
+
+    return updated > 0;
+  }
+
+  @Override
   public Optional<ReviewEdit> findReviewId(Long reviewId) {
     StringBuffer sql = new StringBuffer();
     sql.append(" SELECT ");
