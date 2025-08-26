@@ -314,6 +314,7 @@ async function goPage(pageNo=1) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  markBuyerSidebarActive();
   // 초기 진입: 페이지 1
   await fetchTotalCount();
   await getBbs(1, PAGE_SIZE);
@@ -401,3 +402,20 @@ document.addEventListener('click', async (e) => {
 
   await deleteReviewById(reviewId);
 })
+
+// ====== Buyer Sidebar 활성화 ======
+function markBuyerSidebarActive() {
+  const sidebar = document.querySelector('#BUYER_SIDEBAR');
+  if (!sidebar) return;
+
+  // 사이드바 안의 모든 메뉴에서 is-active 제거
+  sidebar.querySelectorAll('a.is-active').forEach(el => {
+    el.classList.remove('is-active');
+  });
+
+  // 리뷰 메뉴에만 is-active 추가
+  const reviewLink = sidebar.querySelector('a[href="/review/buyer/list"]');
+  if (reviewLink) {
+    reviewLink.classList.add('is-active');
+  }
+}

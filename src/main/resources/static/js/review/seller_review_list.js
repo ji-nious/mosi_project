@@ -317,6 +317,7 @@ async function goPage(pageNo=1) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  markSellerSidebarActive();
   // 초기 진입: 페이지 1
   await fetchTotalCount();
   await getBbs(1, PAGE_SIZE);
@@ -389,3 +390,20 @@ document.addEventListener('click', async (e) => {
 
   await reportReview(reviewId, safe);
 });
+
+// ====== 사이드바 활성화 ======
+function markSellerSidebarActive() {
+  const sidebar = document.querySelector('#SELLER_SIDEBAR');
+  if (!sidebar) return;
+
+  // 먼저 모든 메뉴에서 is-active 제거
+  sidebar.querySelectorAll('a.is-active').forEach(el => {
+    el.classList.remove('is-active');
+  });
+
+  // 리뷰 메뉴에만 is-active 추가
+  const reviewLink = sidebar.querySelector('a[href="/review/seller/list"]');
+  if (reviewLink) {
+    reviewLink.classList.add('is-active');
+  }
+}
