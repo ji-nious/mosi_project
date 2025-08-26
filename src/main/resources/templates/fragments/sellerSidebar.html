@@ -56,7 +56,12 @@
         </li>
         <li><a href="#">문의 / 리뷰</a>
           <ul>
-            <li><a th:href="@{/chat/rooms/seller}">상품 문의</a></li>
+            <li>
+              <a th:href="@{/chat/rooms/seller}"
+                 th:classappend="${(activePath != null and #strings.startsWith(activePath, '/chat/rooms/seller')) ? ' is-active' : ''}">
+                1:1 문의
+              </a>
+            </li>
             <li><a th:href="@{/review/seller/list}">상품 리뷰</a></li>
           </ul>
         </li>

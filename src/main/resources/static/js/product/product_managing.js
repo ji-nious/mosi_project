@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (pageLink && pageLink.href) {
         const url = new URL(pageLink.href);
         const page = url.searchParams.get('page');
-        const status = new URL(window.location.href).searchParams.get('category') || 'all';
+        const status = new URL(window.location.href).searchParams.get('status') || 'all';
         fetchFilteredProducts(status, page);
       }
     });
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updatePagination(data.pagination);
 
         // 브라우저 URL을 변경하여 뒤로가기/앞으로가기 버튼이 작동하도록 함
-        const newUrl = `/product/manage?category=${status}&page=${page}&size=5`;
+        const newUrl = `/product/manage?status=${status}&page=${page}&size=5`;
         history.pushState(null, '', newUrl);
 
       })
@@ -126,36 +126,58 @@ document.addEventListener('DOMContentLoaded', function() {
     productListContainer.innerHTML = ''; // 기존 목록을 비웁니다.
     if (products && products.length > 0) {
       products.forEach(form => {
+        // ⭐⭐ 상품 데이터의 모든 잠재적 null 값에 대한 안전한 처리 ⭐⭐
+        const descriptionText = form.product.description || '';
+        const trimmedDescription = descriptionText.length > maxLength ? descriptionText.substring(0, maxLength) + '...' : descriptionText;
+
+        const title = form.product.title ?? '[제목 없음]';
+        const salesPrice = form.product.salesPrice ?? 0;
+        const normalPrice = form.product.normalPrice ?? 0;
+        const salesRate = form.salesRate ?? 0;
+
+        // 이미지 관련 데이터도 안전하게 처리
+        const imageUrl = (form.images && form.images.length > 0) ? form.images[0].base64ImageData : '/img/default-product.png';
+        const imageAlt = (form.images && form.images.length > 0) ? form.images[0].fileName : '기본 상품 이미지';
+
+        // 날짜 필드도 null 체크
+        const createdOrUpdatedDate = form.product.updateDate && form.product.createDate !== form.product.updateDate
+                                     ? form.product.updateDate
+                                     : (form.product.createDate ?? '날짜 정보 없음');
+
+        // '임시저장'일 경우 select 대신 span 태그 사용
+        const statusHtml = (form.product.status === '임시저장') ?
+            `<span class="product-status-temp">${form.product.status}</span>` :
+            `<select class="status-select" data-product-id="${form.product.productId}" data-current-status="${form.product.status}">
+                 <option value="판매중" ${form.product.status === '판매중' ? 'selected' : ''}>판매중</option>
+                 <option value="판매대기" ${form.product.status === '판매대기' ? 'selected' : ''}>판매대기</option>
+            </select>`;
+
         const productItemHtml = `
           <div class="product-item">
-            <img src="${form.images && form.images.length > 0 ? form.images[0].base64ImageData : '/img/default-product.png'}"
-                 alt="${form.images && form.images.length > 0 ? form.images[0].fileName : '기본 상품 이미지'}"/>
+            <img src="${imageUrl}"
+                 alt="${imageAlt}"/>
             <div class="product-info">
               <div class="product-info-left">
-                <h2><a href="/product/view/${form.product.productId}">${form.product.title}</a></h2>
+                <h2><a href="/product/view/${form.product.productId}">${title}</a></h2>
                 <div class="product-info-left-detail">
-                  <select class="status-select" data-product-id="${form.product.productId}"
-                          value="${form.product.status}">
-                    <option value="판매중" ${form.product.status === '판매중' ? 'selected' : ''}>판매중</option>
-                    <option value="판매대기" ${form.product.status === '판매대기' ? 'selected' : ''}>판매대기</option>
-                  </select>
+                  ${statusHtml}
                   <div class="product-info-left-detail-details">
-                    <div>${form.product.updateDate && form.product.createDate !== form.product.updateDate ? form.product.updateDate : form.product.createDate}</div>
+                    <div>${createdOrUpdatedDate}</div>
                     <div>조회수</div>
                     <div>좋아요</div>
                     <div>댓글수</div>
                   </div>
                 </div>
-                <span class="text-trim">${form.product.description.substring(0, maxLength) + (form.product.description.length > maxLength ? '...' : '')}</span>
+                <span class="text-trim">${trimmedDescription}</span>
               </div>
               <div class="product-info-right">
                 <div class="product-info-right-detail">
-                  <div>${form.salesRate}% 저렴</div>
+                  <div>${salesRate}% 저렴</div>
                   <div class="price">
-                    <h1>${form.product.salesPrice.toLocaleString()}</h1>
+                    <h1>${salesPrice.toLocaleString()}</h1>
                     <div>원</div>
                   </div>
-                  <div>정가 ${form.product.normalPrice.toLocaleString()}원</div>
+                  <div>정가 ${normalPrice.toLocaleString()}원</div>
                 </div>
                 <div class="btn-group">
                   <button class="btn-group-edit" onclick="location.href='/product/edit/${form.product.productId}'">수정</button>
@@ -190,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (paginationData.totalCount > 0) {
           // 페이지네이션 HTML을 동적으로 생성
           let html = '';
-          const baseUrl = `/product/manage?category=${paginationData.selectedStatus}&size=5`;
+          const baseUrl = `/product/manage?status=${paginationData.selectedStatus}&size=5`;
 
           // << 버튼
           if (paginationData.currentPage > 1) {
@@ -242,6 +264,16 @@ document.addEventListener('DOMContentLoaded', function() {
           select.addEventListener('change', e => {
               const productId = e.target.dataset.productId;
               const status = e.target.value;
+
+              // ⭐⭐⭐ 현재 상태를 데이터 속성에서 가져옵니다. ⭐⭐⭐
+              const currentStatus = e.target.dataset.currentStatus;
+
+              if (currentStatus === '임시저장') {
+                  alert('임시저장 상품은 판매중/판매대기로 상태를 변경할 수 없습니다. 별도의 "최종 등록" 기능을 이용해주세요.');
+                  e.target.value = currentStatus;
+                  return;
+              }
+
               const headers = { 'Content-Type': 'application/json' };
               if (csrfToken && csrfHeader) {
                   headers[csrfHeader] = csrfToken;
@@ -257,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
                       return response.json().then(err => { throw new Error(err.message || '상태 업데이트 실패'); });
                   }
                   // 성공 시 현재 필터와 페이지를 유지하며 목록 새로고침
-                  const currentStatus = new URL(window.location.href).searchParams.get('category') || 'all';
+                  const currentStatus = new URL(window.location.href).searchParams.get('status') || 'all';
                   const currentPage = new URL(window.location.href).searchParams.get('page') || '1';
                   fetchFilteredProducts(currentStatus, currentPage);
               })

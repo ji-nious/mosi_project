@@ -70,14 +70,14 @@ public class SellerPageController {
     if (sellerPage.getRecentQnaCnt() == null) sellerPage.setRecentQnaCnt(0);
 
     // 🔍 로그 추가
-    log.info("🟢 member: {}", loginMember.getName());
-    log.info("🟢 sellerPage: {}", sellerPage);
-    log.info("🟢 loginMember.getNickname: {}", loginMember.getNickname());
-    log.info("🟢 totalSales: {}", sellerPage.getTotalSales());
-    log.info("🟢 followerCount: {}", sellerPage.getFollowerCount());
-    log.info("🟢 reviewCount: {}", sellerPage.getReviewCount());
-    log.info("🟢 recentQnaCnt: {}", sellerPage.getRecentQnaCnt());
-    log.info("🟢 optional.get(): {}", optional.get());
+//    log.info("🟢 member: {}", loginMember.getName());
+//    log.info("🟢 sellerPage: {}", sellerPage);
+//    log.info("🟢 loginMember.getNickname: {}", loginMember.getNickname());
+//    log.info("🟢 totalSales: {}", sellerPage.getTotalSales());
+//    log.info("🟢 followerCount: {}", sellerPage.getFollowerCount());
+//    log.info("🟢 reviewCount: {}", sellerPage.getReviewCount());
+//    log.info("🟢 recentQnaCnt: {}", sellerPage.getRecentQnaCnt());
+//    log.info("🟢 optional.get(): {}", optional.get());
 
     // 판매자 페이지로 이동할 때 session에 저장된 loginMember 객체의 닉네임을 판매자용 닉네임으로 업데이트
     loginMember.setNickname(sellerPage.getNickname());

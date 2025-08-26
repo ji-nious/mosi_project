@@ -102,17 +102,17 @@
               <h3>내 상품 목록</h3>
               <a th:href="@{/product/manage}" class="view-all">전체보기 ></a>
             </div>
-            <div class="product-list">
+            <div class="home-product-list">
               <th:block th:if="${totalCount > 0}">
-                <div class="product-item" th:each="form : ${productList}">
-                  <a class="product-item-container" th:href="@{/product/view/{id}(id=${form.product.productId})}">
-                    <div class="thumbnail">
+                <div class="home-product-item" th:each="form : ${productList}">
+                  <a class="home-product-item-container" th:href="@{/product/view/{id}(id=${form.product.productId})}">
+                    <div class="home-thumbnail">
                       <img th:if="${form.images != null and #lists.size(form.images) > 0}"
                         th:src="${form.images[0].base64ImageData}" th:alt="${form.images[0].fileName}" />
                       <img th:if="${form.images == null or #lists.isEmpty(form.images)}"
                         th:src="@{/img/default-product.png}" alt="기본 상품 이미지" />
                     </div>
-                    <div class="product-info">
+                    <div class="home-product-info">
                       <h3 th:text="${form.product.title}">상품명</h3>
                       <p class="s-price"
                         th:text="|${#numbers.formatDecimal(form.product.salesPrice, 0, 'COMMA', 0, 'POINT')} 원|"></p>
@@ -122,8 +122,10 @@
                   </a>
                 </div>
               </th:block>
+              <th:block th:if="${totalCount == 0}">
+                <p class="no-products">등록된 상품이 없습니다.</p>
+              </th:block>
             </div>
-
           </div>
         </section>
       </main>
