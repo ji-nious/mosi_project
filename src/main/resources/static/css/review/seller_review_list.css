@@ -1,25 +1,43 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 .review_list {
-    font-family: 'Noto Sans KR', sans-serif;
-    width: 979px;
+    font-family: 'Pretendard', sans-serif;
+    width: 938px;
     color: #414141;
     line-height: 1.6;
     margin-bottom: 100px;
 }
+
+.review_list h2 {
+    height:29px;
+    margin-bottom:16px;
+}
+
 .review_list hr {
   border: none;
   border-top: 1px solid #1EC4CC;
   border-bottom: 1px solid #fff;
+  margin-bottom:20px;
 }
 .review_list_main {
+    /* 기존 flex-direction: column;은 유지하되, 자식 요소 정렬을 위해 center에서 start로 변경 */
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: center; /* 자식 요소들을 가운데로 정렬 */
+    width: 100%; /* 전체 너비를 사용하도록 설정 */
 }
+
 /* 검색박스 */
 .review-search-box {
     margin-top: 30px;
     margin-bottom: 35px;
+    width: 100%; /* 부모에 맞게 너비 조절 */
+    display: flex;
+    justify-content: center; /* 가운데 정렬 */
 }
 
 .search-box-input {
@@ -33,20 +51,21 @@
 .overall-info {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
-    height: 32px;
-    width: 970px;
+    justify-content: space-between; /* 양 끝 정렬 */
+    align-items: center; /* 수직 가운데 정렬 */
+    width: 930px; /* 전체 너비에 맞춤 */
     padding-left: 5px;
     padding-right: 10px;
     margin-bottom: 5px;
 }
 
 .review_list_main hr {
-    width: 970px;
+    width: 930px; /* .product-item과 너비 통일 */
     border: none;
-    border-top: 2px solid #414141;
-    margin-bottom: 15px;
+    border-top: 1px solid #414141;
+
 }
+
 
 .review_item_summary {
   display:flex;
@@ -75,8 +94,8 @@
 .listImg .image img{
   width: 100%;
   height: 100%;
-  object-fit: contain;     /* 비율 유지, 크롭 없음 */
-  object-position: center; /* 중앙 정렬 */
+  object-fit: cover;     /* contain → cover 로 변경 */
+  object-position: center; /* 중앙 기준으로 잘림 */
   display: block;
 }
 
@@ -100,6 +119,10 @@
   font-size: 24px;
   font-weight: 500;
   margin-right: 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 400px;
 }
 
 
@@ -144,6 +167,14 @@
 .reviewThird {
   font-size: 16px;
   margin-bottom: 10px;
+}
+
+.fourthText {
+  display: block;
+  max-width: 550px;     /* 🔹 여기서 길이 제한 */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .review-button {
@@ -203,6 +234,7 @@
 /* 안쪽 여백 (요약행이 좌우 12px/19px이면 맞춰줌) */
 .review-collapsible .collapsible-inner{
   padding: 22px 19px 16px 101px;
+  border-bottom:1px solid #1EC4CC;
 }
 
 /* 화살표 회전 효과(선택) */
@@ -238,8 +270,17 @@
 .reviewDate{ display:inline-flex; align-items:flex-start; gap:.35rem; }
 .reviewDate .badge.new{
   font-size:.7rem; line-height:1;
-  padding:0 .35rem; border-radius:.5rem;
+  padding:.35rem .7rem; border-radius:.5rem;
   background:#ff4d4f; color:#fff; font-weight:700;
-  transform: translateY(-0.15em); /* 살짝 위로 */
+  transform: translateY(-1.2em); /* 살짝 위로 */
 }
 
+.review_lists {
+width: 938px;
+margin-bottom:20px;
+}
+
+.pagination {
+  text-align: center;   /* 글자(=숫자/링크) 가운데 정렬 */
+  margin: 20px 0;       /* 위아래 여백 */
+}

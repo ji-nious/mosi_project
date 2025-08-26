@@ -45,6 +45,25 @@ public interface ReviewDAO {
 
   //판매자 리뷰 전체 갯수
   Long getSellerReviewTotalCount(Long memberId);
+
   //리뷰 삭제
   int deleteByIds(Long id);
+
+  //리뷰 다시 작성 가능
+  boolean updateReviewWrite(Long reviewId);
+
+  //리뷰 수정 정보
+  Optional<ReviewEdit> findReviewId (Long id);
+
+  //리뷰 수정 저장
+  Long reviewEditUpdate(Long reviewId, double rating, List<Long> ids, String content);
+
+  //리뷰 신고
+  boolean reviewReport(Long reviewId, Long memberId);
+
+  //리뷰 신고 저장
+  int saveReport(Long reviewId, Long memberId, String reason);
+
+  //리뷰 신고 확인
+  boolean existsReport(Long reviewId, Long memberId);
 }

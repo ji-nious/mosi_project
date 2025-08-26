@@ -38,7 +38,7 @@ public class ReviewSVCImpl implements ReviewSVC{
     if (!Objects.equals(id, loginId)) {
       throw new AccessDeniedException("본인 리뷰가 아닙니다.");
     }
-
+    log.info("리뷰 수정 가능1");
     return true;
   }
 
@@ -64,6 +64,11 @@ public class ReviewSVCImpl implements ReviewSVC{
 
     return reviewDAO.summaryFindById(reviewInfo.getProductId())
         .map(rp -> { rp.setOptionType(reviewInfo.getOptionType()); return rp; });
+  }
+
+  @Override
+  public Optional<ReviewProduct> summaryFindByProductId(Long productId) {
+    return reviewDAO.summaryFindById(productId);
   }
 
   @Override
@@ -111,7 +116,7 @@ public class ReviewSVCImpl implements ReviewSVC{
     review.setProductId(reviewInfo.getProductId()); // ✅ 필수
 
     // 2) 카테고리 결정(서버)
-    String category = this.findCategory(review.getOrderItemId())
+    String category = this.findCategory(reviewInfo.getProductId())
         .orElseThrow(() -> new IllegalStateException("상품 카테고리를 찾을 수 없습니다."));
 
     // 3) 허용 태그 조회 & 검증
@@ -149,8 +154,8 @@ public class ReviewSVCImpl implements ReviewSVC{
 
 
   @Override
-  public Optional<String> findCategory(Long orderItemId) {
-    return reviewDAO.findCategory(orderItemId);
+  public Optional<String> findCategory(Long productId) {
+    return reviewDAO.findCategory(productId);
   }
 
   @Override
@@ -174,10 +179,62 @@ public class ReviewSVCImpl implements ReviewSVC{
   }
 
   @Override
-  public int deleteByIds(Long id, Long loginId) {
-    this.reviewCheck(id,loginId);
-    int cnt = reviewDAO.deleteByIds(id);      // 실삭제
+  public int deleteByIds(Long reviewId, Long loginId) {
+    this.reviewCheck(reviewId,loginId);
+    reviewDAO.updateReviewWrite(reviewId);
+    int cnt = reviewDAO.deleteByIds(reviewId);      // 실삭제
     if (cnt == 0) throw new IllegalStateException("이미 삭제되었거나 존재하지 않습니다.");
     return cnt;
   }
+
+  @Override
+  public boolean updateReviewWrite(Long reviewId) {
+    return reviewDAO.updateReviewWrite(reviewId);
+  }
+
+  @Override
+  public Optional<ReviewEdit> findReviewId(Long reviewId, Long loginId) {
+    this.reviewCheck(reviewId,loginId);
+    return reviewDAO.findReviewId(reviewId);
+  }
+
+  @Transactional
+  @Override
+  public Long reviewEditUpdate(List<Long> ids, Review review) {
+    this.reviewCheck(review.getReviewId(),review.getBuyerId());
+    String category = this.findReviewId(review.getReviewId(), review.getBuyerId())
+        .map(ReviewEdit::getProductId)     // Optional<Long>
+        .flatMap(this::findCategory)       // Optional<String>
+        .orElseThrow(() -> new IllegalStateException("리뷰 또는 카테고리를 찾을 수 없습니다."));
+
+
+    // 3) 허용 태그 조회 & 검증
+    List<TagInfo> allowedTags = this.findTagList(category);
+    Set<Long> allowedIds = allowedTags.stream().map(TagInfo::getTagId).collect(Collectors.toSet());
+
+    List<Long> safeIds = (ids == null) ? Collections.emptyList() : ids;
+    for (Long id : safeIds) {
+      if (!allowedIds.contains(id)) {
+        throw new IllegalArgumentException("허용되지 않는 태그입니다. tagId=" + id);
+      }
+    }
+    return reviewDAO.reviewEditUpdate(review.getReviewId(),review.getScore(),ids,review.getContent());
+  }
+
+  @Override
+  public boolean reviewReport(Long reviewId, Long memberId) {
+    return reviewDAO.reviewReport(reviewId, memberId);
+  }
+
+  @Override
+  public int saveReport(Long reviewId, Long memberId, String reason) {
+    return reviewDAO.saveReport(reviewId, memberId, reason);
+  }
+
+  @Override
+  public boolean existsReport(Long reviewId, Long memberId) {
+    return reviewDAO.existsReport(reviewId,memberId);
+  }
+
+
 }

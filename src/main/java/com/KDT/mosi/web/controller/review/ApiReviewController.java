@@ -2,11 +2,13 @@ package com.KDT.mosi.web.controller.review;
 
 import com.KDT.mosi.domain.entity.review.Review;
 import com.KDT.mosi.domain.entity.review.ReviewList;
+import com.KDT.mosi.domain.entity.review.ReviewReport;
 import com.KDT.mosi.domain.product.dao.ProductImageDAO;
 import com.KDT.mosi.domain.review.svc.ReviewSVC;
 import com.KDT.mosi.web.api.ApiResponse;
 import com.KDT.mosi.web.api.ApiResponseCode;
 import com.KDT.mosi.web.form.review.ReviewSaveApi;
+import com.KDT.mosi.web.form.review.ReviewUpdateApi;
 import com.KDT.mosi.web.form.review.TagInfo;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -17,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 import java.util.List;
@@ -51,6 +54,28 @@ public class ApiReviewController {
     return ResponseEntity
         .status(HttpStatus.CREATED)
         .body(ApiResponse.of(ApiResponseCode.SUCCESS, null));
+  }
+
+  // 리뷰 수정
+  @PostMapping("/update")
+  public ResponseEntity<ApiResponse<Void>> updateReview(
+      @RequestBody @Valid ReviewUpdateApi reviewUpdateApi,
+      HttpSession session
+  ) {
+    // 1) 로그인 사용자 id
+    Long loginId = (Long) session.getAttribute("loginMemberId");
+
+    // 2) Review 엔티티 변환
+    Review review = new Review();
+    review.setReviewId(reviewUpdateApi.getReviewId());
+    review.setBuyerId(loginId);
+    review.setScore(reviewUpdateApi.getScore());
+    review.setContent(reviewUpdateApi.getContent());
+
+    // 3) 수정 저장 (태그 재저장 포함)
+    reviewSVC.reviewEditUpdate(reviewUpdateApi.getTagIds(), review);
+
+    return ResponseEntity.ok(ApiResponse.of(ApiResponseCode.SUCCESS, null));
   }
 
   @GetMapping("/paging/buyer")
@@ -126,5 +151,29 @@ public class ApiReviewController {
             .body(img.getImageData())   // ← 여기!
         )
         .orElseGet(() -> ResponseEntity.notFound().build());
+  }
+
+  @PostMapping("/{reviewId}/report")
+  public ResponseEntity<ApiResponse<Void>> report(
+      @PathVariable("reviewId") Long reviewId,
+      @RequestBody ReviewReport reviewReport,
+      HttpSession session
+  ) {
+    Long loginId = (Long) session.getAttribute("loginMemberId");
+    if (loginId == null) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+    }
+
+    // PathVariable·세션 값 덮어쓰기
+    reviewReport.setReviewId(reviewId);
+    reviewReport.setMemberId(loginId);
+
+    reviewSVC.saveReport(
+        reviewReport.getReviewId(),
+        reviewReport.getMemberId(),
+        reviewReport.getReason()
+    );
+
+    return ResponseEntity.ok(ApiResponse.of(ApiResponseCode.SUCCESS, null));
   }
 }
