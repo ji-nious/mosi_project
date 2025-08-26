@@ -355,7 +355,9 @@ h3{
 
 /* ------ 탭 메뉴 ----- */
 .tab-wrapper {
-  position: relative;  /* ✅ sticky 정상 작동을 위한 부모 */
+  width: 100%;
+  height: auto;       /* 부모가 tab-menu 크기로 고정되지 않게 */
+  overflow: visible;  /* sticky 깨지지 않도록 */
 }
 
 .tab-menu{
@@ -363,14 +365,14 @@ h3{
     gap: 30px;
     padding-top: 10px;
     position: sticky;
-    top: 160px;
+    top: 167px;
     border-bottom: 1px solid #BFBFBF;
     color: #BFBFBF;
     background: white;
     font-size: 22px;
     font-weight: 600;
     line-height: 22px;
-    z-index: 1000;
+    z-index: 2000;
 }
 .tab-menu a{
     display: inline-block;
