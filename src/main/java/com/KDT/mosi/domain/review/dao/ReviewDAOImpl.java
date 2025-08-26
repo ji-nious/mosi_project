@@ -28,7 +28,7 @@ public class ReviewDAOImpl implements ReviewDAO{
   public Optional<ReviewProduct> summaryFindById(Long id) {
 
     StringBuffer sql = new StringBuffer();
-    sql.append("SELECT p.product_id AS product_id,p.category AS category,p.title AS title,p.create_date AS create_date,sp.nickname AS nickname,i.mime_type AS MIME_TYPE,i.image_data AS image_data  ");
+    sql.append("SELECT p.product_id AS product_id,p.category AS category,p.title AS title,p.create_date AS create_date,sp.nickname AS nickname,i.mime_type AS MIME_TYPE,i.image_data AS image_data, oi.option_type as option_type  ");
     sql.append("FROM product p ");
     sql.append("LEFT JOIN product_image i ");
     sql.append("  ON p.PRODUCT_ID = i.PRODUCT_ID ");
@@ -36,7 +36,8 @@ public class ReviewDAOImpl implements ReviewDAO{
     sql.append("       SELECT MIN(pi.image_order) FROM product_image pi WHERE pi.product_id = p.product_id ");
     sql.append("     ) ");
     sql.append("LEFT JOIN seller_page sp ON sp.member_id = p.member_id ");
-    sql.append("WHERE p.product_ID = :productId ");;
+    sql.append("LEFT JOIN ORDER_ITEMS oi ON oi.product_id = p.product_id ");
+    sql.append("WHERE p.product_ID = :productId ");
 
     SqlParameterSource param = new MapSqlParameterSource().addValue("productId",id);
 
@@ -49,6 +50,7 @@ public class ReviewDAOImpl implements ReviewDAO{
 
     return Optional.of(reviewProduct);
   }
+
 
   @Override
   public Optional<ReviewInfo> findBuyerIdByOrderItemId(Long id) {
@@ -156,14 +158,13 @@ public class ReviewDAOImpl implements ReviewDAO{
   }
 
   @Override
-  public Optional<String> findCategory(Long orderItemId) {
+  public Optional<String> findCategory(Long productId) {
     String sql = """
-      SELECT p.category
-        FROM order_items oi
-        JOIN product p ON p.product_id = oi.product_id
-       WHERE oi.order_item_id = :orderItemId
+      SELECT category
+        FROM product
+       WHERE product_id = :productId
       """;
-    MapSqlParameterSource params = new MapSqlParameterSource("orderItemId", orderItemId);
+    MapSqlParameterSource params = new MapSqlParameterSource("productId", productId);
     List<String> list = template.query(sql, params,
         (rs, rn) -> rs.getString(1));
     return list.stream().findFirst();
@@ -217,7 +218,7 @@ public class ReviewDAOImpl implements ReviewDAO{
   public List<ReviewList> reviewFindAllSeller(Long sellerId, int pageNo, int numOfRows) {
     StringBuffer sql = new StringBuffer();
     sql.append("SELECT ");
-    sql.append("r.review_id,r.content,r.score,r.seller_recoyn AS seller_reco_yn,r.create_date AS rcreate,r.update_date AS rupdate, ");
+    sql.append("r.review_id as review_id,r.content as content,r.score,r.seller_recoyn AS seller_reco_yn,r.create_date AS rcreate,r.update_date AS rupdate, ");
     sql.append("p.title AS title,p.create_date AS pcreate,p.update_date AS pupdate, ");
     sql.append("oi.option_type AS option_type, ");
     sql.append("tags.tag_ids,tags.tag_labels, ");
@@ -297,4 +298,119 @@ public class ReviewDAOImpl implements ReviewDAO{
 
     return rows;
   }
+
+  @Override
+  public Optional<ReviewEdit> findReviewId(Long reviewId) {
+    StringBuffer sql = new StringBuffer();
+    sql.append(" SELECT ");
+    sql.append(" r.review_ID   AS review_id, ");
+    sql.append(" r.PRODUCT_ID   AS product_id, ");
+    sql.append("     r.CONTENT      AS content, ");
+    sql.append(" r.SCORE        AS score, ");
+    sql.append("   NVL(t.ids, '') AS ids ");
+    sql.append(" FROM REVIEW r ");
+    sql.append(" LEFT JOIN ( ");
+    sql.append("     SELECT ");
+    sql.append(" rt.REVIEW_ID, ");
+    sql.append("     LISTAGG(rt.TAG_ID, ',') WITHIN GROUP (ORDER BY rt.SORT_ORDER) AS ids ");
+    sql.append(" FROM REVIEW_TAG rt ");
+    sql.append(" WHERE rt.REVIEW_ID = :reviewId ");
+    sql.append("  GROUP BY rt.REVIEW_ID ");
+    sql.append(" ) t ");
+    sql.append(" ON t.REVIEW_ID = r.REVIEW_ID ");
+    sql.append(" WHERE r.REVIEW_ID = :reviewId ");
+
+    SqlParameterSource param = new MapSqlParameterSource().addValue("reviewId",reviewId);
+
+    ReviewEdit reviewEdit = null;
+    try {
+      reviewEdit = template.queryForObject(sql.toString(), param, BeanPropertyRowMapper.newInstance(ReviewEdit.class));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
+    return Optional.of(reviewEdit);
+  }
+
+  @Override
+  public Long reviewEditUpdate(Long reviewId, double rating, List<Long> ids, String content) {
+    // 1) 리뷰 업데이트
+    String sqlUpdate =
+        "UPDATE REVIEW " +
+            "   SET CONTENT = :content, " +
+            "       SCORE   = :score, " +
+            "       UPDATE_DATE = SYSTIMESTAMP " +
+            " WHERE REVIEW_ID = :reviewId";
+
+    template.update(sqlUpdate, Map.of(
+        "content", content,
+        "score", rating,
+        "reviewId", reviewId
+    ));
+
+    // 2) 태그 삭제
+    String sqlDelete = "DELETE FROM REVIEW_TAG WHERE REVIEW_ID = :reviewId";
+    template.update(sqlDelete, Map.of("reviewId", reviewId));
+
+    // 3) 태그 재삽입 (비어있으면 스킵)
+    if (ids != null && !ids.isEmpty()) {
+      String sqlInsert =
+          "INSERT INTO REVIEW_TAG (REVIEW_ID, TAG_ID, SORT_ORDER) " +
+              "VALUES (:reviewId, :tagId, :sortOrder)";
+
+      long[] sort = {1};
+      SqlParameterSource[] batch = ids.stream()
+          .map(tagId -> new MapSqlParameterSource()
+              .addValue("reviewId", reviewId)
+              .addValue("tagId", tagId)
+              .addValue("sortOrder", sort[0]++))
+          .toArray(SqlParameterSource[]::new);
+
+      template.batchUpdate(sqlInsert, batch);
+    }
+
+    return reviewId;
+  }
+
+  @Override
+  public boolean reviewReport(Long reviewId, Long memberId) {
+    String sql = "SELECT count(*) FROM REVIEW_REPORT WHERE review_id=:reviewId AND member_id=:memberId ";
+    SqlParameterSource param = new MapSqlParameterSource()
+        .addValue("reviewId",reviewId)
+        .addValue("memberId",memberId);
+    int i = template.queryForObject(sql, param, Integer.class);
+    if(i>0) return true;
+    return false;
+  }
+
+  @Override
+  public int saveReport(Long reviewId, Long memberId, String reason) {
+    String sql = """
+                INSERT INTO REVIEW_REPORT (REVIEW_ID, MEMBER_ID, REASON, REPORT_DATE)
+                VALUES (:reviewId, :memberId, :reason, SYSTIMESTAMP)
+                """;
+
+    MapSqlParameterSource params = new MapSqlParameterSource()
+        .addValue("reviewId", reviewId)
+        .addValue("memberId", memberId)
+        .addValue("reason", reason);
+
+    return template.update(sql, params);
+  }
+
+  @Override
+  public boolean existsReport(Long reviewId, Long memberId) {
+    String sql = """
+                SELECT COUNT(*) 
+                FROM REVIEW_REPORT 
+                WHERE REVIEW_ID = :reviewId AND MEMBER_ID = :memberId
+                """;
+
+    MapSqlParameterSource params = new MapSqlParameterSource()
+        .addValue("reviewId", reviewId)
+        .addValue("memberId", memberId);
+
+    Integer count = template.queryForObject(sql, params, Integer.class);
+    return count != null && count > 0;
+  }
+
 }
