@@ -1,37 +1,46 @@
 document.addEventListener("DOMContentLoaded", function() {
   // 상품 이미지 슬라이더
+  const slider = document.querySelector(".image-slider");
   const slides = document.querySelectorAll(".slide");
   const prevBtn = document.getElementById("prevBtn");
   const nextBtn = document.getElementById("nextBtn");
   let currentIndex = 0;
 
+  const maxLength = 70;
+  const descriptionElements = document.querySelectorAll('.text-trim');
+
+  descriptionElements.forEach(el => {
+    if (el.textContent.length > maxLength) {
+      el.textContent = el.textContent.substring(0, maxLength) + '...';
+    }
+  });
+
+
   // 슬라이드 표시
-  function showSlide(index) {
-    slides.forEach((slide, i) => {
-      slide.classList.toggle("active", i === index);
+    function showSlide(index) {
+    currentIndex = index;
+    slider.style.transform = `translateX(-${index * 100}%)`;
+  }
+
+  if (prevBtn) {
+    prevBtn.addEventListener("click", () => {
+      currentIndex = (currentIndex === 0) ? slides.length - 1 : currentIndex - 1;
+      showSlide(currentIndex);
     });
   }
 
-  // 이전 버튼
-  if (prevBtn) {
-  prevBtn.addEventListener("click", () => {
-    currentIndex = (currentIndex === 0) ? slides.length - 1 : currentIndex - 1;
-    showSlide(currentIndex);
-  });
-  }
-
-  // 다음 버튼
   if (nextBtn) {
-  nextBtn.addEventListener("click", () => {
-    currentIndex = (currentIndex === slides.length - 1) ? 0 : currentIndex + 1;
-    showSlide(currentIndex);
-  });
+    nextBtn.addEventListener("click", () => {
+      currentIndex = (currentIndex === slides.length - 1) ? 0 : currentIndex + 1;
+      showSlide(currentIndex);
+    });
   }
 
-  // 초기 슬라이드 표시
+  // 초기 위치
   if (slides.length > 0) {
-  showSlide(currentIndex);
+    showSlide(0);
   }
+
 
   // 가격 포맷팅
   const priceElems = document.querySelectorAll(".allPrice");

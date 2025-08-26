@@ -61,7 +61,7 @@
           </div>
         </div>
         <!-- 상품명 -->
-        <h1 th:text="*{product.title}"></h1>
+        <label class="product-title" th:text="*{product.title}"></label>
         <!-- 평점 -->
         <div class="rating" style="margin-top: 5px;">
           <span class="stars" style="color: gold;">
@@ -80,11 +80,11 @@
         </div>
         <!-- 판매자 프로필 -->
         <div class="product-seller">
-          <img th:src="*{sellerImage}" alt="프로필 이미지" class="profile-img"
+          <img th:src="${productDetailForm.sellerImage}" alt="프로필 이미지" class="profile-img"
             onerror="this.onerror=null; this.src='/img/default-profile.png';">
           <div class="seller-info">
-            <strong th:text="*{nickname}"></strong>
-            <div class="seller-tags" th:text="*{intro}">#소개글 #태그들</div>
+            <strong th:text="${productDetailForm.nickname}"></strong>
+            <div class="seller-tags text-trim" th:text="${productDetailForm.intro}"></div>
           </div>
           <button class="inquiry-btn">문의하기</button>
         </div>
@@ -106,7 +106,7 @@
           <div class="slider-container">
             <button id="prevBtn" class="prev-button" aria-label="이전 슬라이드">❰</button>
             <div class="slider-wrapper">
-              <div class="slider">
+              <div class="image-slider">
                 <div class="slide" th:each="img, iterStat : ${productDetailForm.product.productImages}"
                   th:classappend="${iterStat.index == 0} ? 'active' : ''">
                   <img th:if="${img != null and img.base64ImageData != null}" th:src="${img.base64ImageData}"
@@ -140,7 +140,10 @@
                       <img src="https://via.placeholder.com/40" alt="user" class="profile-img"
                         onerror="this.onerror=null; this.src='/img/default-profile.png';">
                       <div>
-                        <div class="stars">⭐ 5.0</div>
+                        <div class="stars">
+                          <i class="fa-solid fa-star" style="color: #FFD43B;"></i>
+                          5.0
+                        </div>
                         <strong>류**</strong>
                       </div>
                     </div>
@@ -153,7 +156,10 @@
                       <img src="https://via.placeholder.com/40" alt="user" class="profile-img"
                         onerror="this.onerror=null; this.src='/img/default-profile.png';">
                       <div>
-                        <div class="stars">⭐ 5.0</div>
+                        <div class="stars">
+                          <i class="fa-solid fa-star" style="color: #FFD43B;"></i>
+                          5.0
+                        </div>
                         <strong>김**</strong>
                       </div>
                     </div>
@@ -167,12 +173,14 @@
             </div>
           </div>
           <!-- 탭 메뉴 -->
-          <div class="tab-menu">
-            <a href="#basic-info">기본 정보</a>
-            <a href="#detail-info">상세 정보</a>
-            <a href="#price-info">가격 정보</a>
-            <a href="#guide-info">가이드 정보</a>
-            <a href="#review">리뷰</a>
+          <div class="tab-wrapper">
+            <div class="tab-menu">
+              <a href="#basic-info">기본 정보</a>
+              <a href="#detail-info">상세 정보</a>
+              <a href="#price-info">가격 정보</a>
+              <a href="#guide-info">가이드 정보</a>
+              <a href="#review">리뷰</a>
+            </div>
           </div>
           <!-- 섹션들 -->
           <div id="basic-info">
@@ -457,6 +465,12 @@
           });
         </script>
         <script th:src="@{/js/product/product_detail.js}"></script>
+      </div>
+      <!-- 공지 -->
+      <div class="notice-bar">
+        <div class="notice-label">공지</div>
+        <div class="notice-text">&lt;MO:SI&gt; 신규 코스 등록 이벤트 당첨자 안내</div>
+        <a href="#" class="more-link">+ 더보기</a>
       </div>
     </div>
 

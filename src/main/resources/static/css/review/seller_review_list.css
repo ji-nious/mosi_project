@@ -1,0 +1,245 @@
+.review_list {
+    font-family: 'Noto Sans KR', sans-serif;
+    width: 979px;
+    color: #414141;
+    line-height: 1.6;
+    margin-bottom: 100px;
+}
+.review_list hr {
+  border: none;
+  border-top: 1px solid #1EC4CC;
+  border-bottom: 1px solid #fff;
+}
+.review_list_main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+/* 검색박스 */
+.review-search-box {
+    margin-top: 30px;
+    margin-bottom: 35px;
+}
+
+.search-box-input {
+    width: 335px;
+    height: 38px;
+    border: 1px solid #1EC4CC;
+    border-radius: 8px;
+    padding: 5px;
+}
+
+.overall-info {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    height: 32px;
+    width: 970px;
+    padding-left: 5px;
+    padding-right: 10px;
+    margin-bottom: 5px;
+}
+
+.review_list_main hr {
+    width: 970px;
+    border: none;
+    border-top: 2px solid #414141;
+    margin-bottom: 15px;
+}
+
+.review_item_summary {
+  display:flex;
+  padding-left: 12px;
+  padding-right: 19px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid #1EC4CC;
+}
+
+.review_item_summary .listNumber {
+  font-size: 16px;
+  font-weight: 400;
+  margin-top: 5px;
+  margin-right: 56px;
+}
+
+.listImg {
+  margin-top: 5px;
+  margin-right: 27px;
+}
+
+.listImg .image{
+  width: 161px;
+  height: 161px;
+}
+.listImg .image img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;     /* 비율 유지, 크롭 없음 */
+  object-position: center; /* 중앙 정렬 */
+  display: block;
+}
+
+.review-info{
+  display:flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  margin-bottom: 12px;
+  margin-top:5px;
+}
+
+.review-info .reviewFirst {
+  display:flex;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+
+.review-info .reviewTitle {
+  font-size: 24px;
+  font-weight: 500;
+  margin-right: 9px;
+}
+
+
+.review-info .reviewDate {
+  font-size: 14px;
+  font-weight: 500;
+  color:#B2B2B2;
+}
+
+.reviewSecond {
+  display:flex;
+  align-items: center;
+  margin-bottom: 26px;
+  margin-left: 6px;
+}
+
+.star-rating {
+  --w: 120px;  /* 별 5개 가로 (이미지 크기에 맞게 조정) */
+  --h: 24px;   /* 별 세로 */
+  --empty: url("/img/review/write/small-line.png");
+  --fill:  url("/img/review/write/small-fill.png");
+
+  position: relative;
+  width: var(--w);
+  height: var(--h);
+  background: var(--empty) no-repeat 0 0 / cover;
+}
+
+.star-rating .star-fill {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 0%; /* JS로 채움 */
+  background: var(--fill) no-repeat 0 0 / cover;
+}
+
+.star-label {
+  margin-right: 48px;
+  font-size: 16px;
+  color: #B2B2B2;
+}
+
+.reviewThird {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.review-button {
+
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.review-button button {
+  font-size: 18px;
+  border:none;
+  background:none;
+}
+
+
+.review-button .btnToggle {
+  font-size: 15px;
+  color:#80CCD6;
+  width: 100%;
+  text-align: right;
+}
+
+.btnSelect {
+  display:flex;
+  flex-direction: column;
+}
+
+.btnSelect .btnEdit {
+  color:#1EC4CC;
+}
+
+.btnSelect .btnDel {
+  color:#6B6B6B;
+}
+
+.btnToggle .arrow{
+  display:inline-block;
+  transform: translateY(5px);
+}
+
+.toggle {
+  margin-top: 136px;
+  width: 100%;
+}
+
+
+
+
+
+/* 아래로 늘어나는 상자 */
+.review-collapsible{
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height .28s ease;
+}
+
+/* 안쪽 여백 (요약행이 좌우 12px/19px이면 맞춰줌) */
+.review-collapsible .collapsible-inner{
+  padding: 22px 19px 16px 101px;
+}
+
+/* 화살표 회전 효과(선택) */
+.btnToggle .arrow{
+  display:inline-block;
+  transition: transform .2s ease;
+}
+.btnToggle.is-open .arrow{
+  transform: rotate(180deg) translateY(2px);
+}
+
+.detailOption {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.detailOption .option {
+  border:1px solid #B2B2B2;
+  padding:0 8px;
+  border-radius: 5px;
+  color:#B2B2B2;
+  margin-right: 8px;
+}
+
+.detailOption .option {
+  color:#717171;
+}
+
+.detailTag {
+  margin-bottom: 18px;
+}
+
+.reviewDate{ display:inline-flex; align-items:flex-start; gap:.35rem; }
+.reviewDate .badge.new{
+  font-size:.7rem; line-height:1;
+  padding:0 .35rem; border-radius:.5rem;
+  background:#ff4d4f; color:#fff; font-weight:700;
+  transform: translateY(-0.15em); /* 살짝 위로 */
+}
+
