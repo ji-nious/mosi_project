@@ -45,4 +45,11 @@ public interface BuyerPageSVC {
    */
   Optional<BuyerPage> findById(Long pageId);
 
+  /**
+   * 구매자 마이페이지 저장 (신규/수정 자동 처리)
+   * @param buyerPage 저장할 구매자 마이페이지 정보
+   * @return 저장된 마이페이지의 페이지 ID
+   */
+  Long saveOrUpdate(BuyerPage buyerPage);
+
 }

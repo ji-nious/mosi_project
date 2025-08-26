@@ -67,7 +67,12 @@
         </li>
         <li><a href="#">고객센터</a>
           <ul>
-            <li><a th:href="@{/chat/rooms/buyer}">1:1 문의</a></li>
+            <li>
+              <a th:href="@{/chat/rooms/buyer}"
+                 th:classappend="${(activePath != null and #strings.startsWith(activePath, '/chat/rooms/buyer')) ? ' is-active' : ''}">
+                1:1 문의
+              </a>
+            </li>
           </ul>
         </li>
       </ul>

@@ -19,6 +19,7 @@ public class BuyerPageSVCImpl implements BuyerPageSVC {
 
   /**
    * 마이페이지 등록
+   *
    * @param buyerPage 등록할 구매자 마이페이지 정보
    * @return 생성된 페이지 ID
    */
@@ -29,6 +30,7 @@ public class BuyerPageSVCImpl implements BuyerPageSVC {
 
   /**
    * 회원 ID로 마이페이지 조회
+   *
    * @param memberId 조회할 회원의 ID
    * @return 해당 회원의 마이페이지 정보(Optional)
    */
@@ -39,7 +41,8 @@ public class BuyerPageSVCImpl implements BuyerPageSVC {
 
   /**
    * 마이페이지 정보 수정
-   * @param pageId 수정할 마이페이지 ID
+   *
+   * @param pageId    수정할 마이페이지 ID
    * @param buyerPage 수정할 내용
    * @return 수정된 행 수
    */
@@ -48,10 +51,10 @@ public class BuyerPageSVCImpl implements BuyerPageSVC {
     return buyerPageDAO.updateById(pageId, buyerPage);
   }
 
-
   /**
    * 마이페이지 삭제 (회원 ID 기준)
    * - 회원 탈퇴 시 연관된 마이페이지 제거용
+   *
    * @param memberId 삭제 대상 회원 ID
    * @return 삭제된 행 수
    */
@@ -62,12 +65,47 @@ public class BuyerPageSVCImpl implements BuyerPageSVC {
 
   /**
    * 마이페이지 ID로 조회
+   *
    * @param pageId 마이페이지 ID
    * @return 마이페이지 정보(Optional)
    */
   @Override
   public Optional<BuyerPage> findById(Long pageId) {
     return buyerPageDAO.findById(pageId);
+  }
+
+  /**
+   * 마이페이지 저장 (신규/수정 자동 분기)
+   * - 해당 회원의 마이페이지가 존재하면 UPDATE, 없으면 INSERT
+   *
+   * @param buyerPage 저장할 마이페이지 정보
+   * @return 저장된 페이지 ID
+   */
+  @Override
+  public Long saveOrUpdate(BuyerPage buyerPage) {
+    // 1. 기존 존재 여부 확인
+    Optional<BuyerPage> existingOpt = buyerPageDAO.findByMemberId(buyerPage.getMemberId());
+
+    if (existingOpt.isPresent()) {
+      BuyerPage existing = existingOpt.get();
+
+      // 2. 닉네임이 변경되었을 경우, 중복 닉네임 체크
+      if (!buyerPage.getNickname().equals(existing.getNickname())
+          && buyerPageDAO.existsByNickname(buyerPage.getNickname())) {
+        throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+      }
+
+      // 3. UPDATE
+      buyerPageDAO.updateById(existing.getPageId(), buyerPage);
+      return existing.getPageId();
+    }
+
+    // 4. 신규 INSERT 시에도 닉네임 중복 체크
+    if (buyerPageDAO.existsByNickname(buyerPage.getNickname())) {
+      throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+    }
+
+    return buyerPageDAO.save(buyerPage);
   }
 
 }

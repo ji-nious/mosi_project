@@ -161,9 +161,12 @@ public class  BuyerPageController {
           BuyerPage newPage = new BuyerPage();
           newPage.setMemberId(memberId);
           newPage.setNickname(member.getNickname());
-          Long pageId = buyerPageSVC.create(newPage);
+
+          // ✅ 여기서 create() 대신 saveOrUpdate() 호출
+          Long pageId = buyerPageSVC.saveOrUpdate(newPage);
 
           BuyerPage entity = newPage;
+          entity.setPageId(pageId); // PK 동기화
 
           BuyerPageUpdateForm form = new BuyerPageUpdateForm();
           form.setPageId(pageId);
@@ -177,13 +180,14 @@ public class  BuyerPageController {
           form.setNotification(member.getNotification());
 
           if (entity.getImage() != null) {
-            form.setDeleteImage(false);  // ✅ 이미지 존재 표시용 값 (실제 삭제 아님)
+            form.setDeleteImage(false);
           }
 
           model.addAttribute("form", form);
           model.addAttribute("buyerPage", entity);
           return "mypage/buyerpage/editBuyerPage";
         });
+
   }
 
 
