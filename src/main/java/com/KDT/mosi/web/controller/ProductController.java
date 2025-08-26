@@ -99,11 +99,13 @@ public class ProductController {
 
         if (optionalProduct.isPresent()) {
           Product product = optionalProduct.get();
-          ProductListForm form = new ProductListForm();
-          form.setProduct(product);
-          form.setImages(productImageSVC.findByProductId(product.getProductId()));
-          form.setCoursePoints(productCoursePointSVC.findByProductId(product.getProductId()));
-          productList.add(form);
+          if (!"임시저장".equals(product.getStatus()) && !"판매대기".equals(product.getStatus())){
+            ProductListForm form = new ProductListForm();
+            form.setProduct(product);
+            form.setImages(productImageSVC.findByProductId(product.getProductId()));
+            form.setCoursePoints(productCoursePointSVC.findByProductId(product.getProductId()));
+            productList.add(form);
+          }
         } else {
           log.warn("상품 ID {}를 Oracle DB에서 찾을 수 없습니다. 데이터 동기화 문제를 확인하세요.", doc.getProductId());
         }
@@ -121,11 +123,13 @@ public class ProductController {
       }
 
       for (Product product : products) {
-        ProductListForm form = new ProductListForm();
-        form.setProduct(product);
-        form.setImages(productImageSVC.findByProductId(product.getProductId()));
-        form.setCoursePoints(productCoursePointSVC.findByProductId(product.getProductId()));
-        productList.add(form);
+        if (!"임시저장".equals(product.getStatus()) && !"판매대기".equals(product.getStatus())){
+          ProductListForm form = new ProductListForm();
+          form.setProduct(product);
+          form.setImages(productImageSVC.findByProductId(product.getProductId()));
+          form.setCoursePoints(productCoursePointSVC.findByProductId(product.getProductId()));
+          productList.add(form);
+        }
       }
     }
 
