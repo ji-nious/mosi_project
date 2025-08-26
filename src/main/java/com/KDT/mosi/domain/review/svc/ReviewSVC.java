@@ -1,9 +1,6 @@
 package com.KDT.mosi.domain.review.svc;
 
-import com.KDT.mosi.domain.entity.review.Review;
-import com.KDT.mosi.domain.entity.review.ReviewInfo;
-import com.KDT.mosi.domain.entity.review.ReviewList;
-import com.KDT.mosi.domain.entity.review.ReviewProduct;
+import com.KDT.mosi.domain.entity.review.*;
 import com.KDT.mosi.web.form.review.TagInfo;
 
 import java.util.List;
@@ -19,6 +16,9 @@ public interface ReviewSVC {
 
   //상품 요약 정보 확인
   Optional<ReviewProduct> summaryFindById(Long orderItemId, Long loginId);
+
+  //수정용 상품 요약 정보 확인
+  Optional<ReviewProduct> summaryFindByProductId(Long productId);
 
   //상품 구매자 확인
   Optional<ReviewInfo> findBuyerIdByOrderItemId(Long id);
@@ -40,6 +40,7 @@ public interface ReviewSVC {
 
   //구매자 리뷰 목록
   List<ReviewList> reviewFindAll(Long buyerId, int pageNo, int numOfRows);
+
   //판매자 리뷰 목록
   List<ReviewList> reviewFindAllSeller(Long sellerId, int pageNo, int numOfRows);
 
@@ -51,5 +52,22 @@ public interface ReviewSVC {
 
   //리뷰 삭제
   public int deleteByIds(Long id, Long loginId);
+
+  //리뷰 수정 정보
+  Optional<ReviewEdit> findReviewId (Long id, Long loginId);
+
+  //리뷰 수정 저장
+  Long reviewEditUpdate(List<Long> ids, Review review);
+
+
+  //리뷰 신고
+  boolean reviewReport(Long reviewId, Long memberId);
+
+  //리뷰 신고 저장
+  int saveReport(Long reviewId, Long memberId, String reason);
+
+  //리뷰 신고 확인
+  boolean existsReport(Long reviewId, Long memberId);
+
 
 }

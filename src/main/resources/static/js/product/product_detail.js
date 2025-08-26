@@ -118,6 +118,13 @@ async function handleAddToCart(event) {
     
     const productId = getProductIdFromPage();
     
+    // 중복 상품 체크
+    const isDuplicate = await checkDuplicateProduct(productId, optionType);
+    if (isDuplicate) {
+      showAlert('이미 장바구니에 있는 상품입니다.');
+      return;
+    }
+    
     const result = await addToCartAPI(productId, optionType, 1);
     
     if (result.header && result.header.rtcd === 'S00') {
@@ -151,10 +158,17 @@ async function handleBuyNow(event) {
       return;
     }
     
-    // 주문 페이지로 이동
+    // 1. 먼저 장바구니에 추가
     const productId = getProductIdFromPage();
-    const orderUrl = `/order?productId=${productId}&optionType=${encodeURIComponent(optionType)}&quantity=1`;
-    window.location.href = orderUrl;
+    const result = await addToCartAPI(productId, optionType, 1);
+    
+    if (result.header && result.header.rtcd === 'S00') {
+      // 2. 장바구니 추가 성공 시 주문서 작성 페이지로 바로 이동
+      window.location.href = '/order';
+    } else {
+      const message = result.header?.rtmsg || '상품 추가에 실패했습니다';
+      showAlert(message);
+    }
     
   } catch (error) {
     console.error('구매하기 오류:', error);
@@ -184,12 +198,9 @@ async function validatePurchase(optionType) {
     };
   }
   
-  // 옵션 체크
+  // 옵션 체크 - 자동으로 기본 옵션 선택
   if (!optionType) {
-    return {
-      isValid: false,
-      message: '옵션을 선택해주세요.'
-    };
+    optionType = '기본코스'; // 기본 옵션으로 설정
   }
   
   return { isValid: true };
@@ -320,15 +331,13 @@ function showSuccessModal(message) {
   const continueBtn = modal.querySelector('#continue-shopping');
   const cartBtn = modal.querySelector('#go-to-cart');
   
-  // 장바구니 확인하기 버튼만 호버 효과 적용
+  // 장바구니 확인하기 버튼 호버 효과 (흔들림 제거)
   cartBtn.addEventListener('mouseenter', () => {
     cartBtn.style.backgroundColor = '#007a8a';
-    cartBtn.style.transform = 'translateY(-1px)';
   });
   
   cartBtn.addEventListener('mouseleave', () => {
     cartBtn.style.backgroundColor = '#0099AD';
-    cartBtn.style.transform = 'translateY(0)';
   });
   
   // 클릭 이벤트
@@ -359,29 +368,10 @@ function showAlert(message) {
   }
 }
 
-// 장바구니 개수 업데이트
-async function updateCartCount() {
-  try {
-    const response = await fetch('/cart/count', {
-      method: 'GET',
-      credentials: 'include'
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      const badge = document.getElementById('cart-count');
-      
-      if (badge) {
-        if (data.count > 0) {
-          badge.textContent = data.count > 99 ? '99+' : data.count;
-          badge.style.display = 'inline';
-        } else {
-          badge.style.display = 'none';
-        }
-      }
-    }
-  } catch (error) {
-
+// 장바구니 개수 업데이트 (전역 함수 사용)
+function updateCartCount() {
+  if (window.updateCartCount) {
+    window.updateCartCount();
   }
 }
 
