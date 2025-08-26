@@ -21,6 +21,9 @@ import com.KDT.mosi.web.api.ApiResponse;
 import com.KDT.mosi.web.api.ApiResponseCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -140,7 +143,7 @@ public class OrderSVCImpl implements OrderSVC {
           orderCode,
           savedOrder.getOrderId(),
           serverCalculatedAmount,
-          LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+          LocalDateTime.now()
       );
 
     } catch (IllegalArgumentException e) {
@@ -178,7 +181,7 @@ public class OrderSVCImpl implements OrderSVC {
           member.getEmail(),
           order.getOrderId(),
           order.getOrderCode(),
-          order.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+          order.getOrderDate(),
           order.getStatus(),
           order.getSpecialRequest(),
           orderItemResponses,
@@ -248,7 +251,7 @@ public class OrderSVCImpl implements OrderSVC {
           order.getOrderCode(),
           order.getOrderId(),
           order.getTotalPrice(),
-          LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+          LocalDateTime.now()
       );
 
     } catch (IllegalArgumentException e) {
@@ -260,15 +263,18 @@ public class OrderSVCImpl implements OrderSVC {
     }
   }
 
+  // OrderSVC.java 인터페이스에도 Pageable 매개변수 추가 필요
   @Override
   @Transactional(readOnly = true)
-  public ApiResponse<List<OrderResponse>> getOrderHistory(Long buyerId) {
+  public ApiResponse<List<OrderResponse>> getOrderHistory(Long buyerId, int page, int size) {
     try {
-      // Sort 파라미터로 최신순 정렬
-      Sort sort = Sort.by("orderDate").descending();
-      List<Order> orders = orderRepository.findByBuyerId(buyerId, sort);
+      // Pageable 객체 생성 (page는 0부터 시작하므로 -1)
+      Pageable pageable = PageRequest.of(page - 1, size, Sort.by("orderDate").descending());
 
-      List<OrderResponse> orderResponses = orders.stream()
+      // Repository에서 Page 객체 반환
+      Page<Order> orderPage = orderRepository.findByBuyerId(buyerId, pageable);
+
+      List<OrderResponse> orderResponses = orderPage.getContent().stream()
           .map(order -> {
             List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getOrderId());
             List<OrderItemResponse> orderItemResponses = convertOrderItemsToResponse(orderItems);
@@ -276,17 +282,22 @@ public class OrderSVCImpl implements OrderSVC {
             OrderResponse response = new OrderResponse();
             response.setOrderId(order.getOrderId());
             response.setOrderCode(order.getOrderCode());
-            response.setOrderDate(order.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+            response.setOrderDate(order.getOrderDate());
             response.setOrderStatus(order.getStatus());
             response.setOrderItems(orderItemResponses);
             response.setTotalPrice(order.getTotalPrice());
-            response.setTotalItemCount(orderItems.size());
-
             return response;
           })
           .collect(Collectors.toList());
 
-      return ApiResponse.of(ApiResponseCode.SUCCESS, orderResponses);
+      // ⭐⭐ 수정된 부분: Paging 객체를 생성하여 ApiResponse에 함께 반환 ⭐⭐
+      ApiResponse.Paging paging = new ApiResponse.Paging(
+          orderPage.getNumber() + 1, // 페이지 번호 (0-based를 1-based로)
+          orderPage.getSize(),
+          (int) orderPage.getTotalElements()
+      );
+
+      return ApiResponse.of(ApiResponseCode.SUCCESS, orderResponses, paging);
 
     } catch (Exception e) {
       log.error("주문 목록 조회 실패: buyerId={}", buyerId, e);
@@ -346,6 +357,7 @@ public class OrderSVCImpl implements OrderSVC {
           result.add(OrderItemResponse.createAvailable(
               cartItem.getProductId(),
               product.getTitle(),
+              product.getGuideYn(),
               product.getDescription(),
               currentPrice,
               currentOriginalPrice,
@@ -396,6 +408,7 @@ public class OrderSVCImpl implements OrderSVC {
         result.add(OrderItemResponse.createAvailable(
             orderItem.getProductId(),
             product.getTitle(),
+            product.getGuideYn(),
             product.getDescription(),
             orderItem.getSalePrice(),
             orderItem.getOriginalPrice(),
@@ -520,6 +533,7 @@ public class OrderSVCImpl implements OrderSVC {
           return OrderItemResponse.createAvailable(
               orderItem.getProductId(),
               product.getTitle(),
+              product.getGuideYn(),
               product.getDescription(),
               currentSalePrice,
               currentOriginalPrice,
@@ -539,7 +553,7 @@ public class OrderSVCImpl implements OrderSVC {
         buyer != null ? buyer.getEmail() : null,
         order.getOrderId(),
         order.getOrderCode(),
-        order.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
+        order.getOrderDate(),
         order.getStatus(),
         order.getSpecialRequest(),
         orderItemResponses,
@@ -641,7 +655,7 @@ public class OrderSVCImpl implements OrderSVC {
           order.getOrderCode(),
           order.getOrderId(),
           order.getTotalPrice(),
-          order.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+          order.getOrderDate()
       );
 
     } catch (IllegalArgumentException e) {

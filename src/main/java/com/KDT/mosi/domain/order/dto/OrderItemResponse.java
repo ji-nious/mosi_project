@@ -1,5 +1,6 @@
 package com.KDT.mosi.domain.order.dto;
 
+import com.KDT.mosi.domain.entity.Product;
 import lombok.Data;
 
 /**
@@ -9,6 +10,7 @@ import lombok.Data;
 public class OrderItemResponse {
   private Long productId;
   private String productName;
+  private String guideYn;
   private String description;
   private String productImage;
   private Long currentPrice;         // 할인가 (PRODUCT 테이블)
@@ -26,7 +28,7 @@ public class OrderItemResponse {
   /**
    * 판매중인 상품
    */
-  public static OrderItemResponse createAvailable(Long productId, String productName, String description,
+  public static OrderItemResponse createAvailable(Long productId, String productName, String guideYn, String description,
                                                   Long currentPrice, Long currentOriginalPrice,
                                                   Long cartPrice, Long cartOriginalPrice,
                                                   Long quantity, String optionType,
@@ -34,6 +36,7 @@ public class OrderItemResponse {
     OrderItemResponse response = new OrderItemResponse();
     response.setProductId(productId);
     response.setProductName(productName);
+    response.setGuideYn(guideYn);
     response.setDescription(description);
     response.setProductImage(productImage);
     response.setCurrentPrice(currentPrice);

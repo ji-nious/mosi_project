@@ -1,11 +1,15 @@
 package com.KDT.mosi.web.controller;
 
-import com.KDT.mosi.domain.entity.Member;
+import com.KDT.mosi.domain.entity.*;
+import com.KDT.mosi.domain.mypage.seller.svc.SellerPageSVC;
 import com.KDT.mosi.domain.order.dto.OrderResponse;
 import com.KDT.mosi.domain.order.request.OrderFormRequest;
 import com.KDT.mosi.domain.order.svc.OrderSVC;
+import com.KDT.mosi.domain.product.svc.ProductImageSVC;
+import com.KDT.mosi.domain.product.svc.ProductSVC;
 import com.KDT.mosi.web.api.ApiResponse;
 import com.KDT.mosi.web.api.ApiResponseCode;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,9 +20,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Controller
@@ -27,6 +29,9 @@ import java.util.Map;
 public class OrderController {
 
   private final OrderSVC orderSVC;
+  private final ProductSVC productSVC;
+  private final ProductImageSVC productImageSVC;
+  private final SellerPageSVC sellerPageSVC;
 
   /**
    * 주문서 페이지 (통합)
@@ -180,8 +185,37 @@ public class OrderController {
    * 주문내역 확인 이동
    */
   @GetMapping("/complete/history")
-  public String redirectToOrderHistory() {
-    return "redirect:/mypage/orders";
+  public String redirectToOrderHistory(Model model, HttpSession session,
+                                       HttpServletRequest request,
+                                       @RequestParam(name = "page", defaultValue = "1") int page,
+                                       @RequestParam(name = "size", defaultValue = "5") int size ) {
+
+    Member loginMember = (Member) session.getAttribute("loginMember");
+    if (loginMember == null) {
+      throw new IllegalStateException("로그인한 회원이 아닙니다.");
+    }
+    Long memberId = loginMember.getMemberId();
+
+    // ⭐⭐ 수정된 부분: page와 size를 서비스 메소드로 전달 ⭐⭐
+    ApiResponse<List<OrderResponse>> orderHistoryResponse = orderSVC.getOrderHistory(memberId, page, size);
+
+    List<OrderResponse> orderResponses = null;
+    if (orderHistoryResponse.getHeader().getRtcd().equals(ApiResponseCode.SUCCESS.getRtcd())) {
+      orderResponses = orderHistoryResponse.getBody();
+
+      // ⭐⭐ 수정된 부분: 페이징 정보를 모델에 추가 ⭐⭐
+      model.addAttribute("paging", orderHistoryResponse.getPaging());
+    } else {
+      orderResponses = Collections.emptyList();
+      log.error("주문 목록을 가져오는 데 실패했습니다. 오류 코드: {}", orderHistoryResponse.getHeader().getRtcd());
+    }
+
+    model.addAttribute("loginMember",loginMember);
+    model.addAttribute("activePath", request.getRequestURI());
+    model.addAttribute("orderHistory", orderResponses);
+
+
+    return "order/review_list_buyer";
   }
 
   /**

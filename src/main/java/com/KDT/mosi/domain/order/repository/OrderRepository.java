@@ -1,6 +1,8 @@
 package com.KDT.mosi.domain.order.repository;
 
 import com.KDT.mosi.domain.entity.order.Order;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -30,4 +32,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
    * 주문번호 생성용
    */
   int countByOrderCodeStartingWith(String prefix);
+
+  Page<Order> findByBuyerId(Long buyerId, Pageable pageable);
 }

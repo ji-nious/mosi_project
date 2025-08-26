@@ -1,0 +1,216 @@
+body {
+    background-color: #f7f9fc;
+}
+
+.page-main-container {
+    display: flex;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+}
+
+.page-content-container {
+    flex-grow: 1;
+    padding: 0 20px;
+}
+
+.page-content-container h1 {
+    font-size: 2em;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background-color: #e0e0e0;
+    margin: 20px 0;
+}
+
+.review-page-selector {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.review-page-selector .btn {
+    padding: 10px 25px;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    text-decoration: none;
+    color: #555;
+    background-color: #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.review-page-selector .btn:hover {
+    background-color: #e2e6ea;
+}
+
+.review-page-selector .btn.active {
+    background-color: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
+
+.order-history-item {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+    background-color: #fafafa;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.order-info {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-bottom: 15px;
+    border-bottom: 1px dashed #e9ecef;
+    padding-bottom: 10px;
+}
+
+/* ======================= */
+/* ====== 상품 목록 정렬 ====== */
+/* ======================= */
+
+.product-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.product-image-container {
+    flex-shrink: 0;
+    margin-right: 20px;
+}
+
+.product-image-container img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.product-details-container {
+    flex-grow: 1;
+    margin-right: 20px;
+}
+
+.product-price-container {
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.product-details-container h2 {
+    font-size: 1.2em;
+    margin: 0 0 8px;
+}
+
+.seller-nickname {
+    font-size: 0.9em;
+    color: #777;
+    margin-bottom: 5px;
+}
+
+.price {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    color: #007bff;
+}
+
+.price h1 {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0;
+}
+
+.price div {
+    font-size: 1em;
+    margin-left: 5px;
+    font-weight: normal;
+}
+
+.product-info-right-detail div {
+    font-size: 0.9em;
+    color: #555;
+    margin-bottom: 2px;
+}
+
+.btn-group {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-group .btn {
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.btn-group .btn:hover {
+    background-color: #0056b3;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.pagination a {
+    text-decoration: none;
+    color: #007bff;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    transition: all 0.3s;
+}
+
+.pagination a.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.pagination a:hover {
+    background-color: #e9ecef;
+}
+
+.no-data-message {
+    text-align: center;
+    margin-top: 50px;
+    color: #777;
+    font-size: 1.2em;
+}
+
+/* 추가된 CSS */
+
+.text-trim {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

@@ -3,6 +3,7 @@ package com.KDT.mosi.domain.order.svc;
 import com.KDT.mosi.domain.order.dto.OrderResponse;
 import com.KDT.mosi.domain.order.request.OrderFormRequest;
 import com.KDT.mosi.web.api.ApiResponse;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -24,7 +25,7 @@ public interface OrderSVC {
   OrderResponse cancelOrder(Long orderId, Long buyerId);
 
   // 주문 목록 조회
-  ApiResponse<List<OrderResponse>> getOrderHistory(Long buyerId);
+  ApiResponse<List<OrderResponse>> getOrderHistory(Long buyerId, int page, int size);
 
   // 주문 개수 조회
   int getOrderCount(Long buyerId);
