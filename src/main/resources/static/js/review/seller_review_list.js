@@ -223,7 +223,6 @@ function renderOneItem(item, listNumber) {
           </div>
         </div>
       </div>
-      <hr>
     </div>
   `;
   return html;
