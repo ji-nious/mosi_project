@@ -14,9 +14,8 @@ const qs  = (sel, el=document) => el.querySelector(sel);
 const qsa = (sel, el=document) => [...el.querySelectorAll(sel)];
 const escapeHTML = (s='') => { const d=document.createElement('div'); d.textContent = s ?? ''; return d.textContent; };
 const ymd = (iso) => {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(+d)) return escapeHTML(iso);
+  const d = parseDateSafe(iso);          // 안전 파서 사용
+  if (!d) return escapeHTML(String(iso));
   const p = (n)=>String(n).padStart(2,'0');
   return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}`;
 };
@@ -169,7 +168,7 @@ function renderOneItem(item, listNumber) {
   const html = `
     <div class="review_lists" data-id="${item.reviewId ?? ''}">
       <div class="review_item_summary">
-        <div class="listNumber">${listNumber}</div>
+        <div class="listNumber">${item.reviewId}</div>
         <div class="listImg">
           <div class="image">
             <img src="${imgUrl}" alt="${escapeHTML(title)}" loading="lazy" decoding="async">
@@ -344,3 +343,60 @@ window.initRatingDisplays = function() {
     labelEl.textContent = labels[score];
   });
 };
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.btnEdit');
+  if (!btn) return;
+
+  const item = btn.closest('.review_lists');
+  const reviewId = item?.dataset?.id;
+  if (!reviewId) {
+    alert('리뷰 ID를 찾을 수 없습니다.');
+    return;
+  }
+  // 컨트롤러가 @RequestMapping("/review") 아래라면 다음 경로가 매핑됩니다.
+  location.href = `/review/edit/${reviewId}`;
+});
+
+// ====== 삭제 처리 ======
+async function deleteReviewById(reviewId){
+  try {
+    const res = await ajax.delete(`/api/review/${reviewId}`);
+
+    if (res?.header?.rtcd === 'S00') {
+      // 총 개수 감소 반영
+      totalCount = Math.max(0, (totalCount || 0) - 1);
+
+      // 현재 페이지에서 마지막 1개를 지웠다면 이전 페이지로 이동
+      const rendered = document.querySelectorAll('.review_list_main .review_lists').length;
+      const willBeEmpty = rendered <= 1; // 지금 보이는 게 1개면, 이걸 지우면 빈 페이지
+      if (willBeEmpty && currentPage > 1) {
+        await goPage(currentPage - 1);
+      } else {
+        await goPage(currentPage);
+      }
+    } else {
+      alert(res?.header?.rtmsg || '삭제에 실패했습니다.');
+    }
+  } catch (e) {
+    console.error('삭제 실패', e);
+    alert('삭제 중 오류가 발생했습니다.');
+  }
+}
+
+// 삭제 버튼 델리게이션
+document.addEventListener('click', async (e) => {
+  const delBtn = e.target.closest('.btnDel');
+  if (!delBtn) return;
+
+  const item = delBtn.closest('.review_lists');
+  const reviewId = item?.dataset?.id;
+  if (!reviewId) {
+    alert('리뷰 ID를 찾을 수 없습니다.');
+    return;
+  }
+
+  if (!confirm('이 리뷰를 삭제할까요?')) return;
+
+  await deleteReviewById(reviewId);
+})
