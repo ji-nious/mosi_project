@@ -206,42 +206,73 @@ document.addEventListener('DOMContentLoaded', function () {
       if (removeBtn) {
         removeBtn.addEventListener('click', function(e) {
           e.stopPropagation();
+
+          // 삭제할 이미지 ID 수집
+          const imageId = imageItem.getAttribute('data-image-id');
+          if (imageId) {
+            // hidden input으로 서버에 삭제 ID 전달
+            addDeleteImageIdToForm(imageId);
+          }
+
+          // DOM에서 제거
           imageItem.remove();
+
+          // 미리보기 업데이트
+          updatePreviewAfterDelete();
         });
       }
     });
   }
 
-  // 문서 파일 업로드
-  const documentFileInput = document.querySelector('input[name="documentFile"]');
-  let currentBlobUrl = null;
+  // 삭제할 이미지 ID를 폼에 추가하는 함수
+  function addDeleteImageIdToForm(imageId) {
+    const form = document.getElementById('productForm');
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'deleteImageIds';
+    hiddenInput.value = imageId;
+    form.appendChild(hiddenInput);
+  }
 
-  if (documentFileInput) {
+  // 이미지 삭제 후 미리보기 업데이트 함수
+  function updatePreviewAfterDelete() {
+    const remainingImages = document.querySelectorAll('.existing-image');
+    if (remainingImages.length > 0) {
+      // 첫 번째 남은 이미지로 미리보기 업데이트
+      const firstImage = remainingImages[0];
+      const firstImageId = firstImage.getAttribute('data-image-id');
+      showPreview(`/product-images/${firstImageId}/data`);
+
+      // active 클래스 업데이트
+      document.querySelectorAll('.image-name-item.active').forEach(el => el.classList.remove('active'));
+      firstImage.classList.add('active');
+    } else {
+      // 남은 이미지가 없으면 초기 업로드 화면으로 복원
+      const preview = document.querySelector('.image-preview');
+      const icon = document.querySelector('.upload-box i');
+      const text = document.querySelector('.upload-box p');
+
+      if (preview) {
+        preview.style.display = 'none';
+      }
+      if (icon) {
+        icon.style.display = 'block';
+      }
+      if (text) {
+        text.style.display = 'block';
+      }
+    }
+  }
+
+  // 커스텀 파일 입력 UI
+  const documentFileInput = document.getElementById('docFile');
+  const fileNameDisplay = document.querySelector('.file-name');
+
+  if (documentFileInput && fileNameDisplay) {
     documentFileInput.addEventListener('change', function(e) {
-      const currentFileInfo = document.querySelector('.current-file-info');
-      if (e.target.files.length > 0 && currentFileInfo) {
-        const file = e.target.files[0];
-        const fileName = file.name;
-        const fileSize = Math.round(file.size / 1024);
-
-        // 이전 Blob URL 메모리 해제
-        if (currentBlobUrl) {
-          URL.revokeObjectURL(currentBlobUrl);
-        }
-
-        currentBlobUrl = URL.createObjectURL(file);
-
-        const fileLink = currentFileInfo.querySelector('.current-file-link');
-        const fileSizeSpan = currentFileInfo.querySelector('.file-size');
-
-        if (fileLink) {
-          fileLink.textContent = fileName;
-          fileLink.href = currentBlobUrl;
-          fileLink.download = fileName;
-        }
-        if (fileSizeSpan) {
-          fileSizeSpan.innerHTML = `(${fileSize} KB)`;
-        }
+      if (e.target.files.length > 0) {
+        const fileName = e.target.files[0].name;
+        fileNameDisplay.textContent = fileName;
       }
     });
   }
