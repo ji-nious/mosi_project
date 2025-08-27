@@ -33,7 +33,6 @@ export default function PaymentSummary({
             <div key={index} className="summary-item">
               <div className="item-info">
                 <span className="item-name">{item.productName}</span>
-                <span className="item-option">{item.optionType || '기본코스'}</span>
               </div>
               <span className="item-price">{(item.price * item.quantity)?.toLocaleString()}원</span>
             </div>

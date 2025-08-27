@@ -118,18 +118,14 @@ async function handleAddToCart(event) {
     
     const productId = getProductIdFromPage();
     
-    // 중복 상품 체크
-    const isDuplicate = await checkDuplicateProduct(productId, optionType);
-    if (isDuplicate) {
-      showAlert('이미 장바구니에 있는 상품입니다.');
-      return;
-    }
-    
     const result = await addToCartAPI(productId, optionType, 1);
     
     if (result.header && result.header.rtcd === 'S00') {
       showSuccessModal('장바구니에 상품이 추가되었습니다');
       updateCartCount();
+    } else if (result.header && result.header.rtcd === 'C11') {
+      // 장바구니 중복 상품 에러 처리
+      showAlert('이미 장바구니에 동일한 상품이 존재합니다.');
     } else {
       const message = result.header?.rtmsg || '장바구니 추가에 실패했습니다';
       showAlert(message);
@@ -270,57 +266,14 @@ function getProductStatusFromPage() {
 // 성공 모달 표시
 function showSuccessModal(message) {
   const modal = document.createElement('div');
-  modal.style.cssText = `
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5); display: flex; align-items: center;
-    justify-content: center; z-index: 10000;
-  `;
+  modal.className = 'modal-overlay';
   
   modal.innerHTML = `
-    <div style="
-      background: white; 
-      padding: 40px 50px; 
-      border-radius: 12px; 
-      text-align: center; 
-      width: 450px;
-      height: 250px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    ">
-      <p style="
-        margin: 0 0 30px 0; 
-        font-size: 20px; 
-        font-weight: 600;
-        line-height: 1.5;
-        color: #333;
-      ">${message}</p>
-      <div style="display: flex; gap: 12px; justify-content: center;">
-        <button id="continue-shopping" style="
-          width: 100%;
-          height: 50px;
-          border: 1px solid #BFBFBF;
-          border-radius: 10px;
-          background-color: #fff;
-          font-size: 16px;
-          font-weight: 500;
-          cursor: pointer;
-          color: #333;
-          transition: all 0.2s ease;
-        ">계속 쇼핑하기</button>
-        <button id="go-to-cart" style="
-          width: 100%;
-          height: 50px;
-          border: 1px solid #BFBFBF;
-          border-radius: 10px;
-          background-color: #0099AD;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-          color: white;
-          transition: all 0.2s ease;
-        ">장바구니 확인하기</button>
+    <div class="modal-content">
+      <p class="modal-message">${message}</p>
+      <div class="modal-buttons">
+        <button id="continue-shopping" class="modal-btn secondary">계속 쇼핑하기</button>
+        <button id="go-to-cart" class="modal-btn primary">장바구니 확인하기</button>
       </div>
     </div>
   `;
@@ -330,15 +283,6 @@ function showSuccessModal(message) {
   // 버튼 요소 선택
   const continueBtn = modal.querySelector('#continue-shopping');
   const cartBtn = modal.querySelector('#go-to-cart');
-  
-  // 장바구니 확인하기 버튼 호버 효과 (흔들림 제거)
-  cartBtn.addEventListener('mouseenter', () => {
-    cartBtn.style.backgroundColor = '#007a8a';
-  });
-  
-  cartBtn.addEventListener('mouseleave', () => {
-    cartBtn.style.backgroundColor = '#0099AD';
-  });
   
   // 클릭 이벤트
   continueBtn.addEventListener('click', () => {
@@ -375,27 +319,3 @@ function updateCartCount() {
   }
 }
 
-// 중복 상품 체크
-async function checkDuplicateProduct(productId, optionType) {
-  try {
-    const response = await fetch('/cart', {
-      method: 'GET',
-      credentials: 'include'
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      // 동일한 상품ID와 옵션이 이미 장바구니에 있는지 확인
-      // 판매 상품은 최대 1개만 구매 가능 (중복 불가)
-      const existingItem = data.cartItems?.find(item => 
-        item.productId == productId && item.optionType === optionType
-      );
-      
-      return !!existingItem;
-    }
-    
-    return false;
-  } catch (error) {
-    return false;
-  }
-}

@@ -340,11 +340,6 @@
   height: 100%;
   object-fit: cover;
   border-radius: 8px;
-  transition: transform 0.3s ease;
-}
-
-.item-image:hover img {
-  transform: scale(1.05);
 }
 
 /* 상품 정보 */

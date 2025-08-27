@@ -55,9 +55,9 @@ public class CartSVCImpl implements CartSVC {
           .findByBuyerIdAndProductIdAndOptionType(buyerId, productId, optionType);
 
       if (existingItem.isPresent()) {
-        CartItem item = existingItem.get();
-        item.setQuantity(item.getQuantity() + quantity);
-        cartItemRepository.save(item);
+        log.warn("중복 상품 추가 시도: buyerId={}, productId={}, optionType={}",
+            buyerId, productId, optionType);
+        return ApiResponse.of(ApiResponseCode.CART_ITEM_ALREADY_EXISTS, null);
       } else {
         Cart cart = getOrCreateCart(buyerId);
 
