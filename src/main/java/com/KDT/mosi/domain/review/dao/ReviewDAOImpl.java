@@ -429,4 +429,160 @@ public class ReviewDAOImpl implements ReviewDAO{
     return count != null && count > 0;
   }
 
+  @Override
+  public List<ProductReview> productReviewList(Long productId, int pageNo, int pageSize) {
+    StringBuilder reviewSql = new StringBuilder();
+    reviewSql.append("SELECT review_id ");
+    reviewSql.append("FROM REVIEW ");
+    reviewSql.append("WHERE product_id = :productId ");
+    reviewSql.append("ORDER BY create_date DESC, review_id DESC ");
+    reviewSql.append("OFFSET (:pageNo - 1) * :pageSize ROWS FETCH NEXT :pageSize ROWS ONLY ");
+
+    SqlParameterSource idParam = new MapSqlParameterSource()
+        .addValue("productId", productId)
+        .addValue("pageNo", pageNo)
+        .addValue("pageSize", pageSize);
+    List<Long> ids = template.queryForList(reviewSql.toString(),idParam,Long.class);
+
+    if (ids == null || ids.isEmpty()) {
+      return java.util.Collections.emptyList();
+    }
+
+    StringBuilder detailSql = new StringBuilder();
+    detailSql.append("SELECT ");
+    detailSql.append("  r.PRODUCT_ID  AS productId, ");
+    detailSql.append("  r.REVIEW_ID   AS reviewId, ");
+    detailSql.append("  r.SCORE       AS score, ");
+    detailSql.append("  r.CREATE_DATE AS rcreate, ");
+    detailSql.append("  r.CONTENT     AS content, "); // CLOB 그대로 OK (GROUP BY 없음)
+    detailSql.append("  m.MEMBER_ID   AS buyerId, ");
+    detailSql.append("  SUBSTR(m.NICKNAME,1,1) || '**' AS nickname, ");
+    detailSql.append("  CASE WHEN m.PIC IS NOT NULL THEN 1 ELSE 0 END AS hasPic, ");
+    detailSql.append("  oi.OPTION_TYPE AS optionType, ");
+    detailSql.append("  NVL(ta.tagIds,    '') AS tagIds, ");
+    detailSql.append("  NVL(ta.tagLabels, '') AS tagLabels ");
+    detailSql.append("FROM REVIEW r ");
+    detailSql.append("JOIN MEMBER m            ON r.BUYER_ID = m.MEMBER_ID ");
+    detailSql.append("LEFT JOIN ORDER_ITEMS oi ON oi.ORDER_ITEM_ID = r.ORDER_ITEM_ID ");
+    detailSql.append("LEFT JOIN ( ");
+    detailSql.append("  SELECT ");
+    detailSql.append("    rt.REVIEW_ID, ");
+    detailSql.append("    LISTAGG(TO_CHAR(t.TAG_ID), ',') ");
+    detailSql.append("      WITHIN GROUP (ORDER BY rt.SORT_ORDER) AS tagIds, ");
+    detailSql.append("    LISTAGG(DBMS_LOB.SUBSTR(t.LABEL, 2000, 1), ' | ') ");
+    detailSql.append("      WITHIN GROUP (ORDER BY rt.SORT_ORDER) AS tagLabels ");
+    detailSql.append("  FROM REVIEW_TAG rt ");
+    detailSql.append("  JOIN TAG t ON t.TAG_ID = rt.TAG_ID ");
+    detailSql.append("  GROUP BY rt.REVIEW_ID ");
+    detailSql.append(") ta ON ta.REVIEW_ID = r.REVIEW_ID ");
+    detailSql.append("WHERE r.REVIEW_ID IN (:ids) ");
+    detailSql.append("ORDER BY r.CREATE_DATE DESC, r.REVIEW_ID DESC");
+
+    MapSqlParameterSource detailParam = new MapSqlParameterSource()
+        .addValue("ids", ids);
+
+    return template.query(
+        detailSql.toString(),
+        detailParam,
+        BeanPropertyRowMapper.newInstance(ProductReview.class)
+    );
+  }
+
+  @Override
+  public Long productReviewCnt(Long productId) {
+    StringBuilder sql = new StringBuilder();
+    sql.append("SELECT count(review_id) ");
+    sql.append("FROM review r ");
+    sql.append("WHERE product_id=:productId ");
+
+    SqlParameterSource param = new MapSqlParameterSource()
+        .addValue("productId", productId);
+
+    Long count = template.queryForObject(sql.toString(),param, Long.class);
+
+    return count;
+  }
+
+
+  @Override
+  public List<ProductReview> productReviewListId(Long productId, int pageNo, int pageSize,Long loginId) {
+    StringBuilder reviewSql = new StringBuilder();
+    reviewSql.append("SELECT review_id ");
+    reviewSql.append("FROM REVIEW ");
+    reviewSql.append("WHERE product_id = :productId ");
+    reviewSql.append("ORDER BY create_date DESC, review_id DESC ");
+    reviewSql.append("OFFSET (:pageNo - 1) * :pageSize ROWS FETCH NEXT :pageSize ROWS ONLY ");
+
+    SqlParameterSource idParam = new MapSqlParameterSource()
+        .addValue("productId", productId)
+        .addValue("pageNo", pageNo)
+        .addValue("pageSize", pageSize);
+    List<Long> ids = template.queryForList(reviewSql.toString(),idParam,Long.class);
+
+    if (ids == null || ids.isEmpty()) {
+      return java.util.Collections.emptyList();
+    }
+
+    StringBuilder detailSql = new StringBuilder();
+    detailSql.append("SELECT ");
+    detailSql.append("  r.PRODUCT_ID  AS productId, ");
+    detailSql.append("  r.REVIEW_ID   AS reviewId, ");
+    detailSql.append("  r.SCORE       AS score, ");
+    detailSql.append("  r.CREATE_DATE AS rcreate, ");
+    detailSql.append("  r.CONTENT     AS content, "); // CLOB 그대로 OK
+    detailSql.append("  m.MEMBER_ID   AS buyerId, ");
+    detailSql.append("  CASE WHEN m.MEMBER_ID = :loginId ");
+    detailSql.append("       THEN m.NICKNAME ");
+    detailSql.append("       ELSE SUBSTR(m.NICKNAME,1,1) || '**' ");
+    detailSql.append("  END AS nickname, ");
+    detailSql.append("  CASE WHEN m.PIC IS NOT NULL THEN 1 ELSE 0 END AS hasPic, ");
+    detailSql.append("  oi.OPTION_TYPE AS optionType, ");
+    detailSql.append("  NVL(ta.tagIds,    '') AS tagIds, ");
+    detailSql.append("  NVL(ta.tagLabels, '') AS tagLabels ");
+    detailSql.append("FROM REVIEW r ");
+    detailSql.append("JOIN MEMBER m            ON r.BUYER_ID = m.MEMBER_ID ");
+    detailSql.append("LEFT JOIN ORDER_ITEMS oi ON oi.ORDER_ITEM_ID = r.ORDER_ITEM_ID ");
+    detailSql.append("LEFT JOIN ( ");
+    detailSql.append("  SELECT ");
+    detailSql.append("    rt.REVIEW_ID, ");
+    detailSql.append("    LISTAGG(TO_CHAR(t.TAG_ID), ',') ");
+    detailSql.append("      WITHIN GROUP (ORDER BY rt.SORT_ORDER) AS tagIds, ");
+    detailSql.append("    LISTAGG(DBMS_LOB.SUBSTR(t.LABEL, 2000, 1), ' | ') ");
+    detailSql.append("      WITHIN GROUP (ORDER BY rt.SORT_ORDER) AS tagLabels ");
+    detailSql.append("  FROM REVIEW_TAG rt ");
+    detailSql.append("  JOIN TAG t ON t.TAG_ID = rt.TAG_ID ");
+    detailSql.append("  GROUP BY rt.REVIEW_ID ");
+    detailSql.append(") ta ON ta.REVIEW_ID = r.REVIEW_ID ");
+    detailSql.append("WHERE r.REVIEW_ID IN (:ids) ");
+    detailSql.append("ORDER BY r.CREATE_DATE DESC, r.REVIEW_ID DESC");
+
+    MapSqlParameterSource detailParam = new MapSqlParameterSource()
+        .addValue("ids", ids)
+        .addValue("loginId",loginId);
+
+    return template.query(
+        detailSql.toString(),
+        detailParam,
+        BeanPropertyRowMapper.newInstance(ProductReview.class)
+    );
+  }
+
+  @Override
+  public Optional<ReviewProduct> reviewProfile(Long memberId) {
+    final String sql = "SELECT PIC AS imageData FROM MEMBER WHERE MEMBER_ID = :memberId";
+
+    SqlParameterSource param = new MapSqlParameterSource()
+        .addValue("memberId", memberId);
+
+    try {
+      ReviewProduct pic = template.queryForObject(
+          sql,
+          param,
+          BeanPropertyRowMapper.newInstance(ReviewProduct.class)
+      );
+      return Optional.ofNullable(pic);
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
+  }
 }

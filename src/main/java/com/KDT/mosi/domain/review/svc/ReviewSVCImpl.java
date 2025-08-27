@@ -236,5 +236,27 @@ public class ReviewSVCImpl implements ReviewSVC{
     return reviewDAO.existsReport(reviewId,memberId);
   }
 
+  @Override
+  public List<ProductReview> productReviewList(Long productId, int pageNo, int pageSiz) {
+    return reviewDAO.productReviewList(productId, pageNo, pageSiz);
+  }
+
+  @Override
+  public List<ProductReview> productReviewList(Long productId, int pageNo, int pageSize, Long loginId) {
+
+
+    return reviewDAO.productReviewListId(productId, pageNo, pageSize,loginId);
+  }
+
+  @Override
+  public Optional<ReviewProduct> reviewProfile(Long memberId) {
+    return reviewDAO.reviewProfile(memberId);
+  }
+
+  @Override
+  public Long productReviewCnt(Long productId) {
+    return reviewDAO.productReviewCnt(productId);
+  }
+
 
 }
