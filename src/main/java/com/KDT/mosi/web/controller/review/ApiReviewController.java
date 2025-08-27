@@ -194,10 +194,26 @@ public class ApiReviewController {
   }
   @GetMapping(value="/product/profile-images/{imageId}", produces = MediaType.APPLICATION_JSON_VALUE)
 //  @GetMapping("/product/profile-images/{imageId}")
-  public ResponseEntity<ReviewProduct> profileImage(@PathVariable("imageId") Long imageId) {
-    return reviewSVC.reviewProfile(imageId)
-        .map(rp -> ResponseEntity.ok(rp)) // ReviewProduct 그대로 반환
-        .orElseGet(() -> ResponseEntity.notFound().build());
+  public ResponseEntity<ApiResponse<ReviewProduct>> profileImage(
+      @PathVariable("imageId") Long imageId,
+      HttpSession session
+  ) {
+    Long loginId = (Long) session.getAttribute("loginMemberId");
+    if (loginId == null) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+    }
+
+    ReviewProduct rp = reviewSVC.reviewProfile(imageId)
+        .orElse(null);
+
+    if (rp == null) {
+      return ResponseEntity.notFound().build();
+    }
+
+    ApiResponse<ReviewProduct> response =
+        ApiResponse.of(ApiResponseCode.SUCCESS, rp);
+
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping("/product/reviewCnt/{productId}")

@@ -24,32 +24,43 @@ public class ReviewDAOImpl implements ReviewDAO{
 
   final private NamedParameterJdbcTemplate template;
 
+
   @Override
-  public Optional<ReviewProduct> summaryFindById(Long id) {
+  public Optional<ReviewProduct> summaryFindById(Long orderId) {
 
     StringBuffer sql = new StringBuffer();
-    sql.append("SELECT p.product_id AS product_id,p.category AS category,p.title AS title,p.create_date AS create_date,sp.nickname AS nickname,i.mime_type AS MIME_TYPE,i.image_data AS image_data, oi.option_type as option_type  ");
-    sql.append("FROM product p ");
+    sql.append("SELECT p.product_id AS product_id,p.category AS category,p.title AS title,p.create_date AS create_date,sp.nickname AS nickname,i.mime_type AS MIME_TYPE,i.image_data AS image_data, oi.option_type as option_type ");
+    sql.append("FROM order_items oi ");
+    sql.append("JOIN product p ON p.product_id = oi.product_id ");
     sql.append("LEFT JOIN product_image i ");
-    sql.append("  ON p.PRODUCT_ID = i.PRODUCT_ID ");
-    sql.append(" AND i.image_order = ( ");
-    sql.append("       SELECT MIN(pi.image_order) FROM product_image pi WHERE pi.product_id = p.product_id ");
-    sql.append("     ) ");
+    sql.append("       ON i.product_id = p.product_id ");
+    sql.append("      AND i.image_order = ( ");
+    sql.append("           SELECT MIN(pi.image_order) ");
+    sql.append("             FROM product_image pi ");
+    sql.append("            WHERE pi.product_id = p.product_id ");
+    sql.append("         ) ");
     sql.append("LEFT JOIN seller_page sp ON sp.member_id = p.member_id ");
-    sql.append("LEFT JOIN ORDER_ITEMS oi ON oi.product_id = p.product_id ");
-    sql.append("WHERE p.product_ID = :productId ");
+    sql.append("WHERE oi.order_item_id = :orderId ");
 
-    SqlParameterSource param = new MapSqlParameterSource().addValue("productId",id);
 
-    ReviewProduct reviewProduct = null;
+    SqlParameterSource param =
+        new MapSqlParameterSource().addValue("orderId", orderId);
+
+    ReviewProduct reviewProduct;
     try {
-      reviewProduct = template.queryForObject(sql.toString(), param, BeanPropertyRowMapper.newInstance(ReviewProduct.class));
+      reviewProduct = template.queryForObject(
+          sql.toString(),
+          param,
+          BeanPropertyRowMapper.newInstance(ReviewProduct.class)
+      );
     } catch (EmptyResultDataAccessException e) {
+
       return Optional.empty();
     }
-
     return Optional.of(reviewProduct);
   }
+
+
 
 
   @Override
@@ -68,7 +79,6 @@ public class ReviewDAOImpl implements ReviewDAO{
     } catch (EmptyResultDataAccessException e) {
       return Optional.empty();
     }
-
     return Optional.of(reviewInfo);
   }
 

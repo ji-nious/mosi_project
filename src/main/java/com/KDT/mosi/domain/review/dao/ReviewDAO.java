@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface ReviewDAO {
   //상품 요약 정보 확인
-  Optional<ReviewProduct> summaryFindById(Long id);
+  Optional<ReviewProduct> summaryFindById(Long orderId);
 
   //상품 구매자 확인
   Optional<ReviewInfo> findBuyerIdByOrderItemId(Long id);
