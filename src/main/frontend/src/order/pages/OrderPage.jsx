@@ -98,7 +98,7 @@ function OrderPage() {
             }
           }
         } catch (error) {
-          // 서버 세션 상태 복원 실패 시 무시
+          // 무시
         }
       }
 
@@ -134,12 +134,8 @@ function OrderPage() {
           })
         }
       } catch (error) {
-        // 오류 시 기본값
-        setMemberInfo({
-          name: '',
-          phone: '',
-          email: ''
-        })
+        // 기본값 설정
+        setMemberInfo({ name: '', phone: '', email: '' })
       }
 
       setOrderData({ orderItems: items })
@@ -169,8 +165,7 @@ function OrderPage() {
         alert(orderResult?.message || '주문 생성에 실패했습니다')
       }
     } catch (error) {
-      console.error('주문 생성 실패:', error)
-      alert('주문 처리 중 오류가 발생했습니다')
+      alert('주문에 실패했습니다')
     } finally {
       setProcessing(false)
     }
@@ -202,8 +197,7 @@ function OrderPage() {
         alert(paymentResult?.message || '결제에 실패했습니다')
       }
     } catch (error) {
-      console.error('결제 처리 실패:', error)
-      alert('결제 처리 중 오류가 발생했습니다')
+      alert('결제에 실패했습니다')
     } finally {
       setProcessing(false)
     }
@@ -232,8 +226,7 @@ function OrderPage() {
       alert('결제가 완료되었습니다.')
 
     } catch (error) {
-      console.error('임시 결제 처리 실패:', error)
-      alert('임시 결제 처리 중 오류가 발생했습니다')
+      alert('결제 처리 중 오류가 발생했습니다')
     } finally {
       setShowPaymentModal(false)
       setProcessing(false)
@@ -323,7 +316,7 @@ function OrderPage() {
         alert(message)
       }
     } catch (error) {
-      alert('주문 처리 중 오류가 발생했습니다. 다시 시도해주세요.')
+      alert('주문에 실패했습니다')
     } finally {
       setProcessing(false)
     }

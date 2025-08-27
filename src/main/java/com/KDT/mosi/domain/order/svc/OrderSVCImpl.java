@@ -32,8 +32,7 @@ import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -670,6 +669,93 @@ public class OrderSVCImpl implements OrderSVC {
     } catch (Exception e) {
       log.error("결제 완료 처리 실패: orderCode={}", orderCode, e);
       throw new RuntimeException("결제 처리 중 오류가 발생했습니다");
+    }
+  }
+
+  /**
+   * 판매자 판매내역 조회
+   */
+  @Override
+  public ApiResponse<List<OrderResponse>> getSellerOrderHistory(Long sellerId, int page, int size) {
+    try {
+      // Pageable 객체 생성 (page는 0부터 시작하므로 -1)
+      Pageable pageable = PageRequest.of(page - 1, size, Sort.by("orderItemId").descending());
+
+      // 판매자의 주문 아이템을 페이징으로 조회
+      Page<OrderItem> orderItemPage = orderItemRepository.findBySellerId(sellerId, pageable);
+
+      // 주문 ID 추출 및 중복 제거
+      List<Long> orderIds = orderItemPage.getContent().stream()
+          .map(OrderItem::getOrderId)
+          .distinct()
+          .collect(Collectors.toList());
+
+      // 주문 정보 조회
+      List<Order> orders = orderRepository.findAllById(orderIds);
+      
+      // 주문 ID를 키로 하는 Map 생성 (빠른 조회를 위해)
+      Map<Long, Order> orderMap = orders.stream()
+          .collect(Collectors.toMap(Order::getOrderId, order -> order));
+
+      List<OrderResponse> orderResponses = orderItemPage.getContent().stream()
+          .collect(Collectors.groupingBy(OrderItem::getOrderId))
+          .entrySet().stream()
+          .map(entry -> {
+            Long orderId = entry.getKey();
+            List<OrderItem> orderItems = entry.getValue();
+            Order order = orderMap.get(orderId);
+            
+            if (order == null) return null;
+
+            List<OrderItemResponse> orderItemResponses = convertOrderItemsToResponse(orderItems);
+
+            // 구매자 정보 조회
+            Member buyer = memberDAO.findById(order.getBuyerId()).orElse(null);
+            String buyerName = buyer != null ? buyer.getName() : "구매자";
+
+            OrderResponse response = new OrderResponse();
+            response.setOrderId(order.getOrderId());
+            response.setOrderCode(order.getOrderCode());
+            response.setOrderDate(order.getOrderDate());
+            response.setOrderStatus(order.getStatus());
+            response.setBuyerName(buyerName);
+            response.setOrderItems(orderItemResponses);
+            // 판매자 상품의 총 가격만 계산
+            Long sellerTotalPrice = orderItems.stream()
+                .mapToLong(item -> item.getSalePrice() * item.getQuantity())
+                .sum();
+            response.setTotalPrice(sellerTotalPrice);
+            return response;
+          })
+          .filter(Objects::nonNull)
+          .sorted((o1, o2) -> o2.getOrderDate().compareTo(o1.getOrderDate()))
+          .collect(Collectors.toList());
+
+      // 페이징 정보 생성 (구매자용과 동일한 패턴)
+      ApiResponse.Paging paging = new ApiResponse.Paging(
+          orderItemPage.getNumber() + 1, // 페이지 번호 (0-based를 1-based로)
+          orderItemPage.getSize(),
+          (int) orderItemPage.getTotalElements()
+      );
+
+      return ApiResponse.of(ApiResponseCode.SUCCESS, orderResponses, paging);
+
+    } catch (Exception e) {
+      log.error("판매자 판매내역 조회 실패: sellerId={}", sellerId, e);
+      return ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null);
+    }
+  }
+
+  /**
+   * 판매자 주문 개수 조회
+   */
+  @Override
+  public int getSellerOrderCount(Long sellerId) {
+    try {
+      return orderItemRepository.countBySellerId(sellerId);
+    } catch (Exception e) {
+      log.error("판매자 주문 개수 조회 실패: sellerId={}", sellerId, e);
+      return 0;
     }
   }
 

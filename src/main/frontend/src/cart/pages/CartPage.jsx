@@ -60,7 +60,7 @@ function CartPage() {
         alert(result?.message || '수량 변경에 실패했습니다')
       }
     } catch (error) {
-      alert('수량 변경 중 오류가 발생했습니다')
+      alert('수량 변경에 실패했습니다')
     } finally {
       setUpdating(false)
     }
@@ -87,7 +87,7 @@ function CartPage() {
         alert(result?.message || '삭제에 실패했습니다')
       }
     } catch (error) {
-      alert('삭제 중 오류가 발생했습니다')
+      alert('삭제에 실패했습니다')
     } finally {
       setUpdating(false)
     }
@@ -144,7 +144,7 @@ function CartPage() {
       }
       alert(`${selectedItems.size}개 상품이 삭제되었습니다.`)
     } catch (error) {
-      alert('삭제 중 오류가 발생했습니다')
+      alert('선택 삭제에 실패했습니다')
     } finally {
       setUpdating(false)
     }
@@ -161,12 +161,8 @@ function CartPage() {
       return
     }
 
-    try {
-      sessionStorage.setItem('selectedCartItems', JSON.stringify(selectedCartItems))
-      window.location.href = '/order'
-    } catch (error) {
-      alert('주문 생성 중 오류가 발생했습니다')
-    }
+    sessionStorage.setItem('selectedCartItems', JSON.stringify(selectedCartItems))
+    window.location.href = '/order'
   }, [cartData?.cartItems, selectedItems])
 
   // 계산된 값들

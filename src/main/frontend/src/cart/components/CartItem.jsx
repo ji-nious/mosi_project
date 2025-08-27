@@ -22,7 +22,6 @@ const CartItem = memo(({
       // 개별 파라미터로 호출
       await onQuantityChange(item.productId, item.optionType, newQuantity)
     } catch (error) {
-      console.error('수량 변경 실패:', error)
       alert('수량 변경에 실패했습니다')
     } finally {
       setIsUpdating(false)
@@ -39,7 +38,6 @@ const CartItem = memo(({
       // 개별 파라미터로 호출
       await onRemove(item.productId, item.optionType)
     } catch (error) {
-      console.error('삭제 실패:', error)
       alert('삭제에 실패했습니다')
     } finally {
       setIsUpdating(false)

@@ -64,7 +64,6 @@ export const cartService = {
       // 조회는 CartResponse 구조 그대로 반환 (백엔드 body 부분)
       return apiResponse.body || apiResponse
     } catch (error) {
-      console.error('장바구니 조회 실패:', error)
       throw error
     }
   },
@@ -88,7 +87,6 @@ export const cartService = {
 
       return await handleResponse(response)
     } catch (error) {
-      console.error('수량 변경 실패:', error)
       throw error
     }
   },
@@ -111,7 +109,6 @@ export const cartService = {
 
       return await handleResponse(response)
     } catch (error) {
-      console.error('상품 삭제 실패:', error)
       throw error
     }
   },
@@ -146,7 +143,6 @@ export const cartService = {
 
       return await handleResponse(response)
     } catch (error) {
-      console.error('장바구니 추가 실패:', error)
       throw error
     }
   }

@@ -39,7 +39,6 @@ export default function OrderCompletePage() {
       const data = apiResponse.body || apiResponse
       setOrderData(data)
     } catch (error) {
-      console.error('주문 완료 데이터 조회 실패:', error)
       setError(error.message)
     } finally {
       setLoading(false)
@@ -203,7 +202,7 @@ export default function OrderCompletePage() {
 
       {/* 하단 버튼 */}
       <div className="complete-actions">
-        <a href="/order/complete/history" className="btn btn-primary">주문내역 확인</a>
+        <a href="/order/history" className="btn btn-primary">주문내역 확인</a>
         <a href="/order/complete/shopping" className="btn btn-secondary">쇼핑 계속하기</a>
       </div>
     </div>

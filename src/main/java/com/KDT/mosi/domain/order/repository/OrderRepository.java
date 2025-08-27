@@ -34,4 +34,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   int countByOrderCodeStartingWith(String prefix);
 
   Page<Order> findByBuyerId(Long buyerId, Pageable pageable);
+
+  /**
+   * 판매자별 주문 목록 조회 (OrderItem과 JOIN)
+   * 구매자용과 동일한 패턴으로 구현
+   */
+  // 이 방법은 복잡하므로 OrderSVCImpl에서 처리
 }
