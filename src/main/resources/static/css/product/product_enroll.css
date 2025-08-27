@@ -17,11 +17,6 @@
     margin-bottom: 100px;
 }
 
-/* 페이지 컨테이너 스타일 */
-.page-container {
-    height: 3000px; /* 임시 높이 설정 */
-}
-
 /* 섹션 너비 설정 */
 .page-container section {
     width: 941px;

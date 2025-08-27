@@ -191,7 +191,6 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
             </div>
           </div>
-          <hr>
         `;
         productListContainer.insertAdjacentHTML('beforeend', productItemHtml);
       });
