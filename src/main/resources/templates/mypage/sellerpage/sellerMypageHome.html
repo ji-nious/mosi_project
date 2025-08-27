@@ -105,19 +105,20 @@
             <div class="home-product-list">
               <th:block th:if="${totalCount > 0}">
                 <div class="home-product-item" th:each="form : ${productList}">
-                  <a class="home-product-item-container" th:href="@{/product/view/{id}(id=${form.product.productId})}">
+                  <a class="home-product-item-container" th:href="@{/product/view/{id}(id=${form.productId})}">
                     <div class="home-thumbnail">
                       <img th:if="${form.images != null and #lists.size(form.images) > 0}"
-                        th:src="${form.images[0].base64ImageData}" th:alt="${form.images[0].fileName}" />
+                           th:src="|data:${form.images[0].mimeType};base64,${form.images[0].encodedImageData}|"
+                           th:alt="${form.images[0].fileName}" />
                       <img th:if="${form.images == null or #lists.isEmpty(form.images)}"
-                        th:src="@{/img/default-product.png}" alt="기본 상품 이미지" />
+                           th:src="@{/img/default-product.png}" alt="기본 상품 이미지" />
                     </div>
                     <div class="home-product-info">
-                      <h3 th:text="${form.product.title}">상품명</h3>
+                      <h3 th:text="${form.title}">상품명</h3>
                       <p class="s-price"
-                        th:text="|${#numbers.formatDecimal(form.product.salesPrice, 0, 'COMMA', 0, 'POINT')} 원|"></p>
+                         th:text="|${#numbers.formatDecimal(form.salesPrice, 0, 'COMMA', 0, 'POINT')} 원|"></p>
                       <p class="n-price"
-                        th:text="|${#numbers.formatDecimal(form.product.normalPrice, 0, 'COMMA', 0, 'POINT')} 원|"></p>
+                         th:text="|${#numbers.formatDecimal(form.normalPrice, 0, 'COMMA', 0, 'POINT')} 원|"></p>
                     </div>
                   </a>
                 </div>
@@ -129,16 +130,17 @@
           </div>
         </section>
       </main>
-      <!-- 공지 -->
-      <div class="notice-bar">
-        <div class="notice-label">공지</div>
-        <div class="notice-text">&lt;MO:SI&gt; 신규 코스 등록 이벤트 당첨자 안내</div>
-        <a href="#" class="more-link">+ 더보기</a>
-      </div>
-
-      <footer th:replace="~{fragments/footer :: footer}"></footer>
     </div>
+    <!-- 공지 -->
+    <div class="notice-bar">
+      <div class="notice-label">공지</div>
+      <div class="notice-text">&lt;MO:SI&gt; 신규 코스 등록 이벤트 당첨자 안내</div>
+      <a href="#" class="more-link">+ 더보기</a>
+    </div>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
   </div>
+
   <script th:src="@{/js/sellerpage/sellerMypageHome.js}"></script>
   <script th:src="@{/js/layout.js}"></script>
 </body>
