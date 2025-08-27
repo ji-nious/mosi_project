@@ -687,6 +687,7 @@ public class ProductController {
 
     // 6) model에 DTO 등록
     model.addAttribute("productDetailForm", productDetailForm);
+    model.addAttribute("product", product);
     model.addAttribute("buyerId", buyerId);
     model.addAttribute("sellerId", sellerId);
 
