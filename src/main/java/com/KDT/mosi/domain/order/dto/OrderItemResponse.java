@@ -3,6 +3,9 @@ package com.KDT.mosi.domain.order.dto;
 import com.KDT.mosi.domain.entity.Product;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
 /**
  * 주문 상품 응답 DTO
  */
@@ -24,6 +27,7 @@ public class OrderItemResponse {
   private boolean available;        // 주문 가능 여부
   private boolean priceChanged;     // 가격 변동 여부
   private String statusMessage;     // "판매중단" 사용자에게 보여줄 메시지
+  private Date createdDate;
 
   /**
    * 판매중인 상품
@@ -32,7 +36,8 @@ public class OrderItemResponse {
                                                   Long currentPrice, Long currentOriginalPrice,
                                                   Long cartPrice, Long cartOriginalPrice,
                                                   Long quantity, String optionType,
-                                                  String productImage, String sellerNickname) {
+                                                  String productImage, String sellerNickname,
+                                                  Date createdDate) {
     OrderItemResponse response = new OrderItemResponse();
     response.setProductId(productId);
     response.setProductName(productName);
@@ -49,6 +54,7 @@ public class OrderItemResponse {
     response.setProductStatus("판매중");
     response.setAvailable(true);
     response.setPriceChanged(!currentPrice.equals(cartPrice));
+    response.setCreatedDate(createdDate);
     return response;
   }
 
@@ -60,7 +66,8 @@ public class OrderItemResponse {
                                                     Long cartPrice, Long cartOriginalPrice,
                                                     Long quantity, String optionType,
                                                     String productImage, String sellerNickname,
-                                                    String productStatus, String statusMessage) {
+                                                    String productStatus, String statusMessage,
+                                                    Date createdDate) {
     OrderItemResponse response = new OrderItemResponse();
     response.setProductId(productId);
     response.setProductName(productName);
@@ -77,6 +84,7 @@ public class OrderItemResponse {
     response.setAvailable(false);
     response.setPriceChanged(!currentPrice.equals(cartPrice));
     response.setStatusMessage(statusMessage);
+    response.setCreatedDate(createdDate);
     return response;
   }
 }

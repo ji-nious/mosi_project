@@ -2,28 +2,6 @@ body {
     background-color: #f7f9fc;
 }
 
-.page-main-container {
-    display: flex;
-    max-width: 1200px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #fff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-}
-
-.page-content-container {
-    flex-grow: 1;
-    padding: 0 20px;
-}
-
-.page-content-container h1 {
-    font-size: 2em;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 10px;
-}
-
 hr {
     border: 0;
     height: 1px;
@@ -31,48 +9,21 @@ hr {
     margin: 20px 0;
 }
 
-.review-page-selector {
+/* 검색박스 */
+.product-search-box {
+    margin-top: 30px;
+    margin-bottom: 35px;
+    width: 100%; /* 부모에 맞게 너비 조절 */
     display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 25px;
+    justify-content: center; /* 가운데 정렬 */
 }
 
-.review-page-selector .btn {
-    padding: 10px 25px;
-    border: 1px solid #ddd;
-    border-radius: 25px;
-    text-decoration: none;
-    color: #555;
-    background-color: #f0f0f0;
-    transition: all 0.3s ease;
-}
-
-.review-page-selector .btn:hover {
-    background-color: #e2e6ea;
-}
-
-.review-page-selector .btn.active {
-    background-color: #007bff;
-    color: #fff;
-    border-color: #007bff;
-}
-
-.order-history-item {
-    border: 1px solid #e9ecef;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 25px;
-    background-color: #fafafa;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.order-info {
-    font-size: 0.9em;
-    color: #6c757d;
-    margin-bottom: 15px;
-    border-bottom: 1px dashed #e9ecef;
-    padding-bottom: 10px;
+.search-box-input {
+    width: 335px;
+    height: 38px;
+    border: 1px solid #1EC4CC;
+    border-radius: 8px;
+    padding: 5px;
 }
 
 /* ======================= */
@@ -84,67 +35,85 @@ hr {
     align-items: center;
     justify-content: space-between;
     padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    margin-bottom: 20px;
+    margin: 15px 0;
     background-color: #fff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+.product-info .image-box {
+  width: 190px;
+  height: 190px;
 }
 
-.product-image-container {
-    flex-shrink: 0;
-    margin-right: 20px;
+.product-info .image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
 }
 
-.product-image-container img {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 8px;
+.product-info-left {
+  width: 450px;
+  height: 190px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
 }
 
-.product-details-container {
-    flex-grow: 1;
-    margin-right: 20px;
+.product-info-left-detail {
+  height: 100px;
+}
+.product-info-left-detail-details {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.product-price-container {
-    flex-shrink: 0;
-    text-align: right;
+.product-info-left-detail-details .text-trim {
+  height: 120px;
 }
 
-.product-details-container h2 {
-    font-size: 1.2em;
-    margin: 0 0 8px;
+.product-info-left-pdate-and-nickname {
+  display: flex;
+  flex-direction: row;
+  margin: 5px 0;
 }
 
-.seller-nickname {
-    font-size: 0.9em;
-    color: #777;
-    margin-bottom: 5px;
+.product-info-left-pdate-and-nickname .created-date {
+  margin-right: 15px;
+}
+
+.price-and-order-date {
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  margin: 10px 0;
 }
 
 .price {
     display: flex;
     align-items: flex-end;
     justify-content: flex-end;
-    color: #007bff;
 }
 
 .price h1 {
-    font-size: 1.5em;
+    font-size: 32px;
     font-weight: bold;
     margin: 0;
 }
 
 .price div {
-    font-size: 1em;
+    font-size: 24px;
     margin-left: 5px;
     font-weight: normal;
 }
+.product-info-right-detail {
+  height: 190px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
 
 .product-info-right-detail div {
-    font-size: 0.9em;
     color: #555;
     margin-bottom: 2px;
 }
@@ -158,9 +127,9 @@ hr {
 
 .btn-group .btn {
     padding: 8px 15px;
-    background-color: #007bff;
+    background: #1EC4CC !important;
     color: white;
-    border: none;
+    border: 1px solid #0099AD;
     border-radius: 5px;
     cursor: pointer;
     text-decoration: none;
@@ -168,7 +137,12 @@ hr {
 }
 
 .btn-group .btn:hover {
-    background-color: #0056b3;
+    background-color: #0056b3 !important;
+}
+.btn-group .btn.delete-btn {
+  background-color: #FFF !important;
+  color: #000 !important;
+  border: 1px solid #B2B2B2;
 }
 
 .pagination {
@@ -181,7 +155,7 @@ hr {
 
 .pagination a {
     text-decoration: none;
-    color: #007bff;
+    color: #FFF;
     padding: 8px 12px;
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -189,23 +163,14 @@ hr {
 }
 
 .pagination a.active {
-    background-color: #007bff;
+    background-color: #0099AD;
     color: white;
-    border-color: #007bff;
+    border-color: #0099AD;
 }
 
 .pagination a:hover {
     background-color: #e9ecef;
 }
-
-.no-data-message {
-    text-align: center;
-    margin-top: 50px;
-    color: #777;
-    font-size: 1.2em;
-}
-
-/* 추가된 CSS */
 
 .text-trim {
     display: block;

@@ -28,6 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -327,6 +328,7 @@ public class OrderSVCImpl implements OrderSVC {
 
       if (productOpt.isPresent()) {
         Product product = productOpt.get();
+        Date createDate = product.getCreateDate();
 
         // 모든 정보를 실시간으로 조회
         String sellerNickname = getSellerNickname(cartItem.getSellerId());
@@ -366,7 +368,8 @@ public class OrderSVCImpl implements OrderSVC {
               cartItem.getQuantity(),
               cartItem.getOptionType(),
               imageData,
-              sellerNickname
+              sellerNickname,
+              createDate
           ));
         } else {
           result.add(OrderItemResponse.createUnavailable(
@@ -382,7 +385,8 @@ public class OrderSVCImpl implements OrderSVC {
               imageData,
               sellerNickname,
               currentStatus,
-              statusMessage
+              statusMessage,
+              createDate
           ));
         }
       }
@@ -404,6 +408,7 @@ public class OrderSVCImpl implements OrderSVC {
         Product product = productOpt.get();
         String sellerNickname = getSellerNickname(orderItem.getSellerId());
         String imageData = getProductImage(product);
+        Date createdDate = product.getCreateDate();
 
         result.add(OrderItemResponse.createAvailable(
             orderItem.getProductId(),
@@ -417,7 +422,8 @@ public class OrderSVCImpl implements OrderSVC {
             orderItem.getQuantity(),
             orderItem.getOptionType(),
             imageData,
-            sellerNickname
+            sellerNickname,
+            createdDate
         ));
       }
     }
@@ -511,6 +517,7 @@ public class OrderSVCImpl implements OrderSVC {
             throw new IllegalArgumentException("상품을 찾을 수 없습니다");
           }
           Product product = productOpt.get();
+          Date createdDate = product.getCreateDate();
 
           // 판매자 정보 조회
           String sellerNickname = "판매자";
@@ -542,7 +549,8 @@ public class OrderSVCImpl implements OrderSVC {
               orderItem.getQuantity().longValue(),
               orderItem.getOptionType(),
               imageData,
-              sellerNickname
+              sellerNickname,
+              createdDate
           );
         })
         .collect(Collectors.toList());
