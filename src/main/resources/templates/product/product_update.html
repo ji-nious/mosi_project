@@ -8,7 +8,7 @@
   <link rel="stylesheet" th:href="@{/css/layout.css}">
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <link rel="stylesheet" th:href="@{/css/sellerpage/sellerMypageHome.css}">
-  <link rel="stylesheet" th:href="@{/css/product/product_enroll.css}" />
+  <link rel="stylesheet" th:href="@{/css/product/product_enroll.css}"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 </head>
@@ -28,7 +28,8 @@
           <div class="product-registration-main">
             <div class="resgistratrion-title">상품 기본 정보 등록</div>
             <div class="resgistration-content">
-              <form id="productForm" class="post-form" th:object="${productUpdateForm}" th:action="@{/product/edit/{id}(id=${productUpdateForm.product.productId})}"
+              <form id="productForm" class="post-form" th:object="${productUpdateForm}"
+                    th:action="@{/product/edit/{id}(id=${productUpdateForm.product.productId})}"
                     method="post" enctype="multipart/form-data">
                 <div class="form-group">
                   <label><b>*</b>&nbsp카테고리</label>
@@ -67,12 +68,14 @@
                   <label><b>*</b>&nbsp정상 상품 가격</label>
                   <div class="price-input-container">
                     <div class="input-with-tag">
-                      <input class="price" type="number" th:field="*{product.normalPrice}" placeholder="기본 정보 가격" min="0">
+                      <input class="price" type="number" th:field="*{product.normalPrice}" placeholder="기본 정보 가격"
+                             min="0">
                       <div class="tag">원</div>
                       <div class="validation-message"></div>
                     </div>
                     <div class="input-with-tag">
-                      <input class="price" type="number" th:field="*{product.guidePrice}" placeholder="가이드 동반 가격" min="0">
+                      <input class="price" type="number" th:field="*{product.guidePrice}" placeholder="가이드 동반 가격"
+                             min="0">
                       <div class="tag">원</div>
                       <div class="validation-message"></div>
                     </div>
@@ -82,7 +85,8 @@
                   <label><b>*</b>&nbsp판매 상품 가격</label>
                   <div class="price-input-container">
                     <div class="input-with-tag">
-                      <input class="price" type="number" th:field="*{product.salesPrice}" placeholder="기본 정보 가격" min="0">
+                      <input class="price" type="number" th:field="*{product.salesPrice}" placeholder="기본 정보 가격"
+                             min="0">
                       <div class="tag">원</div>
                       <div class="validation-message"></div>
                     </div>
@@ -141,7 +145,8 @@
                 <div class="form-group">
                   <label><b>*</b>&nbsp추천 인원</label>
                   <div class="input-container">
-                    <input class="recommendation" type="text" th:field="*{product.reqPeople}" placeholder="ex) 2~3명, 4명 이상 등">
+                    <input class="recommendation" type="text" th:field="*{product.reqPeople}"
+                           placeholder="ex) 2~3명, 4명 이상 등">
                     <span class="word-count-message">0/15자</span>
                     <div class="validation-message"></div>
                   </div>
@@ -149,7 +154,8 @@
                 <div class="form-group">
                   <label><b>*</b>&nbsp추천 대상</label>
                   <div class="input-container">
-                    <input class="recommendation" type="text" th:field="*{product.target}" placeholder="ex) 4, 50대 중년 커플">
+                    <input class="recommendation" type="text" th:field="*{product.target}"
+                           placeholder="ex) 4, 50대 중년 커플">
                     <span class="word-count-message">0/15자</span>
                     <div class="validation-message"></div>
                   </div>
@@ -172,7 +178,7 @@
                         <i class="fa fa-cloud-upload-alt" style=""></i>
                         <p style="text-align:center; color:#717171; font-size:14px;">클릭하거나 파일을 드래그하여 <br>이미지 업로드</p>
                         <img class="image-preview" src="" alt="미리보기 이미지"
-                             style="display:none; max-width: 100%; border-radius: 8px; margin-top: 10px;" />
+                             style="display:none; max-width: 100%; border-radius: 8px; margin-top: 10px;"/>
                       </div>
                     </div>
                     <div id="imageNameList" class="image-name-list">
@@ -243,7 +249,10 @@
                   </div>
                 </div>
                 <div class="form-group submit-btn">
-                  <button type="submit" id="registerBtn">수정</button>
+                  <th:block>
+                    <button type="submit" id="registerBtn"
+                            th:text="${productUpdateForm.product.status == '임시저장' ? '등록' : '수정'}"></button>
+                  </th:block>
 
                   <button type="button" id="tempSaveBtn">임시저장</button>
 
@@ -268,5 +277,4 @@
 <script th:src="@{/js/sellerpage/sellerMypageHome.js}"></script>
 <script th:src="@{/js/layout.js}"></script>
 </body>
-
 </html>
