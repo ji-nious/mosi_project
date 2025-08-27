@@ -113,7 +113,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // 브라우저 URL을 변경하여 뒤로가기/앞으로가기 버튼이 작동하도록 함
         const newUrl = `/product/manage?status=${status}&page=${page}&size=5`;
         history.pushState(null, '', newUrl);
-
       })
       .catch(error => {
         console.error('상품 목록을 불러오는 중 오류 발생:', error);
@@ -181,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="btn-group">
                   <button class="btn-group-edit" onclick="location.href='/product/edit/${form.product.productId}'">수정</button>
-                  <button class="btn-group-delete" onclick="if(confirm('해당 상품을 삭제하시겠습니까?')) location.href='/product/delete/${form.product.productId}'">삭제</button>
+                  <button class="btn-group-delete" data-product-id="${form.product.productId}" data-product-title="${title}">삭제</button>
                 </div>
               </div>
             </div>
@@ -303,4 +302,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 초기 로드 시 이벤트 리스너 바인딩
   bindStatusSelectListeners();
+
+  // 상품 삭제 이벤트 위임
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('btn-group-delete')) {
+      const productId = e.target.dataset.productId;
+      const productTitle = e.target.dataset.productTitle;
+
+      if (confirm(`'${productTitle}'을(를) 삭제하시겠습니까?`)) {
+        location.href = `/product/delete/${productId}`;
+      }
+    }
+  });
 });

@@ -53,6 +53,9 @@ public interface ReviewSVC {
   //리뷰 삭제
   public int deleteByIds(Long id, Long loginId);
 
+  //리뷰 다시 작성 가능
+  boolean updateReviewWrite(Long reviewId);
+
   //리뷰 수정 정보
   Optional<ReviewEdit> findReviewId (Long id, Long loginId);
 

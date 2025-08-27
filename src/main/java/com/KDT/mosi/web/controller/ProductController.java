@@ -225,6 +225,10 @@ public class ProductController {
     for (Product product : products) {
       if (product != null) { // 이 조건이 없어서 에러가 발생합니다.
         List<ProductImage> images = productImageSVC.findByProductId(product.getProductId());
+        // 각 이미지의 base64 데이터를 미리 생성
+        for (ProductImage image : images) {
+          image.getBase64ImageData(); // 이 메서드 호출로 encodedImageData 설정
+        }
         List<ProductCoursePoint> coursePoints = productCoursePointSVC.findByProductId(product.getProductId());
 
         double discountAmount = (double) product.getNormalPrice() - (double) product.getSalesPrice();
@@ -553,7 +557,7 @@ public class ProductController {
     // 기존 이미지 삭제 처리
     if (form.getDeleteImageIds() != null && !form.getDeleteImageIds().isEmpty()) {
       for (Long imageId : form.getDeleteImageIds()) {
-        productImageSVC.deleteByProductId(imageId);
+        productImageSVC.deleteProductImage(imageId);
       }
     }
 

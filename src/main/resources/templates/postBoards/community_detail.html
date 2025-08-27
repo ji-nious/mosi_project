@@ -1,4 +1,4 @@
-<!-- src/main/resources/templates/bbs/bbs_detail.html -->
+
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 
@@ -21,13 +21,28 @@
 </head>
 
 <body th:attr="data-parent-id=${bbs.bbsId}">
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
 
+>>>>>>> origin/feature/product
 <th:block th:switch="${session.loginRole ?: 'BUYER'}">
   <header th:case="'SELLER'" th:replace="~{fragments/sellerHeader :: sellerHeader(activeUri=${currentPath ?: ''})}">
   </header>
   <header th:case="*" th:replace="~{fragments/header :: header(activeUri=${currentPath ?: ''})}">
   </header>
 </th:block>
+<<<<<<< HEAD
+=======
+  <th:block th:switch="${session.loginRole ?: 'BUYER'}">
+    <header th:case="'SELLER'" th:replace="~{fragments/sellerHeader :: sellerHeader(activeUri=${currentPath ?: ''})}">
+    </header>
+    <header th:case="*" th:replace="~{fragments/header :: header(activeUri=${currentPath ?: ''})}">
+    </header>
+  </th:block>
+>>>>>>> origin/feature/chat
+=======
+>>>>>>> origin/feature/product
 
 <!-- ========================= MAIN LAYOUT ========================= -->
 <div class="layout-wrapper">
