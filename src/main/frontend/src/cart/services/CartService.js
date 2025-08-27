@@ -18,7 +18,12 @@ const handleResponse = async (response) => {
       throw new Error(apiResponse.header.rtmsg || '요청 처리 중 오류가 발생했습니다')
     }
 
-    return apiResponse.body || apiResponse
+    // 수정/삭제 작업을 위한 표준화된 응답 구조 반환
+    return {
+      success: true,
+      message: apiResponse.header?.rtmsg || '작업이 완료되었습니다',
+      data: apiResponse.body || apiResponse
+    }
   } catch (error) {
     if (error.message !== '서버 응답을 처리할 수 없습니다') {
       throw error
@@ -28,7 +33,7 @@ const handleResponse = async (response) => {
 }
 
 export const cartService = {
-  // 장바구니 조회 (백엔드 ApiResponse 구조와 호환)
+매학ㅣ 버  // 장바구니 조회 (백엔드 ApiResponse 구조와 호환)
   async getCart() {
     try {
       const response = await fetch('/cart', {

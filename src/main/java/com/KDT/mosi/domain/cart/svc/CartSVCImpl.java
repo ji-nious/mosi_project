@@ -38,6 +38,7 @@ public class CartSVCImpl implements CartSVC {
 
   // 장바구니 상품 추가
   @Override
+  @Transactional
   public ApiResponse<Void> addToCart(Long buyerId, Long productId, String optionType, Long quantity) {
     try {
       if (quantity <= 0) {

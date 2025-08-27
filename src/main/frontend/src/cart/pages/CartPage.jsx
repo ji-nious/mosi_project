@@ -25,7 +25,7 @@ function CartPage() {
       const data = await cartService.getCart()
       console.log('📦 장바구니 응답 데이터:', data)
 
-      if (data && data.success) {
+      if (data) {
         console.log('✅ 장바구니 데이터 성공:', data)
         setCartData(data)
 
