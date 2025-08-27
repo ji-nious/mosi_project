@@ -179,11 +179,17 @@ public class ReviewSVCImpl implements ReviewSVC{
   }
 
   @Override
-  public int deleteByIds(Long id, Long loginId) {
-    this.reviewCheck(id,loginId);
-    int cnt = reviewDAO.deleteByIds(id);      // 실삭제
+  public int deleteByIds(Long reviewId, Long loginId) {
+    this.reviewCheck(reviewId,loginId);
+    reviewDAO.updateReviewWrite(reviewId);
+    int cnt = reviewDAO.deleteByIds(reviewId);      // 실삭제
     if (cnt == 0) throw new IllegalStateException("이미 삭제되었거나 존재하지 않습니다.");
     return cnt;
+  }
+
+  @Override
+  public boolean updateReviewWrite(Long reviewId) {
+    return reviewDAO.updateReviewWrite(reviewId);
   }
 
   @Override

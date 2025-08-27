@@ -49,6 +49,9 @@ public interface ReviewDAO {
   //리뷰 삭제
   int deleteByIds(Long id);
 
+  //리뷰 다시 작성 가능
+  boolean updateReviewWrite(Long reviewId);
+
   //리뷰 수정 정보
   Optional<ReviewEdit> findReviewId (Long id);
 

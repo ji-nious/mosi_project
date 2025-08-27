@@ -21,6 +21,7 @@
   border: none;
   border-top: 1px solid #1EC4CC;
   border-bottom: 1px solid #fff;
+  margin-bottom:20px;
 }
 .review_list_main {
     /* 기존 flex-direction: column;은 유지하되, 자식 요소 정렬을 위해 center에서 start로 변경 */
@@ -93,8 +94,8 @@
 .listImg .image img{
   width: 100%;
   height: 100%;
-  object-fit: contain;     /* 비율 유지, 크롭 없음 */
-  object-position: center; /* 중앙 정렬 */
+  object-fit: cover;     /* contain → cover 로 변경 */
+  object-position: center; /* 중앙 기준으로 잘림 */
   display: block;
 }
 
@@ -276,6 +277,7 @@
 
 .review_lists {
 width: 938px;
+margin-bottom:20px;
 }
 
 .pagination {

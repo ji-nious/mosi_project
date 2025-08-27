@@ -27,6 +27,7 @@ public enum ApiResponseCode {
   // 상품 관련
   PRICE_CHANGED("P01", "상품 가격이 변경되었습니다."),
   PRODUCT_UNAVAILABLE("P02", "상품을 사용할 수 없습니다."),
+  PRODUCT_DISCONTINUED("P03", "현재 판매가 중단된 상품입니다."),
 
   // 결제 관련
   PAYMENT_FAILED("M01", "결제에 실패했습니다."),
