@@ -37,8 +37,6 @@ export default function OrderCompletePage() {
 
       // ApiResponse 구조에서 실제 데이터 추출
       const data = apiResponse.body || apiResponse
-      console.log('📋 주문완료 데이터:', data)
-      console.log('📝 요청사항:', data.specialRequest)
       setOrderData(data)
     } catch (error) {
       console.error('주문 완료 데이터 조회 실패:', error)

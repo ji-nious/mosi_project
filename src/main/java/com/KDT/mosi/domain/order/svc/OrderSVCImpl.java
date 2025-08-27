@@ -317,9 +317,7 @@ public class OrderSVCImpl implements OrderSVC {
     }
   }
 
-  /**
-   * CartItem → OrderItemResponse 변환
-   */
+  // CartItem → OrderItemResponse 변환
   private List<OrderItemResponse> convertToOrderItems(List<CartItem> cartItems) {
     List<OrderItemResponse> result = new ArrayList<>();
 

@@ -51,11 +51,8 @@ function RadioButton({ name, value, checked, onChange, children }) {
   )
 }
 
-/**
- * 주문 상품 아이템 컴포넌트 - 장바구니와 동일한 형태
- */
+// 주문 상품 아이템 컴포넌트
 function OrderItem({ productName, price, quantity, optionType, sellerNickname, productImage, originalPrice }) {
-  console.log('🖼️ OrderItem 이미지 데이터:', productName, '→', productImage ? 'Base64 있음' : 'null/undefined')
 
   return (
     <div className="order-item">
@@ -66,7 +63,6 @@ function OrderItem({ productName, price, quantity, optionType, sellerNickname, p
             alt={productName}
             loading="lazy"
             onError={(e) => {
-              console.log('❌ 이미지 로드 실패:', productName, '→', productImage)
               e.target.style.display = 'none'
               e.target.nextSibling.style.display = 'block'
             }}
@@ -91,10 +87,7 @@ function OrderItem({ productName, price, quantity, optionType, sellerNickname, p
   )
 }
 
-/**
- * 주문서 작성 폼 컴포넌트
- * Image 2와 완전 동일하게 구현
- */
+// 주문서 작성 폼 컴포넌트
 export default function OrderForm({
   orderItems = [],
   memberInfo = {},

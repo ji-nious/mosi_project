@@ -18,10 +18,7 @@ function ErrorMessage({ message, onRetry }) {
   )
 }
 
-/**
- * 메인 주문결제 페이지 컴포넌트
- * Image 2와 완전 동일하게 구현
- */
+// 주문결제 페이지 컴포넌트
 function OrderPage() {
   // 상태 관리
   const [orderData, setOrderData] = useState(null)
@@ -60,9 +57,7 @@ function OrderPage() {
     }
   }, [])
 
-  /**
-   * 주문 데이터 가져오기
-   */
+  // 주문 데이터 조회
   const fetchOrderData = async () => {
     try {
       setError(null)
@@ -103,7 +98,7 @@ function OrderPage() {
             }
           }
         } catch (error) {
-          console.log('서버 세션 상태 복원 실패:', error)
+          // 서버 세션 상태 복원 실패 시 무시
         }
       }
 
@@ -156,9 +151,7 @@ function OrderPage() {
     }
   }
 
-  /**
-   * 주문서 제출 처리
-   */
+  // 주문서 제출 처리
   const handleOrderSubmit = async (formData) => {
     try {
       setProcessing(true)
@@ -183,9 +176,7 @@ function OrderPage() {
     }
   }
 
-  /**
-   * 결제 처리
-   */
+  // 결제 처리
   const handlePayment = async (orderId, paymentMethod) => {
     try {
       setProcessing(true)
@@ -218,23 +209,17 @@ function OrderPage() {
     }
   }
 
-  /**
-   * 총 결제 금액 계산
-   */
+  // 총 결제 금액 계산
   const calculateTotalAmount = (items) => {
     return items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
   }
 
-  /**
-   * 결제 방법 변경 핸들러
-   */
+  // 결제 방법 변경
   const handlePaymentMethodChange = (method) => {
     setPaymentMethod(method)
   }
 
-  /**
-   * 라디오 버튼 선택 시 임시 결제 처리 (주문완료로 가지 않음)
-   */
+  // 임시 결제 처리
   const processPaymentImmediately = async (selectedPaymentMethod) => {
     try {
       setShowPaymentModal(true)
@@ -255,9 +240,7 @@ function OrderPage() {
     }
   }
 
-  /**
-   * 결제하기 버튼 클릭 시 - 실제 주문 완료 처리
-   */
+  // 주문 완료 처리
   const onPayment = async () => {
     // 결제 수단 선택 여부 확인
     if (!paymentMethod) {

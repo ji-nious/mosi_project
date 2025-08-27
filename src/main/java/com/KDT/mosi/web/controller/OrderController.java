@@ -34,7 +34,8 @@ public class OrderController {
   private final SellerPageSVC sellerPageSVC;
 
   /**
-   * 주문서 페이지 (통합)
+   * 주문서 HTML 페이지 반환
+   * GET /order
    */
   @GetMapping
   public String orderPage(
@@ -46,8 +47,8 @@ public class OrderController {
       return "redirect:/login";
     }
 
-    log.info("주문 페이지 접근: memberId={}, cartItemIds={}", 
-        loginMember.getMemberId(), cartItemIds);
+    log.info("주문 HTML 페이지 접근: memberId={}, nickname={}",
+        loginMember.getMemberId(), loginMember.getNickname());
 
     // URL 파라미터가 있으면 model에 추가 (기존 방식)
     if (cartItemIds != null && !cartItemIds.isEmpty()) {
@@ -73,7 +74,8 @@ public class OrderController {
   }
 
   /**
-   * 주문서 데이터 조회 API
+   * 주문서 JSON 데이터 반환 (React AJAX 호출)
+   * GET /order/form
    */
   @GetMapping(value = "/form", produces = "application/json")
   @ResponseBody
@@ -88,16 +90,24 @@ public class OrderController {
       );
     }
 
-    OrderResponse response = orderSVC.getOrderForm(loginMember.getMemberId(), cartItemIds);
-    return ResponseEntity.ok(
-        ApiResponse.of(ApiResponseCode.SUCCESS, response)
-    );
+    try {
+      OrderResponse response = orderSVC.getOrderForm(loginMember.getMemberId(), cartItemIds);
+      return ResponseEntity.ok(
+          ApiResponse.of(ApiResponseCode.SUCCESS, response)
+      );
+    } catch (Exception e) {
+      log.error("주문서 조회 오류: memberId={}", loginMember.getMemberId(), e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+          ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
+      );
+    }
   }
 
 
 
   /**
-   * 주문 생성 API
+   * 주문 생성
+   * POST /order/create
    */
   @PostMapping(value = "/create", produces = "application/json")
   @ResponseBody
@@ -112,25 +122,33 @@ public class OrderController {
       );
     }
 
-    OrderResponse response = orderSVC.createOrder(loginMember.getMemberId(), request);
-    
-    // 주문 생성 성공 시 주문 상태를 세션에 저장
-    if (response != null) {
-      Map<String, Object> orderState = new HashMap<>();
-      orderState.put("orderCode", response.getOrderCode());
-      orderState.put("orderItems", response.getOrderItems());
-      orderState.put("totalAmount", response.getTotalAmount());
-      orderState.put("timestamp", System.currentTimeMillis());
-      session.setAttribute("orderInProgress", orderState);
+    try {
+      OrderResponse response = orderSVC.createOrder(loginMember.getMemberId(), request);
+      
+      // 주문 생성 성공 시 주문 상태를 세션에 저장
+      if (response != null) {
+        Map<String, Object> orderState = new HashMap<>();
+        orderState.put("orderCode", response.getOrderCode());
+        orderState.put("orderItems", response.getOrderItems());
+        orderState.put("totalAmount", response.getTotalAmount());
+        orderState.put("timestamp", System.currentTimeMillis());
+        session.setAttribute("orderInProgress", orderState);
+      }
+      
+      return ResponseEntity.status(HttpStatus.CREATED).body(
+          ApiResponse.of(ApiResponseCode.SUCCESS, response)
+      );
+    } catch (Exception e) {
+      log.error("주문 생성 오류: memberId={}", loginMember.getMemberId(), e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+          ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
+      );
     }
-    
-    return ResponseEntity.status(HttpStatus.CREATED).body(
-        ApiResponse.of(ApiResponseCode.SUCCESS, response)
-    );
   }
 
   /**
-   * 주문 완료 페이지
+   * 주문 완료 HTML 페이지 반환
+   * GET /order/complete
    */
   @GetMapping("/complete")
   public String orderCompletePage(
@@ -151,7 +169,8 @@ public class OrderController {
   }
 
   /**
-   * 주문 완료 데이터 조회 API
+   * 주문 완료 JSON 데이터 반환 (React AJAX 호출)
+   * GET /order/complete/data
    */
   @GetMapping(value = "/complete/data", produces = "application/json")
   @ResponseBody
@@ -182,7 +201,8 @@ public class OrderController {
   }
 
   /**
-   * 주문내역 확인 이동
+   * 주문내역 확인 페이지 이동
+   * GET /order/complete/history
    */
   @GetMapping("/complete/history")
   public String redirectToOrderHistory(Model model, HttpSession session,
@@ -219,7 +239,8 @@ public class OrderController {
   }
 
   /**
-   * 쇼핑 계속하기 이동
+   * 쇼핑 계속하기 페이지 이동
+   * GET /order/complete/shopping
    */
   @GetMapping("/complete/shopping")
   public String continueShopping() {
@@ -227,7 +248,8 @@ public class OrderController {
   }
 
   /**
-   * 주문용 회원 정보 조회 API (책임 분리)
+   * 주문용 회원 정보 조회
+   * GET /order/member-info
    */
   @GetMapping("/member-info")
   @ResponseBody
@@ -251,7 +273,8 @@ public class OrderController {
   }
 
   /**
-   * 주문 상태 복원 API
+   * 주문 상태 복원
+   * GET /order/session-state
    */
   @GetMapping("/session-state")
   @ResponseBody
@@ -276,7 +299,8 @@ public class OrderController {
   }
 
   /**
-   * 결제 처리 API (임시 시뮬레이션)
+   * 결제 처리
+   * POST /order/payment
    */
   @PostMapping("/payment")
   @ResponseBody

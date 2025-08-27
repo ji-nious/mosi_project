@@ -15,18 +15,15 @@ function CartPage() {
     fetchCartData()
   }, [])
 
-  // 장바구니 데이터 가져오기
+  // 장바구니 데이터 조회
   const fetchCartData = useCallback(async () => {
     try {
       setError(null)
       setLoading(true)
 
-      console.log('🛒 장바구니 데이터 요청 시작...')
       const data = await cartService.getCart()
-      console.log('📦 장바구니 응답 데이터:', data)
 
       if (data) {
-        console.log('✅ 장바구니 데이터 성공:', data)
         setCartData(data)
 
         if (data.cartItems && data.cartItems.length > 0) {
@@ -38,11 +35,9 @@ function CartPage() {
           setSelectedItems(new Set())
         }
       } else {
-        console.log('❌ 장바구니 데이터 실패:', data)
         setError('장바구니 데이터를 불러올 수 없습니다')
       }
     } catch (error) {
-      console.log('🚨 장바구니 네트워크 오류:', error)
       setError('네트워크 오류가 발생했습니다')
     } finally {
       setLoading(false)
