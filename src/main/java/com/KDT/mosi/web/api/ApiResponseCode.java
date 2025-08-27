@@ -16,6 +16,7 @@ public enum ApiResponseCode {
   // 공통 예외
   INVALID_PARAMETER("C01", "잘못된 요청 파라미터입니다."),
   FILE_TOO_LARGE("C02", "업로드 가능한 최대 파일 용량을 초과했습니다."),
+  DUPLICATE_ITEM("CT01", "이미 장바구니에 동일한 상품이 존재합니다."),
   VALIDATION_ERROR("E01", "유효성 검증 오류가 발생했습니다."),
   BUSINESS_ERROR("E02", "비즈니스 오류가 발생했습니다."),
   ENTITY_NOT_FOUND("E03", "엔티티를 찾을 수 없습니다."),

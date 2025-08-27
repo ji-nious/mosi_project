@@ -21,12 +21,12 @@ function CartPage() {
       setError(null)
       setLoading(true)
 
-      console.log('🛒 장바구니 데이터 요청 시작...')
+      console.log('장바구니 데이터 요청 시작...')
       const data = await cartService.getCart()
-      console.log('📦 장바구니 응답 데이터:', data)
+      console.log('장바구니 응답 데이터:', data)
 
       if (data && data.success) {
-        console.log('✅ 장바구니 데이터 성공:', data)
+        console.log('장바구니 데이터 성공:', data)
         setCartData(data)
 
         if (data.cartItems && data.cartItems.length > 0) {
@@ -38,11 +38,11 @@ function CartPage() {
           setSelectedItems(new Set())
         }
       } else {
-        console.log('❌ 장바구니 데이터 실패:', data)
+        console.log('장바구니 데이터 실패:', data)
         setError('장바구니 데이터를 불러올 수 없습니다')
       }
     } catch (error) {
-      console.log('🚨 장바구니 네트워크 오류:', error)
+      console.log('장바구니 네트워크 오류:', error)
       setError('네트워크 오류가 발생했습니다')
     } finally {
       setLoading(false)
@@ -89,9 +89,11 @@ function CartPage() {
           await window.updateCartCount()
         }
       } else {
+        console.error('삭제 실패:', result)
         alert(result?.message || '삭제에 실패했습니다')
       }
     } catch (error) {
+      console.error('삭제 오류:', error)
       alert('삭제 중 오류가 발생했습니다')
     } finally {
       setUpdating(false)

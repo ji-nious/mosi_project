@@ -38,9 +38,14 @@ public class CartSVCImpl implements CartSVC {
 
   // 장바구니 상품 추가
   @Override
-  public ApiResponse<Void> addToCart(Long buyerId, Long productId, String optionType, Long quantity) {
+  public ApiResponse<String> addToCart(Long buyerId, Long productId, String optionType, Long quantity) {
     try {
       if (quantity <= 0) {
+        return ApiResponse.of(ApiResponseCode.INVALID_PARAMETER, null);
+      }
+
+      // 수량이 1개 초과인지 확인
+      if (quantity > 1) {
         return ApiResponse.of(ApiResponseCode.INVALID_PARAMETER, null);
       }
 
@@ -51,27 +56,28 @@ public class CartSVCImpl implements CartSVC {
 
       Product product = productOpt.get();
 
+      // 중복 상품 확인
       Optional<CartItem> existingItem = cartItemRepository
           .findByBuyerIdAndProductIdAndOptionType(buyerId, productId, optionType);
 
       if (existingItem.isPresent()) {
-        CartItem item = existingItem.get();
-        item.setQuantity(item.getQuantity() + quantity);
-        cartItemRepository.save(item);
-      } else {
-        Cart cart = getOrCreateCart(buyerId);
-
-        CartItem newItem = new CartItem();
-        newItem.setCartId(cart.getCartId());
-        newItem.setBuyerId(buyerId);
-        newItem.setSellerId(product.getMember().getMemberId());
-        newItem.setProductId(productId);
-        newItem.setOptionType(optionType);
-        newItem.setQuantity(quantity);
-
-        setPrice(newItem, product, optionType);
-        cartItemRepository.save(newItem);
+        // 중복 담기 차단
+        return ApiResponse.of(ApiResponseCode.DUPLICATE_ITEM, "이미 장바구니에 담긴 상품입니다");
       }
+
+      // 새상품 추가
+      Cart cart = getOrCreateCart(buyerId);
+
+      CartItem newItem = new CartItem();
+      newItem.setCartId(cart.getCartId());
+      newItem.setBuyerId(buyerId);
+      newItem.setSellerId(product.getMember().getMemberId());
+      newItem.setProductId(productId);
+      newItem.setOptionType(optionType);
+      newItem.setQuantity(1L); // 항상 1개로 고정
+
+      setPrice(newItem, product, optionType);
+      cartItemRepository.save(newItem);
 
       updateCartTotal(buyerId);
       return ApiResponse.of(ApiResponseCode.SUCCESS, null);
@@ -162,6 +168,14 @@ public class CartSVCImpl implements CartSVC {
   @Override
   public ApiResponse<Void> removeFromCart(Long buyerId, Long productId, String optionType) {
     try {
+      // 삭제 전에 존재하는지 확인
+      Optional<CartItem> existingItem = cartItemRepository
+          .findByBuyerIdAndProductIdAndOptionType(buyerId, productId, optionType);
+
+      if (existingItem.isEmpty()) {
+        return ApiResponse.of(ApiResponseCode.ENTITY_NOT_FOUND, null);
+      }
+
       cartItemRepository.deleteByBuyerIdAndProductIdAndOptionType(buyerId, productId, optionType);
       updateCartTotal(buyerId);
       return ApiResponse.of(ApiResponseCode.SUCCESS, null);

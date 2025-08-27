@@ -6,24 +6,26 @@ const handleResponse = async (response) => {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
-    // ApiResponse 구조에서 메시지 추출
     const message = errorData.header?.rtmsg || errorData.message || `HTTP ${response.status}: ${response.statusText}`
     throw new Error(message)
   }
 
-  try {
-    const apiResponse = await response.json()
-    // ApiResponse 구조에서 실제 데이터 추출
-    if (apiResponse.header && apiResponse.header.rtcd !== 'S00') {
-      throw new Error(apiResponse.header.rtmsg || '요청 처리 중 오류가 발생했습니다')
-    }
+  const apiResponse = await response.json()
+  console.log('API Response:', apiResponse)
 
-    return apiResponse.body || apiResponse
-  } catch (error) {
-    if (error.message !== '서버 응답을 처리할 수 없습니다') {
-      throw error
+  // 비즈니스 로직 오류 체크
+  if (apiResponse.header && apiResponse.header.rtcd !== 'S00') {
+    return {
+      success: false,
+      message: apiResponse.header.rtmsg || '요청 처리 중 오류가 발생했습니다'
     }
-    throw new Error('서버 응답을 처리할 수 없습니다')
+  }
+
+  // 성공 응답 - success 속성 추가
+  return {
+    success: true,
+    message: apiResponse.header?.rtmsg || '성공',
+    ...apiResponse.body
   }
 }
 

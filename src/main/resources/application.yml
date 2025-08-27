@@ -2,6 +2,13 @@ spring:
   # app이름
   application:
     name: mosi
+  # 프로파일 설정 추가
+  profiles:
+    active: local
+  logging:
+    level:
+      org.hibernate.SQL: DEBUG
+      org.hibernate.type.descriptor.sql.BasicBinder: TRACE
   #DB연결정보
   datasource:
     driver-class-name: oracle.jdbc.driver.OracleDriver

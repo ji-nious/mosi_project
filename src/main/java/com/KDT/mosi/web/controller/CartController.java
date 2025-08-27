@@ -1,7 +1,7 @@
 package com.KDT.mosi.web.controller;
 
-import com.KDT.mosi.domain.cart.request.CartFormRequest;
 import com.KDT.mosi.domain.cart.dto.CartResponse;
+import com.KDT.mosi.domain.cart.request.CartFormRequest;
 import com.KDT.mosi.domain.cart.svc.CartSVC;
 import com.KDT.mosi.domain.entity.Member;
 import com.KDT.mosi.web.api.ApiResponse;
@@ -14,11 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-
 import org.springframework.web.bind.annotation.*;
-
-
-import java.util.Map;
 
 @Slf4j
 @Controller
@@ -85,7 +81,7 @@ public class CartController {
    */
   @PostMapping("/add")
   @ResponseBody
-  public ResponseEntity<ApiResponse<Void>> addToCart(
+  public ResponseEntity<ApiResponse<String>> addToCart(
       @Valid @RequestBody CartFormRequest request,
       HttpSession session) {
 
@@ -97,7 +93,7 @@ public class CartController {
     }
 
     try {
-      ApiResponse<Void> result = cartSVC.addToCart(
+      ApiResponse<String> result = cartSVC.addToCart(
           loginMember.getMemberId(),
           request.getProductId(),
           request.getOptionType(),

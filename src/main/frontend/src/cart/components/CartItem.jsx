@@ -36,11 +36,10 @@ const CartItem = memo(({
 
     setIsUpdating(true)
     try {
-      // 개별 파라미터로 호출
       await onRemove(item.productId, item.optionType)
     } catch (error) {
       console.error('삭제 실패:', error)
-      alert('삭제에 실패했습니다')
+      alert('삭제 중 오류가 발생했습니다')
     } finally {
       setIsUpdating(false)
     }
@@ -109,7 +108,7 @@ const CartItem = memo(({
       {/* 상품 정보 */}
       <div className="item-info">
         <div className="item-title">{productName}</div>
-        
+
         <div className="item-seller">
           판매자: {sellerNickname || '판매자'}
         </div>

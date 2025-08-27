@@ -12,7 +12,7 @@ public interface CartSVC {
   /**
    * 장바구니 상품 추가
    */
-  ApiResponse<Void> addToCart(Long buyerId, Long productId, String optionType, Long quantity);
+  ApiResponse<String> addToCart(Long buyerId, Long productId, String optionType, Long quantity);
 
   /**
    * 수량 변경
