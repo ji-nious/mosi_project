@@ -98,10 +98,12 @@
                     </div>
                     <div class="btn-group">
                       <button class="btn-group-edit"
-                              th:onclick="|location.href='@{/product/edit/{id}(id=${form.product.productId})}'|">수정</button>
+                              th:onclick="|location.href='@{/product/edit/{id}(id=${form.product.productId})}'|">수정
+                      </button>
                       <button class="btn-group-delete"
                               th:data-product-id="${form.product.productId}"
-                              th:data-product-title="${form.product.title}">삭제</button>
+                              th:data-product-title="${form.product.title}">삭제
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -140,16 +142,15 @@
             </div>
           </div>
         </div>
+      </section>
+    </main>
+    <div class="notice-bar">
+      <div class="notice-label">공지</div>
+      <div class="notice-text">&lt;MO:SI&gt; 신규 코스 등록 이벤트 당첨자 안내</div>
+      <a href="#" class="more-link">+ 더보기</a>
+    </div>
   </div>
-  </section>
-  </main>
-  <div class="notice-bar">
-    <div class="notice-label">공지</div>
-    <div class="notice-text">&lt;MO:SI&gt; 신규 코스 등록 이벤트 당첨자 안내</div>
-    <a href="#" class="more-link">+ 더보기</a>
-  </div>
-</div>
-<footer th:replace="~{fragments/footer :: footer}"></footer>
+  <footer th:replace="~{fragments/footer :: footer}"></footer>
 </div>
 <script th:src="@{/js/sellerpage/sellerMypageHome.js}"></script>
 <script th:src="@{/js/product/product_managing.js}"></script>

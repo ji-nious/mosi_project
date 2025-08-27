@@ -2,6 +2,7 @@ package com.KDT.mosi.domain.order.dto;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -14,7 +15,7 @@ public class OrderResponse {
 
   private Long orderId;
   private String orderCode;
-  private String orderDate;
+  private LocalDateTime orderDate;
   private String orderStatus;
   private String specialRequest;  // 요청사항 추가
   private List<OrderItemResponse> orderItems;
@@ -46,7 +47,7 @@ public class OrderResponse {
    * 주문 완료 응답
    */
   public static OrderResponse createOrderCompleteSuccess(String orderCode, Long orderId,
-                                                         Long totalPrice, String orderDate) {
+                                                         Long totalPrice, LocalDateTime orderDate) {
     OrderResponse response = new OrderResponse();
     response.setOrderId(orderId);
     response.setOrderCode(orderCode);
@@ -61,7 +62,7 @@ public class OrderResponse {
    * 주문 상세조회 성공 응답
    */
   public static OrderResponse createOrderDetailSuccess(String buyerName, String buyerPhone, String buyerEmail,
-                                                       Long orderId, String orderCode, String orderDate,
+                                                       Long orderId, String orderCode, LocalDateTime orderDate,
                                                        String orderStatus, String specialRequest, List<OrderItemResponse> orderItems,
                                                        Long totalPrice, int totalItemCount) {
     OrderResponse response = new OrderResponse();
