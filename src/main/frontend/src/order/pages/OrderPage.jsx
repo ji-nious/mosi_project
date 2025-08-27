@@ -27,6 +27,7 @@ function OrderPage() {
   const [orderData, setOrderData] = useState(null)
   const [memberInfo, setMemberInfo] = useState({})
   const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('')
   const [showPaymentModal, setShowPaymentModal] = useState(false)
@@ -65,6 +66,7 @@ function OrderPage() {
   const fetchOrderData = async () => {
     try {
       setError(null)
+      setLoading(true)
 
       // 1. 세션 스토리지에서 선택된 상품들 가져오기
       let selectedItems = sessionStorage.getItem('selectedCartItems')
@@ -106,8 +108,7 @@ function OrderPage() {
       }
 
       if (!items || items.length === 0) {
-        // 선택된 상품이 없으면 장바구니로 리다이렉트
-        alert('주문할 상품을 선택해주세요.')
+        // 선택된 상품이 없으면 장바구니로 리다이렉트 (메시지 없이)
         window.location.href = '/cart'
         return
       }
@@ -150,6 +151,8 @@ function OrderPage() {
 
     } catch (error) {
       setError('주문 정보를 불러올 수 없습니다')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -343,6 +346,18 @@ function OrderPage() {
     }
   }
 
+  // 로딩 화면 (장바구니와 동일한 스타일)
+  if (loading) {
+    return (
+      <div className="order-container">
+        <div className="loading-container">
+          <div className="custom-spinner"></div>
+          <div className="loading-text">주문 정보를 불러오는 중...</div>
+        </div>
+      </div>
+    )
+  }
+
   // 에러 발생
   if (error) {
     return (
@@ -441,7 +456,7 @@ function OrderPage() {
         </div>
       )}
 
-      {/* 결제 완료 로딩 모달 - 장바구니 스타일과 동일 */}
+      {/* 결제 완료 로딩 모달 - 원래 스타일 */}
       {showPaymentSuccessModal && (
         <div className="modal-overlay">
           <div className="loading-modal-content">

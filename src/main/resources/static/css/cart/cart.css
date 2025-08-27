@@ -215,7 +215,7 @@
 /* 장바구니 아이템 */
 .cart-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 15px;
   padding: 20px;
   border: 1px solid #BFBFBF;
@@ -347,6 +347,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 8px;
 }
 
@@ -358,9 +359,6 @@
   line-height: 1.4;
   margin-bottom: 6px;
   word-break: break-word;
-  flex: 1;
-  display: flex;
-  align-items: center;
 }
 
 /* 품절 상태 */

@@ -19,15 +19,11 @@ export default function PaymentSummary({
 
   return (
     <div className="payment-summary">
-      {/* 제목 - Image 2와 동일 */}
-      <div className="payment-title">결제정보</div>
+      {/* 제목 - 개수 포함 */}
+      <div className="payment-title">결제정보 ({itemCount}건)</div>
 
-      {/* 주문 상품 요약 */}
+      {/* 상품 목록 (헤더 제거) */}
       <div className="order-summary-section">
-        <div className="summary-header">
-          <span>주문상품 ({itemCount}개)</span>
-        </div>
-
         <div className="items-summary">
           {items.map((item, index) => (
             <div key={index} className="summary-item">

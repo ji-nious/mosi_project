@@ -32,7 +32,7 @@ const CartItem = memo(({
   // 상품 삭제 처리
   const handleRemove = useCallback(async () => {
     if (isUpdating || updating) return
-    if (!confirm('해당 상품을 삭제하시겠습니까?')) return
+    if (!confirm(`${item.productName}을 삭제하시겠습니까?`)) return
 
     setIsUpdating(true)
     try {

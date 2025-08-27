@@ -273,8 +273,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 100px 20px;
   text-align: center;
+  min-height: 400px;
+}
+
+/* 모달 내부 로딩 컨테이너는 작은 패딩 사용 */
+.loading-modal-content .loading-container {
+  padding: 20px;
+  min-height: auto;
 }
 
 .custom-spinner {
@@ -876,7 +883,7 @@
 }
 
 .total-label {
-  font-weight: bold !important;
+  font-weight: normal !important;
   color: #333 !important;
 }
 
@@ -991,6 +998,24 @@
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.product-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.product-link:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+.product-link span {
+  color: #333;
+  font-weight: 500;
 }
 
 .product-image {

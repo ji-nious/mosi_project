@@ -159,7 +159,35 @@ async function handleBuyNow(event) {
     const result = await addToCartAPI(productId, optionType, 1);
     
     if (result.header && result.header.rtcd === 'S00') {
-      // 2. 장바구니 추가 성공 시 주문서 작성 페이지로 바로 이동
+      // 2. 장바구니 추가 성공 시 해당 상품을 세션 스토리지에 저장
+      try {
+        const cartResponse = await fetch('/cart', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include'
+        });
+        
+        if (cartResponse.ok) {
+          const cartData = await cartResponse.json();
+          const cartItems = cartData.body?.cartItems || cartData.cartItems || [];
+          
+          // 방금 추가한 상품을 찾아서 세션 스토리지에 저장
+          const addedItem = cartItems.find(item => 
+            item.productId == productId && item.optionType === optionType
+          );
+          
+          if (addedItem) {
+            sessionStorage.setItem('selectedCartItems', JSON.stringify([addedItem]));
+          }
+        }
+      } catch (error) {
+        console.error('장바구니 데이터 조회 실패:', error);
+      }
+      
+      // 3. 주문서 작성 페이지로 바로 이동
       window.location.href = '/order';
     } else {
       const message = result.header?.rtmsg || '상품 추가에 실패했습니다';

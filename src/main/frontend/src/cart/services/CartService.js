@@ -33,7 +33,7 @@ const handleResponse = async (response) => {
 }
 
 export const cartService = {
-매학ㅣ 버  // 장바구니 조회 (백엔드 ApiResponse 구조와 호환)
+  // 장바구니 조회 (백엔드 ApiResponse 구조와 호환)
   async getCart() {
     try {
       const response = await fetch('/cart', {
