@@ -57,4 +57,8 @@ public interface BuyerPageDAO {
    * @return 존재 여부 (true/false)
    */
   boolean existsByNickname(String nickname);
+
+  int updateNickname(Long memberId, String nickname);
+
+
 }

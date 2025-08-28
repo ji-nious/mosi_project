@@ -1,6 +1,7 @@
 package com.KDT.mosi.domain.mypage.buyer.svc;
 
 import com.KDT.mosi.domain.entity.BuyerPage;
+import com.KDT.mosi.domain.member.dao.MemberDAO;
 import com.KDT.mosi.domain.mypage.buyer.dao.BuyerPageDAO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import java.util.Optional;
 public class BuyerPageSVCImpl implements BuyerPageSVC {
 
   private final BuyerPageDAO buyerPageDAO;
+  private final MemberDAO memberDAO;
 
   /**
    * 마이페이지 등록
@@ -83,29 +85,41 @@ public class BuyerPageSVCImpl implements BuyerPageSVC {
    */
   @Override
   public Long saveOrUpdate(BuyerPage buyerPage) {
-    // 1. 기존 존재 여부 확인
     Optional<BuyerPage> existingOpt = buyerPageDAO.findByMemberId(buyerPage.getMemberId());
 
     if (existingOpt.isPresent()) {
       BuyerPage existing = existingOpt.get();
 
-      // 2. 닉네임이 변경되었을 경우, 중복 닉네임 체크
       if (!buyerPage.getNickname().equals(existing.getNickname())
           && buyerPageDAO.existsByNickname(buyerPage.getNickname())) {
         throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
       }
 
-      // 3. UPDATE
+      // 1) BuyerPage 갱신
       buyerPageDAO.updateById(existing.getPageId(), buyerPage);
+
+      // 2) Member.nickname 갱신
+      memberDAO.updateNickname(buyerPage.getMemberId(), buyerPage.getNickname());
+
       return existing.getPageId();
     }
 
-    // 4. 신규 INSERT 시에도 닉네임 중복 체크
     if (buyerPageDAO.existsByNickname(buyerPage.getNickname())) {
       throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
     }
 
-    return buyerPageDAO.save(buyerPage);
+    Long pageId = buyerPageDAO.save(buyerPage);
+
+    // Member.nickname 동기화
+    memberDAO.updateNickname(buyerPage.getMemberId(), buyerPage.getNickname());
+
+    return pageId;
   }
+
+  @Override
+  public boolean existsByNickname(String nickname) {
+    return buyerPageDAO.existsByNickname(nickname);
+  }
+
 
 }
