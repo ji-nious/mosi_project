@@ -1,7 +1,4 @@
-/**
- * 주문 API 서비스 레이어
- * 모든 주문 관련 API 호출을 담당
- */
+// 주문 API 서비스
 
 // 공통 응답 처리 함수
 const handleResponse = async (response) => {

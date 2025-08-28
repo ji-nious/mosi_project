@@ -1,17 +1,11 @@
-/**
- * 결제 정보 사이드바 컴포넌트
- * Image 2와 완전 동일하게 구현 - 불필요한 요소 제거
- */
+// 결제 정보 사이드바 컴포넌트
 
 import React from 'react'
 
-/**
- * 결제 정보 사이드바 컴포넌트
- */
 export default function PaymentSummary({
   items = []
 }) {
-  // 계산된 값들
+  // 계산 값
   const itemCount = items.length
   const totalOriginalAmount = items.reduce((sum, item) => sum + ((item.originalPrice || item.price) * item.quantity), 0)
   const totalDiscountAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)

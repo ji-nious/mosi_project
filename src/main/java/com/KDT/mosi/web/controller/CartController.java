@@ -1,7 +1,7 @@
 package com.KDT.mosi.web.controller;
 
-import com.KDT.mosi.domain.cart.request.CartFormRequest;
 import com.KDT.mosi.domain.cart.dto.CartResponse;
+import com.KDT.mosi.domain.cart.request.CartFormRequest;
 import com.KDT.mosi.domain.cart.svc.CartSVC;
 import com.KDT.mosi.domain.entity.Member;
 import com.KDT.mosi.web.api.ApiResponse;
@@ -14,11 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-
 import org.springframework.web.bind.annotation.*;
-
-
-import java.util.Map;
 
 @Slf4j
 @Controller
@@ -223,7 +219,6 @@ public class CartController {
 
     try {
       // 전체 장바구니 조회 후 클라이언트에서 필터링하도록 반환
-      // (실제 구현에서는 서비스 레이어에서 ID별 필터링 구현 권장)
       CartResponse cartResponse = cartSVC.getCart(
           loginMember.getMemberId(),
           loginMember.getNickname()
@@ -266,6 +261,4 @@ public class CartController {
       );
     }
   }
-
-
 }

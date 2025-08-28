@@ -1,3 +1,4 @@
+// 장바구니 API 서비스
 const handleResponse = async (response) => {
   if (response.status === 401) {
     window.location.href = '/login'
@@ -18,7 +19,7 @@ const handleResponse = async (response) => {
       throw new Error(apiResponse.header.rtmsg || '요청 처리 중 오류가 발생했습니다')
     }
 
-    // 수정/삭제 작업을 위한 표준화된 응답 구조 반환
+    // 수정/삭제
     return {
       success: true,
       message: apiResponse.header?.rtmsg || '작업이 완료되었습니다',
@@ -33,7 +34,7 @@ const handleResponse = async (response) => {
 }
 
 export const cartService = {
-  // 장바구니 조회 (백엔드 ApiResponse 구조와 호환)
+  // 장바구니 조회
   async getCart() {
     try {
       const response = await fetch('/cart', {
@@ -60,8 +61,6 @@ export const cartService = {
       if (apiResponse.header && apiResponse.header.rtcd !== 'S00') {
         throw new Error(apiResponse.header.rtmsg || '요청 처리 중 오류가 발생했습니다')
       }
-
-      // 조회는 CartResponse 구조 그대로 반환 (백엔드 body 부분)
       return apiResponse.body || apiResponse
     } catch (error) {
       throw error

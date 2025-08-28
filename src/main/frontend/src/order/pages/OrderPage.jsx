@@ -108,7 +108,7 @@ function OrderPage() {
         return
       }
 
-      // 회원 정보 가져오기 (서버에서)
+      // 회원 정보 가져오기
       try {
         const memberResponse = await fetch('/order/member-info', {
           method: 'GET',

@@ -211,14 +211,14 @@ public class OrderController {
     }
     Long memberId = loginMember.getMemberId();
 
-    // ⭐⭐ 수정된 부분: page와 size를 서비스 메소드로 전달 ⭐⭐
+    // page와 size를 서비스 메소드로 전달
     ApiResponse<List<OrderResponse>> orderHistoryResponse = orderSVC.getOrderHistory(memberId, page, size);
 
     List<OrderResponse> orderResponses = null;
     if (orderHistoryResponse.getHeader().getRtcd().equals(ApiResponseCode.SUCCESS.getRtcd())) {
       orderResponses = orderHistoryResponse.getBody();
 
-      // ⭐⭐ 수정된 부분: 페이징 정보를 모델에 추가 ⭐⭐
+      //  페이징 정보를 모델에 추가
       model.addAttribute("paging", orderHistoryResponse.getPaging());
     } else {
       orderResponses = Collections.emptyList();

@@ -44,10 +44,7 @@ const CartItem = memo(({
     }
   }, [item.productId, item.optionType, onRemove, isUpdating, updating])
 
-  /**
-   * 상품 선택/해제 처리
-   * 체크박스 상태 변경 시 호출
-   */
+  // 상품 선택/해제 처리
   const handleSelect = useCallback((checked) => {
     onSelect(item.productId, item.optionType, checked)
   }, [item.productId, item.optionType, onSelect])
@@ -65,7 +62,7 @@ const CartItem = memo(({
     available = true
   } = item
 
-  // 계산된 값들
+  // 계산값
   const totalPrice = price * quantity
   const hasDiscount = originalPrice && originalPrice > price
   const isDisabled = isUpdating || updating || !available

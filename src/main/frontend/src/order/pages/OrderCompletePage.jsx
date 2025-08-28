@@ -1,3 +1,4 @@
+// 주문 완료 페이지
 import React, { useState, useEffect } from 'react'
 
 export default function OrderCompletePage() {
