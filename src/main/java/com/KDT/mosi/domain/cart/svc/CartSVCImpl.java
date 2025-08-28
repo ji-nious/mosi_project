@@ -218,10 +218,10 @@ public class CartSVCImpl implements CartSVC {
         // 첫 번째 상품 이미지 (ProductImageSVC 사용)
         String imageData = null;
         List<ProductImage> images = productImageSVC.findByProductId(product.getProductId());
-        log.info("🖼️ 상품 이미지 조회: productId={}, 이미지 개수={}", product.getProductId(), images != null ? images.size() : 0);
+        log.info("🖼상품 이미지 조회: productId={}, 이미지 개수={}", product.getProductId(), images != null ? images.size() : 0);
         if (images != null && !images.isEmpty()) {
           imageData = images.get(0).getBase64ImageData();
-          log.info("🎯 이미지 데이터 설정 완료: {}", imageData != null ? "성공" : "실패");
+          log.info("이미지 데이터 설정 완료: {}", imageData != null ? "성공" : "실패");
         }
 
         CartItemResponse dto = isAvailable ?

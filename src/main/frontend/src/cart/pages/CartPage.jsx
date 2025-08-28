@@ -52,7 +52,7 @@ function CartPage() {
 
       if (result && result.success) {
         await fetchCartData()
-        // 헤더 장바구니 개수 업데이트 (수량이 0이 되면 아이템이 삭제됨)
+        // 헤더 장바구니 개수 업데이트
         if (window.updateCartCount) {
           await window.updateCartCount()
         }
@@ -119,7 +119,7 @@ function CartPage() {
     }
   }, [cartData?.cartItems])
 
-  // 선택된 상품들 삭제
+  // 선택된 상품 삭제
   const handleDeleteSelected = useCallback(async () => {
     if (selectedItems.size === 0) {
       alert('삭제할 상품을 선택해주세요.')
@@ -201,7 +201,7 @@ function CartPage() {
     )
   }
 
-  // 빈 장바구니 화면 (Islands: 레이아웃 제거)
+  // 빈 장바구니 화면
   if (cartData?.empty) {
     return (
       <div className="empty-cart-content">
@@ -214,7 +214,7 @@ function CartPage() {
     )
   }
 
-  // 메인 장바구니 화면 (Islands: 레이아웃 제거, 순수 장바구니 리스트만)
+  // 메인 장바구니 화면
   return (
     <div className="react-cart-content">
         {/* 계속 쇼핑하기 버튼 */}
