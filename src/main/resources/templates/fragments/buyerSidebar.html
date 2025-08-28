@@ -1,26 +1,28 @@
-<!-- templates/fragments/mypage/buyerSidebar.html -->
-<aside th:fragment="buyerSidebar(activePath, member)" xmlns:th="http://www.thymeleaf.org"
-       xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:if="${(session.loginRole ?: 'BUYER') != 'SELLER'}"
+<!-- templates/fragments/buyerSidebar.html -->
+<aside th:fragment="buyerSidebar"
+       xmlns:th="http://www.thymeleaf.org"
+       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+       th:if="${(session.loginRole ?: 'BUYER') != 'SELLER'}"
        id="BUYER_SIDEBAR" data-frag="BUYER-SIDEBAR">
 
   <div class="sidebar-card">
-
     <div class="profile-box">
       <div class="profile-image">
         <!-- 분기 태그 2개 유지 -->
         <img th:if="${member != null}" id="asideProfileImage"
              th:src="@{/mypage/buyer/{id}/image(id=${member.memberId})}" alt="프로필 이미지">
-        <img th:unless="${member != null}" id="asideProfileImage" th:src="@{/img/default-profile.png}" alt="기본 프로필">
+        <img th:unless="${member != null}" id="asideProfileImage"
+             th:src="@{/img/default-profile.png}" alt="기본 프로필">
       </div>
 
       <div class="profile-info">
         <a href="#" class="profile-badge">프로여행러 ></a>
 
-        <!-- 이름 분기 -->
-        <div class="profile-name" th:if="${member != null}" th:text="${member.nickname}">회원명</div>
-        <div class="profile-name" th:unless="${member != null}">회원명</div>
+        <!-- 닉네임 -->
+        <div class="profile-name" th:if="${buyerPage != null}" th:text="${buyerPage.nickname}">회원명</div>
+        <div class="profile-name" th:unless="${buyerPage != null}">회원명</div>
 
-        <!-- 역할 전환 : POST + CSRF -->
+        <!-- 역할 전환 -->
         <form th:action="@{/mypage/role/toSeller}" method="post" style="margin-top:10px;"
               sec:authorize="isAuthenticated()">
           <input type="hidden" sec:csrf />
@@ -29,6 +31,7 @@
       </div>
     </div>
 
+    <!-- 네비게이션 -->
     <nav class="mypage-nav">
       <div class="nav-title active">MY PAGE</div>
       <ul>
@@ -40,13 +43,12 @@
         <li><a href="#">나의 활동</a>
           <ul>
             <li><a href="#">알림</a></li>
-            <li><a href="" th:href="@{/review/buyer/list}">리뷰</a></li>
+            <li><a th:href="@{/review/buyer/list}">리뷰</a></li>
             <li><a href="#">게시글</a></li>
           </ul>
         </li>
         <li><a href="#">내 정보</a>
           <ul>
-            <!-- member null 접근 방지: 항목 자체 분기 -->
             <li th:if="${member != null}">
               <a th:href="@{/mypage/buyer/{id}(id=${member.memberId})}"
                  th:classappend="${(activePath != null and #strings.startsWith(activePath, '/mypage/buyer/')) ? ' is-active' : ''}">

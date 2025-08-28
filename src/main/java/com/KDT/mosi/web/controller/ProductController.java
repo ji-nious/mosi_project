@@ -174,6 +174,9 @@ public class ProductController {
     }
     Long memberId = loginMember.getMemberId();
 
+    sellerPageSVC.findByMemberId(memberId)
+        .ifPresent(sp -> model.addAttribute("sellerPage", sp));
+
     // status 값은 판매중 또는 판매대기로 반드시 들어온다고 가정
     List<Product> products;
     long totalCount;
@@ -324,6 +327,9 @@ public class ProductController {
 
     Long memberId = loginMember.getMemberId();
 
+    sellerPageSVC.findByMemberId(memberId)
+        .ifPresent(sp -> model.addAttribute("sellerPage", sp));
+
     Optional<SellerPage> optional = sellerPageSVC.findByMemberId(memberId);
     if (optional.isEmpty()) {
       return "redirect:/mypage/seller/create";
@@ -454,6 +460,9 @@ public class ProductController {
     }
 
     Long memberId = loginMember.getMemberId();
+
+    sellerPageSVC.findByMemberId(memberId)
+        .ifPresent(sp -> model.addAttribute("sellerPage", sp));
 
     Product product = productSVC.getProduct(id).orElseThrow(() -> new IllegalArgumentException("없는 상품입니다."));
     if (product.getMember() == null || !product.getMember().getMemberId().equals(loginMember.getMemberId())) {
@@ -650,6 +659,9 @@ public class ProductController {
       throw new IllegalStateException("로그인한 회원이 아닙니다.");
     }
     Long buyerId = loginMember.getMemberId();
+
+    sellerPageSVC.findByMemberId(loginMember.getMemberId())
+        .ifPresent(sp -> model.addAttribute("sellerPage", sp));
 
     // 2) 상품 조회, 없으면 예외 처리
     Product product = productSVC.getProduct(id)
