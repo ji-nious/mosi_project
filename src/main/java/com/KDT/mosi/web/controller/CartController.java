@@ -41,8 +41,7 @@ public class CartController {
     }
 
     model.addAttribute("member", loginMember);
-    log.info("장바구니 HTML 페이지 접근: memberId={}, nickname={}",
-        loginMember.getMemberId(), loginMember.getNickname());
+
 
     return "cart/cart";
   }
@@ -72,7 +71,6 @@ public class CartController {
       );
 
     } catch (Exception e) {
-      log.error("장바구니 조회 오류: memberId={}", loginMember.getMemberId(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
           ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
       );
@@ -107,9 +105,6 @@ public class CartController {
       return ResponseEntity.ok(result);
 
     } catch (Exception e) {
-      log.error("장바구니 추가 오류: memberId={}, productId={}",
-          loginMember.getMemberId(), request.getProductId(), e);
-
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
           ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
       );
@@ -144,8 +139,6 @@ public class CartController {
       return ResponseEntity.ok(result);
 
     } catch (Exception e) {
-      log.error("수량 변경 오류: memberId={}, productId={}",
-          loginMember.getMemberId(), request.getProductId(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
           ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
       );
@@ -179,8 +172,6 @@ public class CartController {
       return ResponseEntity.ok(result);
 
     } catch (Exception e) {
-      log.error("상품 삭제 오류: memberId={}, productId={}",
-          loginMember.getMemberId(), request.getProductId(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
           ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
       );
@@ -207,7 +198,6 @@ public class CartController {
           ApiResponse.of(ApiResponseCode.SUCCESS, count)
       );
     } catch (Exception e) {
-      log.error("장바구니 개수 조회 오류: memberId={}", loginMember.getMemberId(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
           ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, 0)
       );
@@ -244,8 +234,6 @@ public class CartController {
       );
 
     } catch (Exception e) {
-      log.error("장바구니 아이템 조회 오류: memberId={}, ids={}", 
-          loginMember.getMemberId(), ids, e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
           ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
       );
@@ -273,7 +261,6 @@ public class CartController {
       );
 
     } catch (Exception e) {
-      log.error("장바구니 비우기 오류: memberId={}", loginMember.getMemberId(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
           ApiResponse.of(ApiResponseCode.INTERNAL_SERVER_ERROR, null)
       );

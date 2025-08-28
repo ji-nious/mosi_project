@@ -37,11 +37,8 @@ export default function OrderCompletePage() {
 
       // ApiResponse 구조에서 실제 데이터 추출
       const data = apiResponse.body || apiResponse
-      console.log('📋 주문완료 데이터:', data)
-      console.log('📝 요청사항:', data.specialRequest)
       setOrderData(data)
     } catch (error) {
-      console.error('주문 완료 데이터 조회 실패:', error)
       setError(error.message)
     } finally {
       setLoading(false)
@@ -59,7 +56,7 @@ export default function OrderCompletePage() {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit'
-      }).replace(/\. /g, '.').replace('.', '')
+      }).replace(/\. /g, '.').replace(/\.$/, '')
     } catch {
       return dateStr || ''
     }
@@ -67,8 +64,11 @@ export default function OrderCompletePage() {
 
   if (loading) {
     return (
-      <div className="complete-message">
-        <h2>주문 정보를 불러오는 중...</h2>
+      <div className="order-complete-container">
+        <div className="loading-container">
+          <div className="custom-spinner"></div>
+          <div className="loading-text">주문 정보를 불러오는 중...</div>
+        </div>
       </div>
     )
   }
@@ -133,13 +133,15 @@ export default function OrderCompletePage() {
               <tr key={index}>
                 <td>
                   <div className="product-info">
-                    <div className="product-image">
-                      <img
-                        src={item.productImage || "/img/placeholder.png"}
-                        alt={item.productName}
-                      />
-                    </div>
-                    <span>{item.productName}</span>
+                    <a href={`/product/view/${item.productId}`} className="product-link">
+                      <div className="product-image">
+                        <img
+                          src={item.productImage || "/img/placeholder.png"}
+                          alt={item.productName}
+                        />
+                      </div>
+                      <span>{item.productName}</span>
+                    </a>
                   </div>
                 </td>
                 <td>{item.optionType}</td>
@@ -200,7 +202,7 @@ export default function OrderCompletePage() {
 
       {/* 하단 버튼 */}
       <div className="complete-actions">
-        <a href="/order/complete/history" className="btn btn-primary">주문내역 확인</a>
+        <a href="/order/history" className="btn btn-primary">주문내역 확인</a>
         <a href="/order/complete/shopping" className="btn btn-secondary">쇼핑 계속하기</a>
       </div>
     </div>

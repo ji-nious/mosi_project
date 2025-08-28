@@ -15,18 +15,15 @@ function CartPage() {
     fetchCartData()
   }, [])
 
-  // 장바구니 데이터 가져오기
+  // 장바구니 데이터 조회
   const fetchCartData = useCallback(async () => {
     try {
       setError(null)
       setLoading(true)
 
-      console.log('🛒 장바구니 데이터 요청 시작...')
       const data = await cartService.getCart()
-      console.log('📦 장바구니 응답 데이터:', data)
 
-      if (data && data.success) {
-        console.log('✅ 장바구니 데이터 성공:', data)
+      if (data) {
         setCartData(data)
 
         if (data.cartItems && data.cartItems.length > 0) {
@@ -38,11 +35,9 @@ function CartPage() {
           setSelectedItems(new Set())
         }
       } else {
-        console.log('❌ 장바구니 데이터 실패:', data)
         setError('장바구니 데이터를 불러올 수 없습니다')
       }
     } catch (error) {
-      console.log('🚨 장바구니 네트워크 오류:', error)
       setError('네트워크 오류가 발생했습니다')
     } finally {
       setLoading(false)
@@ -65,7 +60,7 @@ function CartPage() {
         alert(result?.message || '수량 변경에 실패했습니다')
       }
     } catch (error) {
-      alert('수량 변경 중 오류가 발생했습니다')
+      alert('수량 변경에 실패했습니다')
     } finally {
       setUpdating(false)
     }
@@ -92,7 +87,7 @@ function CartPage() {
         alert(result?.message || '삭제에 실패했습니다')
       }
     } catch (error) {
-      alert('삭제 중 오류가 발생했습니다')
+      alert('삭제에 실패했습니다')
     } finally {
       setUpdating(false)
     }
@@ -149,7 +144,7 @@ function CartPage() {
       }
       alert(`${selectedItems.size}개 상품이 삭제되었습니다.`)
     } catch (error) {
-      alert('삭제 중 오류가 발생했습니다')
+      alert('선택 삭제에 실패했습니다')
     } finally {
       setUpdating(false)
     }
@@ -166,12 +161,8 @@ function CartPage() {
       return
     }
 
-    try {
-      sessionStorage.setItem('selectedCartItems', JSON.stringify(selectedCartItems))
-      window.location.href = '/order'
-    } catch (error) {
-      alert('주문 생성 중 오류가 발생했습니다')
-    }
+    sessionStorage.setItem('selectedCartItems', JSON.stringify(selectedCartItems))
+    window.location.href = '/order'
   }, [cartData?.cartItems, selectedItems])
 
   // 계산된 값들

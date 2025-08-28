@@ -18,7 +18,12 @@ const handleResponse = async (response) => {
       throw new Error(apiResponse.header.rtmsg || '요청 처리 중 오류가 발생했습니다')
     }
 
-    return apiResponse.body || apiResponse
+    // 수정/삭제 작업을 위한 표준화된 응답 구조 반환
+    return {
+      success: true,
+      message: apiResponse.header?.rtmsg || '작업이 완료되었습니다',
+      data: apiResponse.body || apiResponse
+    }
   } catch (error) {
     if (error.message !== '서버 응답을 처리할 수 없습니다') {
       throw error
@@ -28,7 +33,7 @@ const handleResponse = async (response) => {
 }
 
 export const cartService = {
-  // 장바구니 조회
+  // 장바구니 조회 (백엔드 ApiResponse 구조와 호환)
   async getCart() {
     try {
       const response = await fetch('/cart', {
@@ -40,9 +45,25 @@ export const cartService = {
         credentials: 'include'
       })
 
-      return await handleResponse(response)
+      if (response.status === 401) {
+        window.location.href = '/login'
+        return null
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        const message = errorData.header?.rtmsg || errorData.message || `HTTP ${response.status}: ${response.statusText}`
+        throw new Error(message)
+      }
+
+      const apiResponse = await response.json()
+      if (apiResponse.header && apiResponse.header.rtcd !== 'S00') {
+        throw new Error(apiResponse.header.rtmsg || '요청 처리 중 오류가 발생했습니다')
+      }
+
+      // 조회는 CartResponse 구조 그대로 반환 (백엔드 body 부분)
+      return apiResponse.body || apiResponse
     } catch (error) {
-      console.error('장바구니 조회 실패:', error)
       throw error
     }
   },
@@ -66,7 +87,6 @@ export const cartService = {
 
       return await handleResponse(response)
     } catch (error) {
-      console.error('수량 변경 실패:', error)
       throw error
     }
   },
@@ -89,7 +109,40 @@ export const cartService = {
 
       return await handleResponse(response)
     } catch (error) {
-      console.error('상품 삭제 실패:', error)
+      throw error
+    }
+  },
+
+  // 장바구니에 상품 추가
+  async addToCart(productId, optionType, quantity) {
+    try {
+      // CSRF 토큰 가져오기
+      const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content')
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content')
+      
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+      
+      // CSRF 헤더 설정
+      if (csrfToken && csrfHeader) {
+        headers[csrfHeader] = csrfToken
+      }
+
+      const response = await fetch('/cart/add', {
+        method: 'POST',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify({
+          productId: parseInt(productId),
+          optionType,
+          quantity: parseInt(quantity)
+        })
+      })
+
+      return await handleResponse(response)
+    } catch (error) {
       throw error
     }
   }

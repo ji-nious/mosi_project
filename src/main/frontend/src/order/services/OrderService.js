@@ -24,14 +24,12 @@ const handleResponse = async (response) => {
     if (error.message !== '서버 응답을 처리할 수 없습니다') {
       throw error
     }
-    console.error('JSON 파싱 오류:', error)
     throw new Error('서버 응답을 처리할 수 없습니다')
   }
 }
 
 // 공통 에러 처리 함수
 const handleError = (error, operation) => {
-  console.error(`${operation} 실패:`, error)
   throw error
 }
 

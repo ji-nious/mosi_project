@@ -51,7 +51,12 @@
         </li>
         <li><a href="#">판매 현황</a>
           <ul>
-            <li><a href="#">주문 현황</a></li>
+            <li>
+              <a th:href="@{/order/seller/history}"
+                 th:classappend="${activePath != null and #strings.startsWith(activePath, '/order/seller/history')} ? ' is-active'">
+                판매 내역
+              </a>
+            </li>
           </ul>
         </li>
         <li><a href="#">문의 / 리뷰</a>
