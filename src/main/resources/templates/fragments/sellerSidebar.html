@@ -1,5 +1,5 @@
 <!-- templates/fragments/sellerSidebar.html -->
-<aside th:fragment="sellerSidebar(activePath)" xmlns:th="http://www.thymeleaf.org"
+<aside th:fragment="sellerSidebar" xmlns:th="http://www.thymeleaf.org"
        xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:if="${session.loginRole == 'SELLER'}"
        id="SELLER_SIDEBAR" data-frag="SELLER-SIDEBAR">
 
@@ -15,11 +15,13 @@
         <a href="#" class="profile-badge">프로가이드 ></a>
 
         <!-- 닉네임 -->
-        <div class="profile-name" th:text="${sellerSidebar != null and sellerSidebar.nickname != null
-                        ? sellerSidebar.nickname
-                        : (session.loginMember != null ? session.loginMember.nickname : '닉네임')}">
+        <div class="profile-name"
+             th:text="${sellerPage != null && sellerPage.nickname != null
+               ? sellerPage.nickname
+               : (session.loginMember != null ? session.loginMember.nickname : '닉네임')}">
           닉네임
         </div>
+
 
         <!-- 역할 전환 -->
         <form th:action="@{/mypage/role/toBuyer}" method="post" style="margin-top:10px;"

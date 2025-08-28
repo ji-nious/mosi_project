@@ -345,17 +345,33 @@ public class  BuyerPageController {
   public String buyerMypageHome(Model model) {
     Long loginMemberId = getLoginMemberId();
 
+    // MEMBER 조회
     Optional<Member> optionalMember = memberSVC.findById(loginMemberId);
     if (optionalMember.isEmpty()) {
       return "error/403"; // 로그인 정보 없음
     }
-
     Member member = optionalMember.get();
+
+    // BUYER_PAGE 조회
+    Optional<BuyerPage> optionalBuyerPage = buyerPageSVC.findByMemberId(loginMemberId);
+
+    log.info("✅ buyerMypageHome - loginMemberId = {}", loginMemberId);
+    log.info("✅ buyerMypageHome - member = {}", member);
+
+    if (optionalBuyerPage.isPresent()) {
+      BuyerPage buyerPage = optionalBuyerPage.get();
+      log.info("✅ buyerMypageHome - buyerPage.nickname = {}", buyerPage.getNickname());
+      model.addAttribute("buyerPage", buyerPage);
+    }
+
     model.addAttribute("memberId", loginMemberId);
     model.addAttribute("member", member);
+    model.addAttribute("activePath", "/mypage/buyer");
 
     return "mypage/buyerpage/buyerMypageHome";
   }
+
+
 
 
 }
