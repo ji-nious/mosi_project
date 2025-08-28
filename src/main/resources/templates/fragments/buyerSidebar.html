@@ -17,7 +17,7 @@
         <a href="#" class="profile-badge">프로여행러 ></a>
 
         <!-- 이름 분기 -->
-        <div class="profile-name" th:if="${member != null}" th:text="${member.name}">회원명</div>
+        <div class="profile-name" th:if="${member != null}" th:text="${member.nickname}">회원명</div>
         <div class="profile-name" th:unless="${member != null}">회원명</div>
 
         <!-- 역할 전환 : POST + CSRF -->
