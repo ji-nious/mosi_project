@@ -5,7 +5,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" th:href="@{/css/product/product_detail.css}">
-  <link rel="stylesheet" th:href="@{/css/review/product_review_list.css}">
   <link rel="stylesheet" th:href="@{/css/layout.css}">
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
@@ -81,8 +80,9 @@
         </div>
         <!-- 판매자 프로필 -->
         <div class="product-seller">
-          <img th:src="${productDetailForm.sellerImage}" alt="프로필 이미지" class="profile-img"
-            onerror="this.onerror=null; this.src='/img/default-profile.png';">
+          <img th:src="${productDetailForm.sellerImage}"
+               alt="프로필 이미지" class="profile-img"
+               onerror="this.onerror=null; this.src='/img/default-profile.png';">
           <div class="seller-info">
             <strong th:text="${productDetailForm.nickname}"></strong>
             <div class="seller-tags text-trim" th:text="${productDetailForm.intro}"></div>
@@ -298,33 +298,21 @@
                   기본<br>
                   <span class="allPrice" th:text="|*{product.salesPrice}원|"></span>
                 </div>
-                <!-- 설명 부분을 불릿 리스트로 -->
+                <!-- 설명 textarea -->
                 <div class="product-content price-detail">
-                  <div th:if="${product != null}">
-                    <ul th:if="${product.priceDetail != null}"
-                      th:each="line : ${#strings.arraySplit(product.priceDetail, '\n')}">
-                      <li th:text="${line}"></li>
-                    </ul>
-                    <p th:if="${product.priceDetail == null}">가격 설명이 없습니다.</p>
-                  </div>
+                  <span th:text="*{product.priceDetail}"></span>
                 </div>
                 <button>구매하기</button>
               </div>
-
               <!-- 가이드 동반 -->
               <div class="course-info">
                 <div class="price-box">
                   가이드 동반<br>
                   <span class="allPrice" th:text="|*{product.salesGuidePrice}원|"></span>
                 </div>
+                <!-- 설명 textarea -->
                 <div class="product-content price-detail">
-                  <div th:if="${product != null}">
-                    <ul th:if="${product.priceDetail != null}"
-                      th:each="line : ${#strings.arraySplit(product.priceDetail, '\n')}">
-                      <li th:text="${line}"></li>
-                    </ul>
-                    <p th:if="${product.priceDetail == null}">가격 설명이 없습니다.</p>
-                  </div>
+                  <span th:text="*{product.gpriceDetail}"></span>
                 </div>
                 <button>구매하기</button>
               </div>
@@ -391,19 +379,13 @@
             </div>
           </div>
           <div id="review">
-            <h3 id="review-total">등록 리뷰 수 0건</h3>
-            <div class="review_section">
-              <div class="review_list">
-              </div>
-              <div class="review_pagination" id="review-paging">
-              </div>
-            </div>
+            <h3>리뷰</h3>
+            <p>여기에 리뷰 내용이 들어갑니다.</p>
           </div>
         </section>
-
         <!-- 오른쪽 (구매박스) -->
         <section class="product-body-right"
-          th:attr="data-product-status=*{product.status}, data-product-id=*{product.productId}">
+          th:attr="data-product-id=*{product.productId}, data-product-status=*{product.status}">
           <div class="product-body-right-container">
             <!-- 탭 -->
             <div style="display: flex;">
@@ -416,7 +398,6 @@
                 가이드 포함
               </div>
             </div>
-
             <!-- 기본 코스 -->
             <div id="content-basic">
               <div class="allPrice" th:text="|*{product.salesPrice}원|">
@@ -445,7 +426,6 @@
                 </button>
               </div>
             </div>
-
             <!-- 가이드 포함 -->
             <div id="content-guide">
               <div class="allPrice" th:text="|*{product.salesGuidePrice}원|">
@@ -468,22 +448,18 @@
             </div>
           </div>
         </section>
-
         <script>
           function showTab(tab) {
             document.getElementById('content-basic').style.display = 'none';
             document.getElementById('content-guide').style.display = 'none';
-
             document.getElementById('tab-basic').style.borderBottom = '2px solid #ddd';
             document.getElementById('tab-guide').style.borderBottom = '2px solid #ddd';
             document.getElementById('tab-basic').style.color = '#999';
             document.getElementById('tab-guide').style.color = '#999';
-
             document.getElementById('content-' + tab).style.display = 'block';
             document.getElementById('tab-' + tab).style.borderBottom = '2px solid #333';
             document.getElementById('tab-' + tab).style.color = '#333';
           }
-
           // 기본 활성화
           document.addEventListener('DOMContentLoaded', function () {
             showTab('basic');
@@ -508,7 +484,6 @@
 
   <!-- //-------------------- 기본 레이아웃 -------------------- -->
   <script th:src="@{/js/layout.js}"></script>
-  <script type="module" th:src="@{/js/review/product_review_list.js}"></script>
 </body>
 
 </html>

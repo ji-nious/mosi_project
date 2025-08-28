@@ -1,8 +1,6 @@
 package com.KDT.mosi.web.controller.review;
 
-import com.KDT.mosi.domain.entity.review.Review;
-import com.KDT.mosi.domain.entity.review.ReviewList;
-import com.KDT.mosi.domain.entity.review.ReviewReport;
+import com.KDT.mosi.domain.entity.review.*;
 import com.KDT.mosi.domain.product.dao.ProductImageDAO;
 import com.KDT.mosi.domain.review.svc.ReviewSVC;
 import com.KDT.mosi.web.api.ApiResponse;
@@ -102,10 +100,12 @@ public class ApiReviewController {
 
   // 태그 반환: 공용 + 해당 카테고리 (카테고리가 없으면 빈 배열 [])
   @GetMapping("/tag/{category}")
+//  @GetMapping(value="/tag/{category}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<ApiResponse<List<TagInfo>>> getTags(
       @PathVariable("category") String category
   ) {
     List<TagInfo> tags = reviewSVC.findTagList(category);
+    log.info("category={}",category);
     return ResponseEntity.ok(ApiResponse.of(ApiResponseCode.SUCCESS, tags));
   }
 
@@ -176,4 +176,58 @@ public class ApiReviewController {
 
     return ResponseEntity.ok(ApiResponse.of(ApiResponseCode.SUCCESS, null));
   }
+  @GetMapping(value="/product/{productId}", produces = MediaType.APPLICATION_JSON_VALUE)
+//  @GetMapping("/product/{productId}")
+  public ResponseEntity<ApiResponse<List<ProductReview>>> productReviewList(
+      @RequestParam(value="pageNo", defaultValue = "1") Integer pageNo,
+      @RequestParam(value="numOfRows", defaultValue = "5") Integer pageSize,
+      @PathVariable("productId") Long productId,
+      HttpSession session
+  ) {
+    Long loginId = (Long) session.getAttribute("loginMemberId");
+    if (loginId == null) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+    }
+    List<ProductReview> productReviews = reviewSVC.productReviewList(productId, pageNo, 5,loginId);
+
+    return ResponseEntity.ok(ApiResponse.of(ApiResponseCode.SUCCESS, productReviews));
+  }
+  @GetMapping(value="/product/profile-images/{imageId}", produces = MediaType.APPLICATION_JSON_VALUE)
+//  @GetMapping("/product/profile-images/{imageId}")
+  public ResponseEntity<ApiResponse<ReviewProduct>> profileImage(
+      @PathVariable("imageId") Long imageId,
+      HttpSession session
+  ) {
+    Long loginId = (Long) session.getAttribute("loginMemberId");
+    if (loginId == null) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+    }
+
+    ReviewProduct rp = reviewSVC.reviewProfile(imageId)
+        .orElse(null);
+
+    if (rp == null) {
+      return ResponseEntity.notFound().build();
+    }
+
+    ApiResponse<ReviewProduct> response =
+        ApiResponse.of(ApiResponseCode.SUCCESS, rp);
+
+    return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/product/reviewCnt/{productId}")
+  public ResponseEntity<ApiResponse<Long>> productReviewCnt(
+      @PathVariable("productId") Long productId,
+      HttpSession session
+  ){
+    Long loginId = (Long) session.getAttribute("loginMemberId");
+    if (loginId == null) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+    }
+    Long num = reviewSVC.productReviewCnt(productId);
+    ApiResponse<Long> reviewApiResponse = ApiResponse.of(ApiResponseCode.SUCCESS, num);
+    return ResponseEntity.ok(reviewApiResponse);
+  }
+
 }

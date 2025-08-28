@@ -72,5 +72,15 @@ public interface ReviewSVC {
   //리뷰 신고 확인
   boolean existsReport(Long reviewId, Long memberId);
 
+  //제품 상세 페이지 리뷰 목록
+  List<ProductReview> productReviewList(Long productId, int pageNo,int pageSiz);
 
+  //제품 상세 페이지 리뷰 전체 갯수
+  Long productReviewCnt(Long productId);
+
+  //제품 상세 페이지 리뷰 목록(작성자 본인 닉네임은 전체 출력)
+  List<ProductReview> productReviewList(Long productId, int pageNo, int pageSize,Long loginId);
+
+  //리뷰 작성자 profile
+  Optional<ReviewProduct> reviewProfile(Long memberId);
 }
