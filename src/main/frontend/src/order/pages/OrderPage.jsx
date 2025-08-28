@@ -18,15 +18,13 @@ function ErrorMessage({ message, onRetry }) {
   )
 }
 
-/**
- * 메인 주문결제 페이지 컴포넌트
- * Image 2와 완전 동일하게 구현
- */
+// 주문결제 페이지 컴포넌트
 function OrderPage() {
   // 상태 관리
   const [orderData, setOrderData] = useState(null)
   const [memberInfo, setMemberInfo] = useState({})
   const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('')
   const [showPaymentModal, setShowPaymentModal] = useState(false)
@@ -59,12 +57,11 @@ function OrderPage() {
     }
   }, [])
 
-  /**
-   * 주문 데이터 가져오기
-   */
+  // 주문 데이터 조회
   const fetchOrderData = async () => {
     try {
       setError(null)
+      setLoading(true)
 
       // 1. 세션 스토리지에서 선택된 상품들 가져오기
       let selectedItems = sessionStorage.getItem('selectedCartItems')
@@ -101,13 +98,12 @@ function OrderPage() {
             }
           }
         } catch (error) {
-          console.log('서버 세션 상태 복원 실패:', error)
+          // 무시
         }
       }
 
       if (!items || items.length === 0) {
-        // 선택된 상품이 없으면 장바구니로 리다이렉트
-        alert('주문할 상품을 선택해주세요.')
+        // 선택된 상품이 없으면 장바구니로 리다이렉트 (메시지 없이)
         window.location.href = '/cart'
         return
       }
@@ -138,24 +134,20 @@ function OrderPage() {
           })
         }
       } catch (error) {
-        // 오류 시 기본값
-        setMemberInfo({
-          name: '',
-          phone: '',
-          email: ''
-        })
+        // 기본값 설정
+        setMemberInfo({ name: '', phone: '', email: '' })
       }
 
       setOrderData({ orderItems: items })
 
     } catch (error) {
       setError('주문 정보를 불러올 수 없습니다')
+    } finally {
+      setLoading(false)
     }
   }
 
-  /**
-   * 주문서 제출 처리
-   */
+  // 주문서 제출 처리
   const handleOrderSubmit = async (formData) => {
     try {
       setProcessing(true)
@@ -173,16 +165,13 @@ function OrderPage() {
         alert(orderResult?.message || '주문 생성에 실패했습니다')
       }
     } catch (error) {
-      console.error('주문 생성 실패:', error)
-      alert('주문 처리 중 오류가 발생했습니다')
+      alert('주문에 실패했습니다')
     } finally {
       setProcessing(false)
     }
   }
 
-  /**
-   * 결제 처리
-   */
+  // 결제 처리
   const handlePayment = async (orderId, paymentMethod) => {
     try {
       setProcessing(true)
@@ -208,30 +197,23 @@ function OrderPage() {
         alert(paymentResult?.message || '결제에 실패했습니다')
       }
     } catch (error) {
-      console.error('결제 처리 실패:', error)
-      alert('결제 처리 중 오류가 발생했습니다')
+      alert('결제에 실패했습니다')
     } finally {
       setProcessing(false)
     }
   }
 
-  /**
-   * 총 결제 금액 계산
-   */
+  // 총 결제 금액 계산
   const calculateTotalAmount = (items) => {
     return items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
   }
 
-  /**
-   * 결제 방법 변경 핸들러
-   */
+  // 결제 방법 변경
   const handlePaymentMethodChange = (method) => {
     setPaymentMethod(method)
   }
 
-  /**
-   * 라디오 버튼 선택 시 임시 결제 처리 (주문완료로 가지 않음)
-   */
+  // 임시 결제 처리
   const processPaymentImmediately = async (selectedPaymentMethod) => {
     try {
       setShowPaymentModal(true)
@@ -244,17 +226,14 @@ function OrderPage() {
       alert('결제가 완료되었습니다.')
 
     } catch (error) {
-      console.error('임시 결제 처리 실패:', error)
-      alert('임시 결제 처리 중 오류가 발생했습니다')
+      alert('결제 처리 중 오류가 발생했습니다')
     } finally {
       setShowPaymentModal(false)
       setProcessing(false)
     }
   }
 
-  /**
-   * 결제하기 버튼 클릭 시 - 실제 주문 완료 처리
-   */
+  // 주문 완료 처리
   const onPayment = async () => {
     // 결제 수단 선택 여부 확인
     if (!paymentMethod) {
@@ -337,10 +316,22 @@ function OrderPage() {
         alert(message)
       }
     } catch (error) {
-      alert('주문 처리 중 오류가 발생했습니다. 다시 시도해주세요.')
+      alert('주문에 실패했습니다')
     } finally {
       setProcessing(false)
     }
+  }
+
+  // 로딩 화면 (장바구니와 동일한 스타일)
+  if (loading) {
+    return (
+      <div className="order-container">
+        <div className="loading-container">
+          <div className="custom-spinner"></div>
+          <div className="loading-text">주문 정보를 불러오는 중...</div>
+        </div>
+      </div>
+    )
   }
 
   // 에러 발생
@@ -441,7 +432,7 @@ function OrderPage() {
         </div>
       )}
 
-      {/* 결제 완료 로딩 모달 - 장바구니 스타일과 동일 */}
+      {/* 결제 완료 로딩 모달 - 원래 스타일 */}
       {showPaymentSuccessModal && (
         <div className="modal-overlay">
           <div className="loading-modal-content">

@@ -38,6 +38,7 @@ public class CartSVCImpl implements CartSVC {
 
   // 장바구니 상품 추가
   @Override
+  @Transactional
   public ApiResponse<Void> addToCart(Long buyerId, Long productId, String optionType, Long quantity) {
     try {
       if (quantity <= 0) {
@@ -55,9 +56,9 @@ public class CartSVCImpl implements CartSVC {
           .findByBuyerIdAndProductIdAndOptionType(buyerId, productId, optionType);
 
       if (existingItem.isPresent()) {
-        CartItem item = existingItem.get();
-        item.setQuantity(item.getQuantity() + quantity);
-        cartItemRepository.save(item);
+        log.warn("중복 상품 추가 시도: buyerId={}, productId={}, optionType={}",
+            buyerId, productId, optionType);
+        return ApiResponse.of(ApiResponseCode.CART_ITEM_ALREADY_EXISTS, null);
       } else {
         Cart cart = getOrCreateCart(buyerId);
 

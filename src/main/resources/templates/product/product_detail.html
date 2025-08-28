@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" th:href="@{/css/product/product_detail.css}">
+  <link rel="stylesheet" th:href="@{/css/review/product_review_list.css}">
   <link rel="stylesheet" th:href="@{/css/layout.css}">
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
@@ -393,8 +394,13 @@
             </div>
           </div>
           <div id="review">
-            <h3>리뷰</h3>
-            <p>여기에 리뷰 내용이 들어갑니다.</p>
+            <h3 id="review-total">등록 리뷰 수 0건</h3>
+            <div class="review_section">
+              <div class="review_list">
+              </div>
+              <div class="review_pagination" id="review-paging">
+              </div>
+            </div>
           </div>
         </section>
 
@@ -505,6 +511,7 @@
 
   <!-- //-------------------- 기본 레이아웃 -------------------- -->
   <script th:src="@{/js/layout.js}"></script>
+  <script type="module" th:src="@{/js/review/product_review_list.js}"></script>
 </body>
 
 </html>

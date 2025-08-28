@@ -22,7 +22,6 @@ const CartItem = memo(({
       // 개별 파라미터로 호출
       await onQuantityChange(item.productId, item.optionType, newQuantity)
     } catch (error) {
-      console.error('수량 변경 실패:', error)
       alert('수량 변경에 실패했습니다')
     } finally {
       setIsUpdating(false)
@@ -32,14 +31,13 @@ const CartItem = memo(({
   // 상품 삭제 처리
   const handleRemove = useCallback(async () => {
     if (isUpdating || updating) return
-    if (!confirm('해당 상품을 삭제하시겠습니까?')) return
+    if (!confirm(`${item.productName}을 삭제하시겠습니까?`)) return
 
     setIsUpdating(true)
     try {
       // 개별 파라미터로 호출
       await onRemove(item.productId, item.optionType)
     } catch (error) {
-      console.error('삭제 실패:', error)
       alert('삭제에 실패했습니다')
     } finally {
       setIsUpdating(false)

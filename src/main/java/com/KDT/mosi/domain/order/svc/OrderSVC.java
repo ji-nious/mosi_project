@@ -32,4 +32,10 @@ public interface OrderSVC {
 
   // 결제 완료 처리
   OrderResponse completePayment(String orderCode, Long buyerId);
+
+  // 판매자 판매내역 조회
+  ApiResponse<List<OrderResponse>> getSellerOrderHistory(Long sellerId, int page, int size);
+
+  // 판매자 주문 개수 조회
+  int getSellerOrderCount(Long sellerId);
 }

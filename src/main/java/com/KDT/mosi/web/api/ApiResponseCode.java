@@ -29,6 +29,10 @@ public enum ApiResponseCode {
   PRODUCT_UNAVAILABLE("P02", "상품을 사용할 수 없습니다."),
   PRODUCT_DISCONTINUED("P03", "현재 판매가 중단된 상품입니다."),
 
+  // 장바구니 관련
+  CART_ITEM_ALREADY_EXISTS("C11", "이미 장바구니에 동일한 상품이 존재합니다."),
+  CART_ITEM_NOT_FOUND("C12", "장바구니에서 해당 상품을 찾을 수 없습니다."),
+
   // 결제 관련
   PAYMENT_FAILED("M01", "결제에 실패했습니다."),
 

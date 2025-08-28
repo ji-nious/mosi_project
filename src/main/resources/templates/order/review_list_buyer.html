@@ -63,7 +63,7 @@
                   <div class="product-info-right">
                     <div class="product-info-right-detail">
                       <div class="btn-group">
-                        <button class="review-btn btn">리뷰</button>
+                        <button class="review-btn btn " th:data-order-item-id="${order.orderId}">리뷰</button>
                         <button class="delete-btn btn">삭제</button>
                       </div>
                       <div class="price-and-order-date">
@@ -89,10 +89,10 @@
 
               <th:block th:each="i : ${#numbers.sequence(1, (paging.totalCount - 1) / paging.numOfRows + 1)}">
                 <a th:if="${i == paging.pageNo}"
-                   th:href="@{/complete/history(page=${i}, size=${paging.numOfRows})}"
+                   th:href="@{/order/history(page=${i}, size=${paging.numOfRows})}"
                    class="page-link active" th:text="${i}">1</a>
                 <a th:if="${i != paging.pageNo}"
-                   th:href="@{/complete/history(page=${i}, size=${paging.numOfRows})}"
+                   th:href="@{/order/history(page=${i}, size=${paging.numOfRows})}"
                    class="page-link" th:text="${i}">1</a>
               </th:block>
 
@@ -115,6 +115,23 @@
 </div>
 <script th:src="@{/js/buyerpage/buyerMypageHome.js}"></script>
 <script th:src="@{/js/layout.js}"></script>
+<script>
+  // review-btn 클릭 시 /review/add/{orderItemId}로 이동
+  document.addEventListener("DOMContentLoaded", () => {
+    const reviewBtns = document.querySelectorAll(".review-btn");
+
+    reviewBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const orderItemId = btn.dataset.orderItemId;
+        if (orderItemId) {
+          window.location.href = `/review/add/${orderItemId}`;
+        }
+      });
+    });
+  });
+
+
+</script>
 </body>
 
 </html>

@@ -215,7 +215,7 @@
 /* 장바구니 아이템 */
 .cart-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 15px;
   padding: 20px;
   border: 1px solid #BFBFBF;
@@ -340,11 +340,6 @@
   height: 100%;
   object-fit: cover;
   border-radius: 8px;
-  transition: transform 0.3s ease;
-}
-
-.item-image:hover img {
-  transform: scale(1.05);
 }
 
 /* 상품 정보 */
@@ -352,6 +347,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 8px;
 }
 
@@ -363,9 +359,6 @@
   line-height: 1.4;
   margin-bottom: 6px;
   word-break: break-word;
-  flex: 1;
-  display: flex;
-  align-items: center;
 }
 
 /* 품절 상태 */
