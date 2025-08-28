@@ -207,8 +207,8 @@ public class  BuyerPageController {
     // ───────────────────────────
     // 1. 권한·세션 검증
     // ───────────────────────────
-    Long loginMemberId = getLoginMemberId();          // 로그인 사용자 ID
-    if (!loginMemberId.equals(memberId)) {            // URL 과 세션 ID 불일치
+    Long loginMemberId = getLoginMemberId();
+    if (!loginMemberId.equals(memberId)) {
       log.warn("🚫 접근 차단: loginId={} ≠ urlId={}", loginMemberId, memberId);
       return "error/403";
     }
@@ -217,67 +217,37 @@ public class  BuyerPageController {
     // 2. 검증 오류 처리
     // ───────────────────────────
     if (bindingResult.hasErrors()) {
-      // 🔹 [로그] 필드별 오류 메시지 출력
       bindingResult.getFieldErrors()
-          .forEach(err -> log.warn("❌ Validation error - {} : {}",
-              err.getField(), err.getDefaultMessage()));
+          .forEach(err -> log.warn("❌ Validation error - {} : {}", err.getField(), err.getDefaultMessage()));
 
       memberSVC.findById(memberId)
-          .ifPresent(m -> model.addAttribute("member", m)); // 기존 코드
+          .ifPresent(m -> model.addAttribute("member", m));
 
       return "mypage/buyerpage/editBuyerPage";
     }
 
     // ───────────────────────────
-    // 3. 닉네임 중복 검사
+    // 3. 닉네임 중복 검사 (Member + BuyerPage)
     // ───────────────────────────
     String currentNickname   = buyerPageSVC.findByMemberId(memberId)
         .map(BuyerPage::getNickname)
         .orElse(null);
     String requestedNickname = form.getNickname();
 
-    if (requestedNickname != null && !requestedNickname.equals(currentNickname) &&
-        memberSVC.isExistNickname(requestedNickname)) {
+    boolean nicknameExistsInMember   = memberSVC.isExistNickname(requestedNickname);
+    boolean nicknameExistsInBuyerPage = buyerPageSVC.existsByNickname(requestedNickname);
+
+    if (requestedNickname != null
+        && !requestedNickname.equals(currentNickname)
+        && (nicknameExistsInMember || nicknameExistsInBuyerPage)) {
+
       bindingResult.rejectValue("nickname", "duplicate", "이미 사용 중인 닉네임입니다.");
       memberSVC.findById(memberId).ifPresent(m -> model.addAttribute("member", m));
       return "mypage/buyerpage/editBuyerPage";
     }
 
     // ───────────────────────────
-    // 4. BuyerPage 갱신
-    // ───────────────────────────
-    BuyerPage buyerPage = new BuyerPage();
-    buyerPage.setPageId(form.getPageId());
-    buyerPage.setMemberId(memberId);
-    buyerPage.setNickname(requestedNickname);
-    buyerPage.setIntro(form.getIntro());
-    log.debug("💬 intro = {}", form.getIntro());
-
-    buyerPage.setTel(form.getTel());
-    log.info("📞 BuyerPage 전화번호 수정: {}", form.getTel());
-
-    buyerPage.setAddress(form.getAddress());
-    buyerPage.setZonecode(form.getZonecode());
-    buyerPage.setDetailAddress(form.getDetailAddress());
-    log.info("🏠 BuyerPage 주소 수정: ({}) {} {}", form.getZonecode(), form.getAddress(), form.getDetailAddress());
-
-    buyerPage.setNotification(form.getNotification());
-
-
-
-    if (form.getImageFile() != null && !form.getImageFile().isEmpty()) {
-      buyerPage.setImage(form.getImageFile().getBytes());
-    } else {
-      // 기존 이미지 유지
-      buyerPageSVC.findById(form.getPageId()).ifPresent(existing -> {
-        buyerPage.setImage(existing.getImage());
-      });
-    }
-
-    buyerPageSVC.update(form.getPageId(), buyerPage);
-
-    // ───────────────────────────
-    // 5. Member 기본 정보 갱신
+    // 4. Member 기본 정보 갱신 (먼저 실행)
     // ───────────────────────────
     Member member = new Member();
     member.setMemberId(memberId);
@@ -286,37 +256,42 @@ public class  BuyerPageController {
     member.setZonecode(form.getZonecode());
     member.setAddress(form.getAddress());
     member.setDetailAddress(form.getDetailAddress());
-    log.info("📦 Member 주소정보 확인: zonecode={}, address={}, detailAddress={}",
-        member.getZonecode(), member.getAddress(), member.getDetailAddress());
-
     member.setNotification("Y".equals(form.getNotification()) ? "Y" : "N");
+    member.setNickname(form.getNickname());
+    log.info("✅ 컨트롤러에서 최종 Member.nickname = {}", member.getNickname());
 
     if (form.getImageFile() != null && !form.getImageFile().isEmpty()) {
-      try {
-        member.setPic(form.getImageFile().getBytes());
-        // ✅ 이미지 데이터 유무 로그 추가
-        log.info("🖼️ Member 'pic' field updated with image data. Size: {} bytes", member.getPic().length);
-      } catch (IOException e) {
-        log.error("Failed to get image bytes for Member pic", e);
-      }
-    } else {
-      log.info("No new image file provided for Member 'pic' update.");
+      member.setPic(form.getImageFile().getBytes());
     }
-
     if (form.getPasswd() != null && !form.getPasswd().isBlank()) {
       member.setPasswd(form.getPasswd());
-      log.info("🔐 비밀번호가 새롭게 입력됨: 변경 처리 예정");
-    } else {
-      log.info("🔐 비밀번호 미입력: 기존 비밀번호 유지");
     }
 
     memberSVC.modify(memberId, member);
 
-    // ✅ 비밀번호 변경 완료 로그
-    if (form.getPasswd() != null && !form.getPasswd().isBlank()) {
-      log.info("✅ 비밀번호 변경 완료: memberId = {}", memberId);
+    // ───────────────────────────
+    // 5. BuyerPage 갱신 (나중에 실행)
+    // ───────────────────────────
+    BuyerPage buyerPage = new BuyerPage();
+    buyerPage.setPageId(form.getPageId());
+    buyerPage.setMemberId(memberId);
+    buyerPage.setNickname(requestedNickname);
+    buyerPage.setIntro(form.getIntro());
+    buyerPage.setTel(form.getTel());
+    buyerPage.setAddress(form.getAddress());
+    buyerPage.setZonecode(form.getZonecode());
+    buyerPage.setDetailAddress(form.getDetailAddress());
+    buyerPage.setNotification(form.getNotification());
+
+    if (form.getImageFile() != null && !form.getImageFile().isEmpty()) {
+      buyerPage.setImage(form.getImageFile().getBytes());
+    } else {
+      buyerPageSVC.findById(form.getPageId()).ifPresent(existing -> {
+        buyerPage.setImage(existing.getImage());
+      });
     }
 
+    buyerPageSVC.update(form.getPageId(), buyerPage);
 
     // ───────────────────────────
     // 6. 세션 정보 동기화
@@ -328,17 +303,16 @@ public class  BuyerPageController {
       loginMember.setZonecode(form.getZonecode());
       loginMember.setAddress(form.getAddress());
       loginMember.setDetailAddress(form.getDetailAddress());
-      session.setAttribute("loginMember", loginMember);   // 세션 갱신
+      session.setAttribute("loginMember", loginMember);
     }
 
     // ───────────────────────────
     // 7. 리다이렉트
     // ───────────────────────────
     redirectAttributes.addFlashAttribute("msg", "마이페이지 정보가 성공적으로 수정되었습니다.");
-
     return "redirect:/mypage/buyer/" + memberId + "/edit";
-
   }
+
 
 
   @GetMapping

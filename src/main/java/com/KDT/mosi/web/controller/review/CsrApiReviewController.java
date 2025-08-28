@@ -2,6 +2,7 @@ package com.KDT.mosi.web.controller.review;
 
 import com.KDT.mosi.domain.entity.review.ReviewEdit;
 import com.KDT.mosi.domain.entity.review.ReviewProduct;
+import com.KDT.mosi.domain.mypage.buyer.svc.BuyerPageSVC;
 import com.KDT.mosi.domain.review.svc.ReviewSVC;
 import com.KDT.mosi.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import java.util.Optional;
 public class CsrApiReviewController {
 
   private final ReviewSVC reviewSVC;
+  private final BuyerPageSVC buyerPageSVC;
 
   @GetMapping("/add/{orderItemId}")
   public String bbs(@PathVariable("orderItemId") Long orderItemId,
@@ -108,7 +110,17 @@ public class CsrApiReviewController {
   ) {
     if (user == null) return "redirect:/login";
 
-    return "review/buyer_review_list";             // 목록 뷰 (앞서 만든 HTML 템플릿)
+    Long memberId = user.getMember().getMemberId();
+
+    // 세션 Member 그대로 내려줌
+    model.addAttribute("member", user.getMember());
+
+    // BuyerPage DB 조회 후 내려줌 (닉네임/프로필 포함)
+    buyerPageSVC.findByMemberId(memberId)
+        .ifPresent(bp -> model.addAttribute("buyerPage", bp));
+
+    return "review/buyer_review_list";
   }
+
 
 }
