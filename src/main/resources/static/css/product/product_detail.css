@@ -2,8 +2,11 @@
 /* ----- 기본 설정 ----- */
 /* --------------------- */
 ul, ol {
-    list-style: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
+
 a{
     color: inherit;
     text-decoration: none;
@@ -510,6 +513,7 @@ h3{
     padding: 10px;
     border-radius: 6px;
     font-weight: 400;
+    font-size: 18px;
 }
 
 .price-info-container .course-info button{
@@ -536,29 +540,39 @@ h3{
 }
 
 .course-info .product-content.price-detail ul {
-  list-style: none;   /* 기존 불릿 제거 */
-  padding-left: 0;    /* 기본 들여쓰기 제거 */
+  list-style: none;
+  padding-left: 20px;
   margin: 10px 0;
 }
 
+/* 공통 li 스타일 */
 .course-info .product-content.price-detail li {
   position: relative;
-  padding-left: 24px; /* 커스텀 불릿 위치 공간 */
-  margin-bottom: 10px;
+  margin-bottom: 6px;
+  line-height: 1.6;
+  font-size: 16px;
+  color: #333;
+  white-space: pre-line; /* DB의 줄바꿈 반영 */
 }
 
-.course-info .product-content.price-detail li::before {
-  content: "";
-  display: inline-block;
-  width: 14px;          /* 🔹 원 크기 조정 */
-  height: 14px;
-  background-color: #333; 
-  border-radius: 50%;
+/* 불릿 있는 줄 */
+.course-info .product-content.price-detail li.with-bullet {
+  padding-left: 18px;
+}
+.course-info .product-content.price-detail li.with-bullet::before {
+  content: "●";
   position: absolute;
   left: 0;
-  top: 6px;             /* 글자 라인 맞춤 */
+  top: 0.35em;
+  font-size: 14px;
+  color: #333;
 }
 
+/* 불릿 없는 들여쓰기 줄 */
+.course-info .product-content.price-detail li.no-bullet {
+  padding-left: 28px;  /* 불릿 대신 살짝 더 들여쓰기 */
+  color: #555;         /* 구분을 위해 색상 약간 흐리게 (옵션) */
+}
 
 
 /* ------ 가이드 정보 ----- */

@@ -288,24 +288,25 @@
               window.location.href = `/product/download/product/${productId}`;
             }
           </script>
+          <!-- 가격 정보 -->
           <div id="price-info">
             <h3>가격 정보</h3>
             <div class="price-info-container">
+
               <!-- 기본 코스 -->
               <div class="course-info">
                 <div class="price-box">
                   기본<br>
                   <span class="allPrice" th:text="|*{product.salesPrice}원|"></span>
                 </div>
-                <!-- 설명 부분을 불릿 리스트로 -->
                 <div class="product-content price-detail">
-                  <div th:if="${product != null}">
-                    <ul th:if="${product.priceDetail != null}"
-                      th:each="line : ${#strings.arraySplit(product.priceDetail, '\n')}">
-                      <li th:text="${line}"></li>
-                    </ul>
-                    <p th:if="${product.priceDetail == null}">가격 설명이 없습니다.</p>
-                  </div>
+                  <ul th:if="${priceDetailList != null}">
+                    <li th:each="line : ${priceDetailList}" th:text="${line}" th:classappend="${#strings.isEmpty(#strings.trim(line)) ? '' 
+                              : (#strings.startsWith(line,' ') or #strings.startsWith(line,'\t') 
+                                ? 'no-bullet' : 'with-bullet')}">
+                    </li>
+                  </ul>
+                  <p th:if="${priceDetailList == null}">가격 설명이 없습니다.</p>
                 </div>
                 <button>구매하기</button>
               </div>
@@ -317,18 +318,20 @@
                   <span class="allPrice" th:text="|*{product.salesGuidePrice}원|"></span>
                 </div>
                 <div class="product-content price-detail">
-                  <div th:if="${product != null}">
-                    <ul th:if="${product.priceDetail != null}"
-                      th:each="line : ${#strings.arraySplit(product.priceDetail, '\n')}">
-                      <li th:text="${line}"></li>
-                    </ul>
-                    <p th:if="${product.priceDetail == null}">가격 설명이 없습니다.</p>
-                  </div>
+                  <ul th:if="${gpriceDetailList != null}">
+                    <li th:each="line : ${gpriceDetailList}" th:text="${line}" th:classappend="${#strings.isEmpty(#strings.trim(line)) ? '' 
+                              : (#strings.startsWith(line,' ') or #strings.startsWith(line,'\t') 
+                                ? 'no-bullet' : 'with-bullet')}">
+                    </li>
+                  </ul>
+                  <p th:if="${gpriceDetailList == null}">가격 설명이 없습니다.</p>
                 </div>
                 <button>구매하기</button>
               </div>
             </div>
           </div>
+
+          <!-- 가이드 정보 -->
           <div id="guide-info">
             <h3>가이드 정보</h3>
             <div class="product-seller guide-inform">
