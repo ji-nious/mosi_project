@@ -541,8 +541,13 @@ public class ProductController {
       product.setFileData(existingProduct.getFileData());
     }
 
-    // status가 null이면 기존 값 유지
-    if (product.getStatus() == null || product.getStatus().trim().isEmpty()) {
+    // ⭐⭐ 수정된 부분: 상태 변경 로직
+    // 폼 제출 시 항상 '판매중'으로 변경 (임시저장 상태에서 등록하는 경우)
+    // 혹은, 폼에 숨겨진 입력 필드를 통해 명확한 상태를 전달하는 방법도 있습니다.
+    // 현재 코드의 로직을 따르면 아래와 같이 수정하는 것이 가장 간단합니다.
+    if ("임시저장".equals(existingProduct.getStatus())) {
+      product.setStatus("판매중");
+    } else {
       product.setStatus(existingProduct.getStatus());
     }
 

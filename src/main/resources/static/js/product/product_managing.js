@@ -9,7 +9,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // 2. CSRF 토큰과 헤더명을 meta 태그에서 읽는 함수
+  // 2. CSRF 토큰 관련 코드 주석 처리
+  /*
   function getCsrfToken() {
     const tokenElement = document.querySelector('meta[name="_csrf"]');
     const token = tokenElement ? tokenElement.getAttribute('content') : null;
@@ -24,8 +25,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const csrfToken = getCsrfToken();
   const csrfHeader = getCsrfHeader();
+  */
 
-  // 3. 판매 상태 변경 시 서버에 PATCH 요청 보내기 (기존 코드 유지)
+  // 3. 판매 상태 변경 시 서버에 PATCH 요청 보내기
   const statusSelects = document.querySelectorAll('.status-select');
 
   statusSelects.forEach(select => {
@@ -36,9 +38,11 @@ document.addEventListener('DOMContentLoaded', function() {
       const headers = {
         'Content-Type': 'application/json'
       };
+      /*
       if (csrfToken && csrfHeader) {
         headers[csrfHeader] = csrfToken;
       }
+      */
 
       fetch(`/product/status/${productId}`, {
         method: 'PATCH',
@@ -49,9 +53,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!response.ok) {
           return response.json().then(err => { throw new Error(err.message || '상태 업데이트 실패'); });
         }
-        // 상태 업데이트 성공 시 페이지를 새로고침하여 변경된 상태를 반영합니다.
-        // 비동기 필터링 기능을 적용하려면, 이 부분도 동적으로 업데이트하도록 수정해야 합니다.
-        window.location.reload();
+        // ⭐⭐ 수정된 부분: 상태 업데이트 성공 후 현재 필터 상태를 유지하며 목록 새로고침
+        const currentFilterStatus = document.querySelector('.overall-info .status-filter-select').value;
+        const currentPage = new URL(window.location.href).searchParams.get('page') || '1';
+        fetchFilteredProducts(currentFilterStatus, currentPage);
       })
       .catch(error => {
         console.error('상태 업데이트 중 오류 발생:', error);
@@ -92,7 +97,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 필터링된 상품 목록을 가져오는 비동기 함수
   function fetchFilteredProducts(status, page) {
-    const url = `/api/product/manage/filtered-data?status=${status}&page=${page}&size=5`;
+    // ⭐⭐ 핵심 수정 부분: URL 변경
+    const url = `/api/product/list?status=${status}&page=${page}&size=5`;
     const headers = {
       'Accept': 'application/json'
     };
@@ -185,7 +191,6 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
             </div>
           </div>
-          <hr>
         `;
         productListContainer.insertAdjacentHTML('beforeend', productItemHtml);
       });
@@ -264,7 +269,6 @@ document.addEventListener('DOMContentLoaded', function() {
               const productId = e.target.dataset.productId;
               const status = e.target.value;
 
-              // ⭐⭐⭐ 현재 상태를 데이터 속성에서 가져옵니다. ⭐⭐⭐
               const currentStatus = e.target.dataset.currentStatus;
 
               if (currentStatus === '임시저장') {
@@ -274,9 +278,9 @@ document.addEventListener('DOMContentLoaded', function() {
               }
 
               const headers = { 'Content-Type': 'application/json' };
-              if (csrfToken && csrfHeader) {
-                  headers[csrfHeader] = csrfToken;
-              }
+              // if (csrfToken && csrfHeader) {
+              //     headers[csrfHeader] = csrfToken;
+              // }
 
               fetch(`/product/status/${productId}`, {
                   method: 'PATCH',
@@ -287,10 +291,10 @@ document.addEventListener('DOMContentLoaded', function() {
                   if (!response.ok) {
                       return response.json().then(err => { throw new Error(err.message || '상태 업데이트 실패'); });
                   }
-                  // 성공 시 현재 필터와 페이지를 유지하며 목록 새로고침
-                  const currentStatus = new URL(window.location.href).searchParams.get('status') || 'all';
+                  // ⭐⭐ 수정된 부분: 상태 업데이트 성공 후 현재 필터 상태를 유지하며 목록 새로고침
+                  const currentFilterStatus = document.querySelector('.overall-info .status-filter-select').value;
                   const currentPage = new URL(window.location.href).searchParams.get('page') || '1';
-                  fetchFilteredProducts(currentStatus, currentPage);
+                  fetchFilteredProducts(currentFilterStatus, currentPage);
               })
               .catch(error => {
                   console.error('상태 업데이트 중 오류 발생:', error);
