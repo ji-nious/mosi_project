@@ -23,7 +23,7 @@
     </th:block>
     <div class="page-container">
       <div class="breadcrumb">
-        <span>홈 &gt; 테마여행 &gt; <span id="category-select" th:attr="data-category=${selectedCategory}"
+         <span><a th:href="@{/}">홈</a> &gt; <a th:href="@{/product/list?category=all}">테마여행</a> &gt; <span id="category-select" th:attr="data-category=${selectedCategory}"
             th:text="${selectedCategory}"></span>
         </span>
       </div>
