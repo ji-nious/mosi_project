@@ -37,7 +37,7 @@
           <!-- 카테고리 -->
           <div class="product-category">
             <a th:href="@{/}">홈</a> &gt;
-            <a href="#">테마여행</a> &gt; <!--th:href="*{}"-->
+            <a th:href="@{/product/list?category=all}">테마여행</a> &gt;
             <a href="#"><span th:if="*{product?.category == 'area'}">지역</span>
               <span th:if="*{product.category == 'pet'}">반려동물</span>
               <span th:if="*{product.category == 'restaurant'}">맛집</span>
