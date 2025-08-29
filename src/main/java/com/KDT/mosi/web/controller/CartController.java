@@ -3,7 +3,9 @@ package com.KDT.mosi.web.controller;
 import com.KDT.mosi.domain.cart.dto.CartResponse;
 import com.KDT.mosi.domain.cart.request.CartFormRequest;
 import com.KDT.mosi.domain.cart.svc.CartSVC;
+import com.KDT.mosi.domain.entity.BuyerPage;
 import com.KDT.mosi.domain.entity.Member;
+import com.KDT.mosi.domain.mypage.buyer.svc.BuyerPageSVC;
 import com.KDT.mosi.web.api.ApiResponse;
 import com.KDT.mosi.web.api.ApiResponseCode;
 import jakarta.servlet.http.HttpSession;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
 
   private final CartSVC cartSVC;
+  private final BuyerPageSVC buyerPageSVC;
 
   /**
    * 장바구니 HTML 페이지 반환 (브라우저 직접 접근)
@@ -38,6 +41,10 @@ public class CartController {
 
     model.addAttribute("member", loginMember);
 
+    // ✅ buyerPage 조회해서 모델에 추가
+    BuyerPage buyerPage = buyerPageSVC.findByMemberId(loginMember.getMemberId())
+        .orElse(null);
+    model.addAttribute("buyerPage", buyerPage);
 
     return "cart/cart";
   }

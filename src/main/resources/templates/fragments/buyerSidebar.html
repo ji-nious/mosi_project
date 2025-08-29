@@ -9,9 +9,10 @@
     <div class="profile-box">
       <div class="profile-image">
         <!-- 분기 태그 2개 유지 -->
-        <img th:if="${member != null}" id="asideProfileImage"
-             th:src="@{/mypage/buyer/{id}/image(id=${member.memberId})}" alt="프로필 이미지">
-        <img th:unless="${member != null}" id="asideProfileImage"
+        <img th:if="${buyerPage != null and buyerPage.image != null}" id="asideProfileImage"
+             th:src="@{/mypage/buyer/{id}/image(id=${buyerPage.memberId})}" alt="프로필 이미지">
+
+        <img th:unless="${buyerPage != null and buyerPage.image != null}" id="asideProfileImage"
              th:src="@{/img/default-profile.png}" alt="기본 프로필">
       </div>
 
