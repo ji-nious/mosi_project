@@ -21,8 +21,7 @@
   <div class="page-container">
     <main class="mypage-container">
       <!-- 사이드바 -->
-      <aside th:replace="~{fragments/buyerSidebar :: buyerSidebar('order', ${member})}"></aside>
-
+      <div th:replace="fragments/buyerSidebar :: buyerSidebar"></div>
       <section class="content">
         <div class="order-page-header">
           <div class="order-title-breadcrumb">
