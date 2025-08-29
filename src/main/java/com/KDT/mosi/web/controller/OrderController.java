@@ -1,6 +1,7 @@
 package com.KDT.mosi.web.controller;
 
 import com.KDT.mosi.domain.entity.*;
+import com.KDT.mosi.domain.mypage.buyer.svc.BuyerPageSVC;
 import com.KDT.mosi.domain.mypage.seller.svc.SellerPageSVC;
 import com.KDT.mosi.domain.order.dto.OrderResponse;
 import com.KDT.mosi.domain.order.request.OrderFormRequest;
@@ -32,6 +33,7 @@ public class OrderController {
   private final ProductSVC productSVC;
   private final ProductImageSVC productImageSVC;
   private final SellerPageSVC sellerPageSVC;
+  private final BuyerPageSVC buyerPageSVC;
 
   /**
    * 주문서 HTML 페이지 반환
@@ -160,6 +162,10 @@ public class OrderController {
     // 주문 완료 시 주문 진행 상태 세션에서 제거
     session.removeAttribute("orderInProgress");
 
+    BuyerPage buyerPage = buyerPageSVC.findByMemberId(loginMember.getMemberId())
+        .orElse(null);
+    model.addAttribute("buyerPage", buyerPage);
+
     model.addAttribute("orderCode", orderCode);
     model.addAttribute("member", loginMember);
     return "order/order-complete";
@@ -210,6 +216,10 @@ public class OrderController {
       throw new IllegalStateException("로그인한 회원이 아닙니다.");
     }
     Long memberId = loginMember.getMemberId();
+
+    // ✅ buyerPage 조회 추가
+    BuyerPage buyerPage = buyerPageSVC.findByMemberId(memberId).orElse(null);
+    model.addAttribute("buyerPage", buyerPage);
 
     // page와 size를 서비스 메소드로 전달
     ApiResponse<List<OrderResponse>> orderHistoryResponse = orderSVC.getOrderHistory(memberId, page, size);

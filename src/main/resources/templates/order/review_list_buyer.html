@@ -19,8 +19,7 @@
   <header th:replace="~{fragments/Header :: Header}"></header>
   <div class="page-container">
     <main class="mypage-container">
-      <div th:replace="~{fragments/buyerSidebar :: buyerSidebar(activePath=${activePath}, member=${loginMember})}"></div>
-
+      <div th:replace="fragments/buyerSidebar :: buyerSidebar"></div>
       <section class="content">
         <div class="product-managing">
           <h2>내 주문 목록</h2>
