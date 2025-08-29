@@ -331,6 +331,7 @@ public class ReviewDAOImpl implements ReviewDAO{
     sql.append(" SELECT ");
     sql.append(" r.review_ID   AS review_id, ");
     sql.append(" r.PRODUCT_ID   AS product_id, ");
+    sql.append(" r.order_item_id as orderItemId, ");
     sql.append("     r.CONTENT      AS content, ");
     sql.append(" r.SCORE        AS score, ");
     sql.append("   NVL(t.ids, '') AS ids ");

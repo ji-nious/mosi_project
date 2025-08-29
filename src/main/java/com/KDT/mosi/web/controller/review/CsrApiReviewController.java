@@ -70,9 +70,9 @@ public class CsrApiReviewController {
         .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
 
     // 2) productId로 요약 정보 조회
-    ReviewProduct reviewProduct = reviewSVC.summaryFindByProductId(review.getProductId())
+    ReviewProduct reviewProduct = reviewSVC.summaryFindByProductId(review.getOrderItemId())
         .orElse(null);
-
+    log.info("reviewProductId={}",review.getProductId());
     log.info("reviewProduct={}",reviewProduct.getOptionType());
 
     model.addAttribute("review", review);
