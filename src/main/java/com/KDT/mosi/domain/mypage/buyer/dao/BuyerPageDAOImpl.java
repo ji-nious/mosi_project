@@ -90,6 +90,13 @@ public class BuyerPageDAOImpl implements BuyerPageDAO {
     return count != null && count > 0;
   }
 
+  @Override
+  public int updateNickname(Long memberId, String nickname) {
+    String sql = "UPDATE member SET nickname = :nickname WHERE member_id = :memberId";
+    Map<String, Object> params = Map.of("nickname", nickname, "memberId", memberId);
+    return template.update(sql, params);
+  }
+
 
   // 회원 ID로 조회
   @Override

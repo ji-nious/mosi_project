@@ -74,7 +74,7 @@ public class SellerPageController {
     SellerPage sellerPage = optional.get();
 
     // ✅ 상품 목록 (엔티티)
-    List<Product> products = productSVC.getProductsByMemberIdAndPage(loginMember.getMemberId(), 1, 5);
+    List<Product> products = productSVC.getProductsByMemberIdAndPage(loginMember.getMemberId(), 1, 3);
     long totalCount = productSVC.countByMemberId(loginMember.getMemberId());
 
     // ✅ Product → DTO 변환

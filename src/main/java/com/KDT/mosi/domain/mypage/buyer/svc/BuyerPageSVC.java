@@ -52,4 +52,11 @@ public interface BuyerPageSVC {
    */
   Long saveOrUpdate(BuyerPage buyerPage);
 
+  /**
+   * 닉네임 존재 여부 확인 (BuyerPage 기준)
+   * @param nickname 닉네임
+   * @return true = 존재함, false = 없음
+   */
+  boolean existsByNickname(String nickname);
+
 }

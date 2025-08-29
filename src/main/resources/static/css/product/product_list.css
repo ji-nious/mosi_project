@@ -551,14 +551,14 @@ input[type="radio"]:checked+.radio-img {
 .s-price {
   font-size: 24px;
   font-weight: 700;
-  color: #414141;
+  color: #0099AD;
   margin: 0 0 4px 0;
 }
 
 .n-price {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
-  color: #0099AD;
+  color: #414141;
   margin: 0 0 4px 0;
 }
 

@@ -174,6 +174,9 @@ public class ProductController {
     }
     Long memberId = loginMember.getMemberId();
 
+    sellerPageSVC.findByMemberId(memberId)
+        .ifPresent(sp -> model.addAttribute("sellerPage", sp));
+
     // status 값은 판매중 또는 판매대기로 반드시 들어온다고 가정
     List<Product> products;
     long totalCount;
@@ -324,6 +327,9 @@ public class ProductController {
 
     Long memberId = loginMember.getMemberId();
 
+    sellerPageSVC.findByMemberId(memberId)
+        .ifPresent(sp -> model.addAttribute("sellerPage", sp));
+
     Optional<SellerPage> optional = sellerPageSVC.findByMemberId(memberId);
     if (optional.isEmpty()) {
       return "redirect:/mypage/seller/create";
@@ -400,6 +406,8 @@ public class ProductController {
       throw new IllegalStateException("상품 등록 후 productId가 없습니다.");
     }
 
+
+
     // 다중 이미지 저장
     List<ProductImage> images = new ArrayList<>();
     int order = 1;
@@ -452,6 +460,9 @@ public class ProductController {
     }
 
     Long memberId = loginMember.getMemberId();
+
+    sellerPageSVC.findByMemberId(memberId)
+        .ifPresent(sp -> model.addAttribute("sellerPage", sp));
 
     Product product = productSVC.getProduct(id).orElseThrow(() -> new IllegalArgumentException("없는 상품입니다."));
     if (product.getMember() == null || !product.getMember().getMemberId().equals(loginMember.getMemberId())) {
@@ -521,10 +532,11 @@ public class ProductController {
         new IllegalArgumentException("상품을 찾을 수 없습니다."));
 
     // form의 Product 사용
-    Product product = form.getProduct();
+    Product product = toEntity(form);
     product.setProductId(id);
     product.setUpdateDate(new Date(System.currentTimeMillis()));
     product.setMember(loginMember);
+
 
     // 새로운 문서 파일이 업로드된 경우에만 파일 정보 업데이트
     MultipartFile docFile = form.getDocumentFile();
@@ -541,8 +553,13 @@ public class ProductController {
       product.setFileData(existingProduct.getFileData());
     }
 
-    // status가 null이면 기존 값 유지
-    if (product.getStatus() == null || product.getStatus().trim().isEmpty()) {
+    // ⭐⭐ 수정된 부분: 상태 변경 로직
+    // 폼 제출 시 항상 '판매중'으로 변경 (임시저장 상태에서 등록하는 경우)
+    // 혹은, 폼에 숨겨진 입력 필드를 통해 명확한 상태를 전달하는 방법도 있습니다.
+    // 현재 코드의 로직을 따르면 아래와 같이 수정하는 것이 가장 간단합니다.
+    if ("임시저장".equals(existingProduct.getStatus())) {
+      product.setStatus("판매중");
+    } else {
       product.setStatus(existingProduct.getStatus());
     }
 
@@ -643,6 +660,9 @@ public class ProductController {
     }
     Long buyerId = loginMember.getMemberId();
 
+    sellerPageSVC.findByMemberId(loginMember.getMemberId())
+        .ifPresent(sp -> model.addAttribute("sellerPage", sp));
+
     // 2) 상품 조회, 없으면 예외 처리
     Product product = productSVC.getProduct(id)
         .orElseThrow(() -> new IllegalArgumentException("상품이 없습니다."));
@@ -685,6 +705,16 @@ public class ProductController {
     // 판매자 상품 수
     productDetailForm.setCountProduct(productSVC.countByMemberId(sellerId));
 
+    // ⭐⭐ 가격 설명 줄바꿈 → 리스트 변환 ⭐⭐
+    if (product.getPriceDetail() != null) {
+      List<String> priceDetailList = Arrays.asList(product.getPriceDetail().split("\\r?\\n"));
+      model.addAttribute("priceDetailList", priceDetailList);
+    }
+    if (product.getGpriceDetail() != null) {
+      List<String> gpriceDetailList = Arrays.asList(product.getGpriceDetail().split("\\r?\\n"));
+      model.addAttribute("gpriceDetailList", gpriceDetailList);
+    }
+
     // 6) model에 DTO 등록
     model.addAttribute("productDetailForm", productDetailForm);
     model.addAttribute("product", product);
@@ -698,11 +728,54 @@ public class ProductController {
     return "product/product_detail";
   }
 
-  // DTO -> Entity 변환 메서드
+  // DTO -> Entity 변환 메서드 (수정용)
+  private Product toEntity(ProductUpdateForm form) throws IOException {
+    Product product = new Product();
+
+    Member member = new Member();
+    if (form.getProduct() != null && form.getProduct().getMember() != null) {
+      member.setMemberId(form.getProduct().getMember().getMemberId());
+    }
+    product.setMember(member);
+
+    product.setCategory(form.getProduct().getCategory());
+    product.setTitle(form.getProduct().getTitle());
+    product.setGuideYn(form.getProduct().getGuideYn());
+    product.setNormalPrice(form.getProduct().getNormalPrice());
+    product.setGuidePrice(form.getProduct().getGuidePrice());
+    product.setSalesPrice(form.getProduct().getSalesPrice());
+    product.setSalesGuidePrice(form.getProduct().getSalesGuidePrice());
+    product.setTotalDay(form.getProduct().getTotalDay());
+    product.setTotalTime(form.getProduct().getTotalTime());
+    product.setReqMoney(form.getProduct().getReqMoney());
+    product.setSleepInfo(form.getProduct().getSleepInfo());
+    product.setTransportInfo(form.getProduct().getTransportInfo());
+    product.setFoodInfo(form.getProduct().getFoodInfo());
+    product.setReqPeople(form.getProduct().getReqPeople());
+    product.setTarget(form.getProduct().getTarget());
+    product.setStucks(form.getProduct().getStucks());
+    product.setDescription(form.getProduct().getDescription());
+    product.setDetail(form.getProduct().getDetail());
+
+    // ⭐ 개행 처리
+    if (form.getProduct().getPriceDetail() != null) {
+      product.setPriceDetail(form.getProduct().getPriceDetail().replaceAll("\r\n", "\n"));
+    }
+    if (form.getProduct().getGpriceDetail() != null) {
+      product.setGpriceDetail(form.getProduct().getGpriceDetail().replaceAll("\r\n", "\n"));
+    }
+
+    product.setStatus(form.getProduct().getStatus());
+
+    return product;
+  }
+
+
+  // DTO -> Entity 변환 메서드 (업로드용)
   private Product toEntity(ProductUploadForm form) throws IOException {
     Product product = new Product();
 
-    // Member 객체 생성 후 세팅
+    // Member 설정
     Member member = new Member();
     member.setMemberId(form.getMemberId());
     product.setMember(member);
@@ -725,8 +798,16 @@ public class ProductController {
     product.setStucks(form.getStucks());
     product.setDescription(form.getDescription());
     product.setDetail(form.getDetail());
-    product.setPriceDetail(form.getPriceDetail());
-    product.setGpriceDetail(form.getGpriceDetail());
+
+    // ⭐ 개행 처리
+    if (form.getPriceDetail() != null) {
+      product.setPriceDetail(form.getPriceDetail().replaceAll("\r\n", "\n"));
+    }
+    if (form.getGpriceDetail() != null) {
+      product.setGpriceDetail(form.getGpriceDetail().replaceAll("\r\n", "\n"));
+    }
+
+    // 상태값 기본 처리
     product.setStatus(
         (form.getStatus() == null || form.getStatus().isBlank()) ? "판매중" : form.getStatus()
     );
@@ -743,34 +824,6 @@ public class ProductController {
     return product;
   }
 
-  // Entity -> DTO 변환 메서드
-  private ProductUploadForm toForm(Product product) {
-    ProductUploadForm form = new ProductUploadForm();
-
-    form.setMemberId(product.getMember() != null ? product.getMember().getMemberId() : null);
-    form.setCategory(product.getCategory());
-    form.setTitle(product.getTitle());
-    form.setGuideYn(product.getGuideYn());
-    form.setNormalPrice(product.getNormalPrice());
-    form.setGuidePrice(product.getGuidePrice());
-    form.setSalesPrice(product.getSalesPrice());
-    form.setSalesGuidePrice(product.getSalesGuidePrice());
-    form.setTotalDay(product.getTotalDay());
-    form.setTotalTime(product.getTotalTime());
-    form.setReqMoney(product.getReqMoney());
-    form.setSleepInfo(product.getSleepInfo());
-    form.setTransportInfo(product.getTransportInfo());
-    form.setFoodInfo(product.getFoodInfo());
-    form.setReqPeople(product.getReqPeople());
-    form.setTarget(product.getTarget());
-    form.setStucks(product.getStucks());
-    form.setDescription(product.getDescription());
-    form.setDetail(product.getDetail());
-    form.setPriceDetail(product.getPriceDetail());
-    form.setGpriceDetail(product.getGpriceDetail());
-    form.setStatus(product.getStatus());
-    return form;
-  }
 
   // 파일 다운로드
   @GetMapping("/download/product/{productId}")

@@ -160,8 +160,15 @@ public class ProductSVCImpl implements ProductSVC {
     product.setStucks(form.getStucks());
     product.setDescription(form.getDescription());
     product.setDetail(form.getDetail());
-    product.setPriceDetail(form.getPriceDetail());
-    product.setGpriceDetail(form.getGpriceDetail());
+
+    // 줄바꿈 정규화 (\r\n → \n)
+    if (form.getPriceDetail() != null) {
+      product.setPriceDetail(form.getPriceDetail().replaceAll("\r\n", "\n"));
+    }
+    if (form.getGpriceDetail() != null) {
+      product.setGpriceDetail(form.getGpriceDetail().replaceAll("\r\n", "\n"));
+    }
+
 
     // 3. 파일 처리
     if (form.getDocumentFile() != null && !form.getDocumentFile().isEmpty()) {
