@@ -150,11 +150,11 @@ public class ApiBbsUploadController {
   }
 
   /**
-   * 게시글의 첫 번째 본문 이미지(썸네일) 반환
+   * 게시글의 첫 번째 본문 이미지(썸네일) 반환  "ATTACHMENT" or "INLINE"
    */
   @GetMapping("/{bbsId}/thumbnail")
   public ResponseEntity<ApiResponse<UploadResult>> getThumbnail(@PathVariable("bbsId") Long bbsId) {
-    return bbsUploadSVC.findThumbnail(bbsId, "ATTACHMENT")
+    return bbsUploadSVC.findThumbnail(bbsId, "INLINE")
         .map(th -> ResponseEntity.ok(ApiResponse.of(ApiResponseCode.SUCCESS, th)))
         .orElseGet(() -> ResponseEntity.ok(ApiResponse.of(ApiResponseCode.NO_DATA, null)));
   }
