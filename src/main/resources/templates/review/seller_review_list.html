@@ -25,15 +25,21 @@
   <div class="page-container">
     <main class="mypage-container">
       <th:block th:switch="${session.loginRole ?: 'BUYER'}">
+
+        <!-- 판매자 -->
         <aside th:case="'SELLER'"
                th:replace="~{fragments/sellerSidebar ::
-           sellerSidebar(activePath=${'/members/password'}, sp=${sellerPage} ?: null)}">
+             sellerSidebar(activePath=${'/review/seller/list'}, sp=${sellerPage} ?: null)}">
         </aside>
+
+        <!-- 구매자 (기본) -->
         <aside th:case="*"
                th:replace="~{fragments/buyerSidebar ::
-           buyerSidebar(activePath=${'/members/password'}, member=${member ?: session.loginMember})}">
+             buyerSidebar(activePath=${'/review/buyer/list'}, member=${member ?: session.loginMember})}">
         </aside>
+
       </th:block>
+
 
       <section class="content">
         <div class="review_list">
