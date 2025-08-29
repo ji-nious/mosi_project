@@ -12,6 +12,7 @@ import lombok.Setter;
 public class ReviewEdit {
   private Long reviewId;
   private Long productId;
+  private Long orderItemId;
   private String content;
   private double score;
   private String ids;
